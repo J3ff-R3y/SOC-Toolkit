@@ -1,0 +1,2200 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jeffrey Toolkit v1.0 — SOC Intelligence Suite</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Claude.ai color scheme */
+  --bg-primary: #F3F0EB;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #F9F7F4;
+  --bg-hover: #EDE9E3;
+  --border: #E0DDD7;
+  --border-light: #D1CCC4;
+  
+  --accent: #75361D;
+  --accent-hover: #5A2816;
+  --accent-light: #E8C4A8;
+  --accent-dim: rgba(117, 54, 29, 0.08);
+  
+  --text-primary: #1A1815;
+  --text-secondary: #5A554E;
+  --text-dim: #7A756D;
+  
+  --success: #16a34a;
+  --warning: #75361D;
+  --error: #C43030;
+  
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* HEADER */
+header {
+  position: relative;
+  z-index: 100;
+  padding: 12px 20px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  box-shadow: var(--shadow-sm);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 14px;
+  color: white;
+  box-shadow: var(--shadow-md);
+}
+
+.logo-text h1 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.logo-text p {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-size: 16px;
+}
+
+.icon-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+
+/* MAIN APP */
+.app {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 280px;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  max-height: calc(100vh - 60px);
+}
+
+.sidebar-section {
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 8px 0;
+  margin-bottom: 12px;
+  user-select: none;
+}
+
+.section-header:hover .section-toggle {
+  color: var(--text-primary);
+}
+
+.section-header .section-label {
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.section-toggle {
+  font-size: 14px;
+  color: var(--text-dim);
+  transition: transform 0.2s, color 0.2s;
+}
+
+.section-header.collapsed .section-toggle {
+  transform: rotate(-90deg);
+}
+
+.section-content {
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  max-height: 2000px;
+  opacity: 1;
+}
+
+.section-content.collapsed {
+  max-height: 0;
+  opacity: 0;
+  margin-bottom: 0;
+}
+
+.menu-item {
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.menu-item:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-light);
+}
+
+.menu-item.active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
+.menu-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu-icon {
+  font-size: 16px;
+}
+
+.menu-arrow {
+  font-size: 12px;
+  color: var(--text-dim);
+  transition: transform 0.2s;
+}
+
+.menu-item.expanded .menu-arrow {
+  transform: rotate(90deg);
+}
+
+.submenu {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  padding-left: 8px;
+  margin-top: 0;
+}
+
+.submenu.show {
+  max-height: 800px;
+  margin-top: 6px;
+}
+
+.platform-card {
+  padding: 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.platform-card:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent-light);
+}
+
+.platform-card.active {
+  background: var(--accent-light);
+  border-color: var(--accent);
+}
+
+.platform-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.platform-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* CHAT HISTORY */
+.chat-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.chat-history-item {
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  animation: fadeInSlide 0.2s ease-out;
+}
+
+@keyframes fadeInSlide {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.chat-history-item:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-light);
+}
+
+.chat-history-item.active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
+.chat-history-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-history-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 4px;
+}
+
+.chat-history-meta {
+  font-size: 11px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chat-history-delete {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.chat-history-delete:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  transform: scale(1.1);
+}
+
+.chat-history-empty {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 13px;
+}
+
+.new-chat-btn {
+  width: 100%;
+  padding: 10px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+
+.new-chat-btn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+/* CHAT AREA */
+.chat-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+  overflow: hidden;
+}
+
+.chat-header {
+  padding: 16px 20px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chat-pill {
+  padding: 6px 12px;
+  background: var(--accent-light);
+  border: 1px solid var(--accent);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-hover);
+}
+
+.chat-status {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.chat-timing {
+  margin-left: 12px;
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 600;
+  cursor: help;
+}
+
+.disclaimer {
+  background: rgba(234, 179, 8, 0.1);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin: 24px auto;
+  max-width: 500px;
+  text-align: center;
+}
+
+.disclaimer p {
+  margin: 6px 0;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.disclaimer strong {
+  color: var(--accent);
+}
+
+.chat-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.welcome {
+  max-width: 600px;
+  margin: 60px auto;
+  text-align: center;
+}
+
+.welcome h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.welcome p {
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.feature-item {
+  padding: 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  text-align: left;
+  box-shadow: var(--shadow-sm);
+}
+
+.feature-item strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.feature-item span {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.message {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 12px;
+}
+
+.message-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.message.user .message-avatar {
+  background: var(--accent-light);
+  color: var(--accent-hover);
+}
+
+.message.assistant .message-avatar {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.message-content {
+  flex: 1;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.message.user .message-content {
+  background: var(--accent-dim);
+  border-color: var(--accent-light);
+}
+
+/* CODE BLOCKS IN MESSAGES */
+.message-content pre {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  margin: 8px 0;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.message-content code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: rgba(0, 0, 0, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.message-content pre code {
+  background: none;
+  padding: 0;
+}
+
+
+.typing {
+  display: flex;
+  gap: 4px;
+  padding: 12px;
+}
+
+.typing-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--text-dim);
+  border-radius: 50%;
+  animation: typing 1.4s infinite;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%, 60%, 100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-10px);
+  }
+}
+
+/* INPUT AREA */
+.input-container {
+  padding: 16px 20px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+}
+
+.input-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.input-field {
+  flex: 1;
+  padding: 12px 16px;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 15px;
+  font-family: var(--font-sans);
+  resize: none;
+  min-height: 72px;
+  max-height: 200px;
+  transition: all 0.2s;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--bg-secondary);
+}
+
+.send-btn {
+  width: 44px;
+  height: 44px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.send-btn:hover {
+  background: var(--accent-hover);
+}
+
+.send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* NOTIFICATION */
+.notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  background: var(--text-primary);
+  color: white;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.3s;
+  z-index: 1000;
+}
+
+.notification.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.notification.error {
+  background: var(--error);
+}
+
+/* FORMS */
+.form-container {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 24px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  display: none;
+}
+
+.form-container.show {
+  display: block;
+}
+
+.form-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.form-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-tertiary);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: var(--font-sans);
+  transition: all 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--bg-secondary);
+}
+
+.form-textarea {
+  min-height: 150px;
+  resize: vertical;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.form-checkboxes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.form-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  background: var(--bg-tertiary);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.form-checkbox:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent-light);
+}
+
+.form-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.form-checkbox label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  flex: 1;
+}
+
+.form-btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-sans);
+}
+
+.form-btn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.form-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* LOGIN SCREEN */
+.login-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.login-screen.hidden {
+  display: none;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 400px;
+  padding: 40px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.login-logo {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 24px;
+  background: var(--accent);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+  color: white;
+}
+
+.login-title {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.login-subtitle {
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 32px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.login-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-tertiary);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: var(--font-sans);
+  transition: all 0.2s;
+}
+
+.login-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--bg-secondary);
+}
+
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-sans);
+}
+
+.login-btn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.login-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.login-error {
+  padding: 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-md);
+  color: #ef4444;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 16px;
+  display: none;
+}
+
+.login-error.show {
+  display: block;
+}
+
+.main-app {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.main-app.visible {
+  display: flex;
+}
+</style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">JT</div>
+    <h1 class="login-title">Jeffrey Toolkit</h1>
+    <p class="login-subtitle">SOC Intelligence Suite v1.0 — Qwen 3.5 27B</p>
+    
+    <form class="login-form" id="loginForm">
+      <input 
+        type="text" 
+        class="login-input" 
+        id="username" 
+        placeholder="Username"
+        autocomplete="username"
+        required
+      >
+      <input 
+        type="password" 
+        class="login-input" 
+        id="password" 
+        placeholder="Password"
+        autocomplete="current-password"
+        required
+      >
+      <button type="submit" class="login-btn" id="loginButton">Inloggen</button>
+    </form>
+    
+    <div class="login-error" id="loginError">
+      Ongeldige gebruikersnaam of wachtwoord
+    </div>
+  </div>
+</div>
+
+<!-- Main App -->
+<div class="main-app" id="mainApp">
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">JT</div>
+    <div class="logo-text">
+      <h1>Jeffrey Toolkit</h1>
+      <p>SOC Intelligence Suite — v1.0</p>
+    </div>
+  </div>
+  <div class="header-actions">
+    <div class="status-badge">
+      <span class="status-dot"></span>
+      <span id="chatStatus">Klaar</span>
+    </div>
+    <button class="icon-btn" onclick="clearChat()" title="Nieuw gesprek">🗑️</button>
+    <button class="icon-btn" onclick="logout()" title="Uitloggen">🚪</button>
+  </div>
+</header>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="section-header" onclick="toggleSection('tools')">
+        <div class="section-label">🔧 Tools</div>
+        <div class="section-toggle">▼</div>
+      </div>
+      
+      <div class="section-content" id="section-tools">
+      <div class="menu-item active" id="menu-universal" onclick="toggleMenu('universal')">
+        <div class="menu-label">
+          <span class="menu-icon">🌐</span>
+          <span>Universal</span>
+        </div>
+      </div>
+
+      <div class="menu-item" id="menu-siem" onclick="toggleMenu('siem')">
+        <div class="menu-label">
+          <span class="menu-icon">🔍</span>
+          <span>SIEM</span>
+        </div>
+        <span class="menu-arrow">▶</span>
+      </div>
+      <div class="submenu" id="sub-siem">
+        <div class="platform-card active" onclick="selectSIEM('Splunk')">
+          <div class="platform-icon" style="background:#16a34a;color:white">🟢</div>
+          <div class="platform-name">Splunk</div>
+        </div>
+        <div class="platform-card" onclick="selectSIEM('Microsoft Sentinel')">
+          <div class="platform-icon" style="background:#3b82f6;color:white">🔵</div>
+          <div class="platform-name">Microsoft Sentinel</div>
+        </div>
+        <div class="platform-card" onclick="selectSIEM('Elastic')">
+          <div class="platform-icon" style="background:#eab308;color:white">🟡</div>
+          <div class="platform-name">Elastic</div>
+        </div>
+      </div>
+
+      <div class="menu-item" id="menu-soar" onclick="toggleMenu('soar')">
+        <div class="menu-label">
+          <span class="menu-icon">📋</span>
+          <span>SOAR</span>
+        </div>
+      </div>
+
+      <div class="menu-item" id="menu-cribl" onclick="toggleMenu('cribl')">
+        <div class="menu-label">
+          <span class="menu-icon">🔧</span>
+          <span>Cribl Pipeline</span>
+        </div>
+      </div>
+
+      <div class="menu-item" id="menu-sigma" onclick="toggleMenu('sigma')">
+        <div class="menu-label">
+          <span class="menu-icon">Σ</span>
+          <span>Sigma</span>
+        </div>
+        <span class="menu-arrow">▶</span>
+      </div>
+      <div class="submenu" id="sub-sigma">
+        <div class="platform-card active" onclick="selectSigma('Splunk')">
+          <div class="platform-icon" style="background:#16a34a;color:white">🟢</div>
+          <div class="platform-name">Splunk</div>
+        </div>
+        <div class="platform-card" onclick="selectSigma('Sentinel')">
+          <div class="platform-icon" style="background:#3b82f6;color:white">🔵</div>
+          <div class="platform-name">Sentinel</div>
+        </div>
+        <div class="platform-card" onclick="selectSigma('Elastic')">
+          <div class="platform-icon" style="background:#eab308;color:white">🟡</div>
+          <div class="platform-name">Elastic</div>
+        </div>
+      </div>
+
+      <div class="menu-item" id="menu-network" onclick="toggleMenu('network')">
+        <div class="menu-label">
+          <span class="menu-icon">🌐</span>
+          <span>Network Detection</span>
+        </div>
+        <span class="menu-arrow">▶</span>
+      </div>
+      <div class="submenu" id="sub-network">
+        <div class="platform-card" onclick="selectNetwork('suricata')">
+          <div class="platform-icon" style="background:#dc2626;color:white">🔴</div>
+          <div class="platform-name">Suricata Rules</div>
+        </div>
+        <div class="platform-card" onclick="selectNetwork('zeek')">
+          <div class="platform-icon" style="background:#16a34a;color:white">🟢</div>
+          <div class="platform-name">Zeek Scripts</div>
+        </div>
+      </div>
+
+      <div class="menu-item" id="menu-kickstart" onclick="toggleMenu('kickstart')">
+        <div class="menu-label">
+          <span class="menu-icon">🏢</span>
+          <span>SOC Kickstart</span>
+        </div>
+      </div>
+      </div><!-- End section-content -->
+    </div>
+
+    <div class="sidebar-section">
+      <div class="section-header" onclick="toggleSection('history')">
+        <div class="section-label">💬 Recent Chats</div>
+        <div class="section-toggle">▼</div>
+      </div>
+      
+      <div class="section-content" id="section-history">
+        <button class="new-chat-btn" onclick="newChat()">+ Nieuwe Chat</button>
+        <div class="chat-history-list" id="chatHistoryList">
+          <div class="chat-history-empty">Nog geen chats opgeslagen</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="section-label">Taal / Language</div>
+      <div class="menu-item">
+        <div class="menu-label">
+          <span class="menu-icon">🇳🇱</span>
+          <span>Nederlands</span>
+        </div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-label">
+          <span class="menu-icon">🇬🇧</span>
+          <span>English</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="chat-container">
+    <div class="chat-header">
+      <div class="chat-pill" id="currentPill">Universal</div>
+      <span class="chat-status">Qwen 3.5 27B Q8</span>
+      <span class="chat-timing" title="Qwen 3.5 27B draait op CPU/RAM — responses kunnen even duren">⏱️ 15-60 sec</span>
+    </div>
+
+    <div class="chat-area" id="chatArea">
+      <div class="welcome" id="welcome">
+        <h2>👋 Welkom bij Jeffrey Toolkit</h2>
+        <p>Jouw AI-assistent voor SOC operations, detection engineering en security automation.</p>
+        
+        <div class="disclaimer">
+          <p><strong>⏱️ Let op:</strong> Responses kunnen 15-60 seconden duren (Qwen 3.5 27B op CPU).</p>
+          <p>Het model draait volledig offline op CPU/RAM voor maximale veiligheid.</p>
+        </div>
+        
+        <div class="feature-grid">
+          <div class="feature-item">
+            <strong>🔍 SIEM Queries</strong>
+            <span>Splunk, Sentinel, Elastic</span>
+          </div>
+          <div class="feature-item">
+            <strong>📋 SOAR Playbooks</strong>
+            <span>Automated response workflows</span>
+          </div>
+          <div class="feature-item">
+            <strong>🌐 Network Detection</strong>
+            <span>Suricata & Zeek rules</span>
+          </div>
+          <div class="feature-item">
+            <strong>🏢 SOC Kickstart</strong>
+            <span>Threat model + detection + monitoring</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Cribl Pipeline Form -->
+      <div class="form-container" id="criblForm">
+        <h2 class="form-title">🔧 Cribl Pipeline Builder</h2>
+        <p class="form-subtitle">Genereer complete Cribl Stream pipelines met jouw TELL patronen</p>
+        
+        <div class="form-group">
+          <label class="form-label">Pipeline ID</label>
+          <input type="text" class="form-input" id="criblPipelineId" placeholder="bijv. windows_security_parser">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Sample Log (plak ruwe log)</label>
+          <textarea class="form-input form-textarea" id="criblSampleLog" placeholder="Plak hier een ruwe log entry..."></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Velden om te Extracten (komma gescheiden)</label>
+          <input type="text" class="form-input" id="criblFields" placeholder="bijv. EventID, User, ProcessName">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Benodigde Acties</label>
+          <div class="form-checkboxes">
+            <div class="form-checkbox">
+              <input type="checkbox" id="criblMeta" checked>
+              <label for="criblMeta">Metadata toevoegen (tenant, index)</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="criblDrop">
+              <label for="criblDrop">Events filteren (drop)</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="criblLookup">
+              <label for="criblLookup">Lookup verrijking</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="criblRegex">
+              <label for="criblRegex">Regex parsing</label>
+            </div>
+          </div>
+        </div>
+        
+        <button class="form-btn" onclick="generateCribl()">Genereer Pipeline</button>
+      </div>
+      
+      <!-- Sigma Form -->
+      <div class="form-container" id="sigmaForm">
+        <h2 class="form-title">Σ Sigma Rule Converter</h2>
+        <p class="form-subtitle">Converteer Sigma rules naar platform-specifieke detection rules</p>
+        
+        <div class="form-group">
+          <label class="form-label">Sigma Rule (YAML)</label>
+          <textarea class="form-input form-textarea" id="sigmaYaml" placeholder="Plak hier je Sigma YAML regel..." style="min-height:250px"></textarea>
+        </div>
+        
+        <button class="form-btn" onclick="generateSigma()">Converteer naar <span id="sigmaTarget">Splunk</span></button>
+      </div>
+      
+      <!-- SOC Kickstart Form -->
+      <div class="form-container" id="kickstartForm">
+        <h2 class="form-title">🏢 SOC Kickstart</h2>
+        <p class="form-subtitle">Complete onboarding: threat model, log requirements, detection rules, monitoring & security checklist</p>
+        
+        <div class="form-group">
+          <label class="form-label">Applicatie / Project Naam</label>
+          <input type="text" class="form-input" id="entAppName" placeholder="bijv. SAP, Veeam, Customer Portal, HR System">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Beschrijving</label>
+          <textarea class="form-input" id="entDesc" placeholder="Beschrijf de applicatie, het doel, en de architectuur..." style="min-height:100px; resize:vertical;"></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <input type="text" class="form-input" id="entType" placeholder="bijv. Web App, Database, Infrastructure, SaaS, On-Premise">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Kriticaliteit</label>
+          <input type="text" class="form-input" id="entCrit" placeholder="bijv. Critical, High, Medium, Low">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Assets & Data Types</label>
+          <input type="text" class="form-input" id="entAssets" placeholder="bijv. PII, financiële data, API keys, klantgegevens">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Gewenste output</label>
+          <div class="form-checkboxes">
+            <div class="form-checkbox">
+              <input type="checkbox" id="entStride" checked>
+              <label for="entStride">STRIDE Threat Model</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="entLogs" checked>
+              <label for="entLogs">Benodigde logs</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="entDetection" checked>
+              <label for="entDetection">Detection rules (SIEM + Network)</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="entMonitoring" checked>
+              <label for="entMonitoring">Monitoring queries</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="entAttackTree">
+              <label for="entAttackTree">Attack trees</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="entChecklist" checked>
+              <label for="entChecklist">Security checklist</label>
+            </div>
+          </div>
+        </div>
+        
+        <button class="form-btn" onclick="generateKickstart()">🚀 Genereer SOC Kickstart Package</button>
+      </div>
+    </div>
+
+    <div class="input-container">
+      <div class="input-wrapper">
+        <textarea 
+          class="input-field" 
+          id="inputField" 
+          placeholder="Stel je vraag aan Jeffrey..."
+          rows="1"
+        ></textarea>
+        <button class="send-btn" id="sendBtn">➤</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="notification" id="notification"></div>
+
+
+<script>
+// STATE MANAGEMENT
+const STATE = {
+  tab: 'universal',
+  siem: 'Splunk',
+  soar: 'Splunk SOAR',
+  lang: 'nl',
+  conv: [],
+  convertFrom: 'SPL',
+  convertTo: 'KQL',
+  sigmaPlatform: 'Splunk',
+  currentChatId: null
+};
+
+// CHAT HISTORY MANAGEMENT
+const MAX_CHATS = 10;
+
+function loadChatHistory() {
+  const history = localStorage.getItem('jeffrey_chat_history');
+  return history ? JSON.parse(history) : [];
+}
+
+function saveChatHistory(chats) {
+  localStorage.setItem('jeffrey_chat_history', JSON.stringify(chats));
+}
+
+function saveCurrentChat() {
+  if (STATE.conv.length === 0) return;
+  
+  const chats = loadChatHistory();
+  const now = new Date();
+  
+  // Generate title from first user message
+  const firstUserMsg = STATE.conv.find(msg => msg.role === 'user');
+  const title = firstUserMsg ? firstUserMsg.content.substring(0, 50) : 'Nieuwe chat';
+  
+  const chatData = {
+    id: STATE.currentChatId || Date.now().toString(),
+    title: title,
+    timestamp: now.toISOString(),
+    conversation: [...STATE.conv],
+    tab: STATE.tab,
+    siem: STATE.siem,
+    soar: STATE.soar
+  };
+  
+  // Update existing or add new
+  const existingIndex = chats.findIndex(c => c.id === chatData.id);
+  if (existingIndex >= 0) {
+    chats[existingIndex] = chatData;
+  } else {
+    chats.unshift(chatData);
+    // Keep only last MAX_CHATS
+    if (chats.length > MAX_CHATS) {
+      chats.pop();
+    }
+  }
+  
+  STATE.currentChatId = chatData.id;
+  saveChatHistory(chats);
+  renderChatHistory();
+}
+
+function loadChat(chatId) {
+  const chats = loadChatHistory();
+  const chat = chats.find(c => c.id === chatId);
+  
+  if (!chat) return;
+  
+  // Don't reload if already current
+  if (STATE.currentChatId === chatId) return;
+  
+  // Visual feedback
+  document.getElementById('chatStatus').textContent = 'Chat laden...';
+  
+  // Restore conversation
+  STATE.conv = [...chat.conversation];
+  STATE.currentChatId = chat.id;
+  STATE.tab = chat.tab || 'universal';
+  STATE.siem = chat.siem || 'Splunk';
+  STATE.soar = chat.soar || 'Splunk SOAR';
+  
+  // Update UI
+  updatePills();
+  renderConversation();
+  renderChatHistory(); // Update active state
+  
+  // Reset status
+  setTimeout(() => {
+    document.getElementById('chatStatus').textContent = 'Klaar';
+  }, 300);
+  
+  // Show notification
+  showNotification('Chat hersteld', false);
+}
+
+function deleteChat(chatId) {
+  event.stopPropagation();
+  
+  // Confirmation dialog
+  const chats = loadChatHistory();
+  const chat = chats.find(c => c.id === chatId);
+  
+  if (!chat) return;
+  
+  // Simple confirm for now - can be made prettier later
+  if (!confirm(`Chat verwijderen?\n\n"${chat.title}"\n\nDeze actie kan niet ongedaan gemaakt worden.`)) {
+    return;
+  }
+  
+  const filtered = chats.filter(c => c.id !== chatId);
+  saveChatHistory(filtered);
+  
+  // If deleting current chat, clear it
+  if (STATE.currentChatId === chatId) {
+    newChat();
+  } else {
+    renderChatHistory();
+  }
+  
+  // Show brief notification
+  showNotification('Chat verwijderd', false);
+}
+
+function newChat() {
+  STATE.conv = [];
+  STATE.currentChatId = null;
+  clearChat();
+  renderChatHistory();
+}
+
+function renderChatHistory() {
+  const container = document.getElementById('chatHistoryList');
+  const chats = loadChatHistory();
+  
+  if (chats.length === 0) {
+    container.innerHTML = '<div class="chat-history-empty">Nog geen chats opgeslagen</div>';
+    return;
+  }
+  
+  container.innerHTML = chats.map(chat => {
+    const date = new Date(chat.timestamp);
+    const timeStr = date.toLocaleString('nl-NL', { 
+      day: '2-digit', 
+      month: 'short', 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+    
+    const isActive = chat.id === STATE.currentChatId;
+    
+    return `
+      <div class="chat-history-item ${isActive ? 'active' : ''}" onclick="loadChat('${chat.id}')">
+        <div class="chat-history-content">
+          <div class="chat-history-title">${chat.title}</div>
+          <div class="chat-history-meta">
+            <span>📅 ${timeStr}</span>
+            <span>•</span>
+            <span>${chat.conversation.length} msgs</span>
+          </div>
+        </div>
+        <button class="chat-history-delete" onclick="deleteChat('${chat.id}')" title="Verwijder chat">
+          🗑️
+        </button>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderConversation() {
+  const chatArea = document.getElementById('chatArea');
+  
+  // Remove welcome message
+  const welcome = document.getElementById('welcome');
+  if (welcome) welcome.remove();
+  
+  // Clear and re-render all messages
+  const messages = chatArea.querySelectorAll('.message');
+  messages.forEach(el => el.remove());
+  
+  STATE.conv.forEach(msg => {
+    const div = document.createElement('div');
+    div.className = `message ${msg.role}`;
+    
+    const avatar = document.createElement('div');
+    avatar.className = 'message-avatar';
+    avatar.textContent = msg.role === 'user' ? 'U' : 'J';
+    
+    const content = document.createElement('div');
+    content.className = 'message-content';
+    
+    // Format code blocks
+    let formattedContent = msg.content
+      .replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+        return `<pre><code class="language-${lang || 'plaintext'}">${code.trim()}</code></pre>`;
+      });
+    
+    content.innerHTML = formattedContent;
+    
+    div.appendChild(avatar);
+    div.appendChild(content);
+    chatArea.appendChild(div);
+  });
+  
+  // Scroll to bottom
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+// AUTHENTICATION
+let authCredentials = '';
+
+// Check if already logged in
+window.addEventListener('DOMContentLoaded', () => {
+  const savedCreds = sessionStorage.getItem('jeffrey_auth');
+  if (savedCreds) {
+    authCredentials = savedCreds;
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('mainApp').classList.add('visible');
+    
+    // Restore collapsed section states
+    restoreSectionStates();
+    
+    // Render chat history
+    renderChatHistory();
+  }
+});
+
+// Restore section collapsed states from localStorage
+function restoreSectionStates() {
+  const sections = ['tools', 'history']; // Add more sections as needed
+  sections.forEach(sectionId => {
+    const isCollapsed = localStorage.getItem('section-' + sectionId + '-collapsed') === 'true';
+    if (isCollapsed) {
+      const header = document.querySelector(`[onclick="toggleSection('${sectionId}')"]`);
+      const content = document.getElementById('section-' + sectionId);
+      if (header && content) {
+        header.classList.add('collapsed');
+        content.classList.add('collapsed');
+      }
+    }
+  });
+}
+
+// Handle login
+function handleLogin(event) {
+  event.preventDefault();
+  
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const loginButton = document.getElementById('loginButton');
+  const loginError = document.getElementById('loginError');
+  
+  if (!username || !password) return;
+  
+  loginButton.disabled = true;
+  loginButton.textContent = 'Bezig...';
+  loginError.classList.remove('show');
+  
+  const credentials = btoa(username + ':' + password);
+  
+  fetch('/api/chat', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Basic ' + credentials
+    },
+    body: JSON.stringify({
+      messages: [{ role: "user", content: "Test" }],
+      max_tokens: 5,
+      temperature: 0.1
+    })
+  })
+  .then(response => {
+    if (response.status === 401) {
+      throw new Error('Unauthorized');
+    }
+    return { success: true };
+  })
+  .then(() => {
+    authCredentials = credentials;
+    sessionStorage.setItem('jeffrey_auth', credentials);
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('mainApp').classList.add('visible');
+    document.getElementById('loginForm').reset();
+    loginButton.disabled = false;
+    loginButton.textContent = 'Inloggen';
+  })
+  .catch(error => {
+    loginError.classList.add('show');
+    loginButton.disabled = false;
+    loginButton.textContent = 'Inloggen';
+  });
+}
+
+// Logout function
+function logout() {
+  authCredentials = '';
+  sessionStorage.removeItem('jeffrey_auth');
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('mainApp').classList.remove('visible');
+  document.getElementById('loginForm').reset();
+}
+
+// FORM VISIBILITY
+function showForm(formId) {
+  document.querySelectorAll('.form-container').forEach(form => {
+    form.classList.remove('show');
+  });
+  
+  const form = document.getElementById(formId);
+  if (form) {
+    form.classList.add('show');
+  }
+}
+
+function hideAllForms() {
+  document.querySelectorAll('.form-container').forEach(form => {
+    form.classList.remove('show');
+  });
+}
+
+// CLEAR CHAT ONLY (not forms)
+function clearChatOnly() {
+  STATE.conv = [];
+  const chatArea = document.getElementById('chatArea');
+  const messages = chatArea.querySelectorAll('.message, .welcome');
+  messages.forEach(el => el.remove());
+}
+
+// MENU INTERACTIONS
+function toggleSection(sectionId) {
+  const header = event.currentTarget;
+  const content = document.getElementById('section-' + sectionId);
+  
+  header.classList.toggle('collapsed');
+  content.classList.toggle('collapsed');
+  
+  // Save state to localStorage
+  const isCollapsed = header.classList.contains('collapsed');
+  localStorage.setItem('section-' + sectionId + '-collapsed', isCollapsed);
+}
+
+function toggleMenu(menu) {
+  const submenu = document.getElementById('sub-' + menu);
+  const menuItem = document.getElementById('menu-' + menu);
+  
+  // Always hide forms when switching
+  hideAllForms();
+  
+  if (submenu) {
+    submenu.classList.toggle('show');
+    menuItem.classList.toggle('expanded');
+  } else {
+    STATE.tab = menu;
+    updatePills();
+    
+    // Update active state
+    document.querySelectorAll('.menu-item').forEach(item => {
+      item.classList.remove('active');
+    });
+    menuItem.classList.add('active');
+    
+    // Show forms and clear chat for form-based features
+    if (menu === 'cribl') {
+      clearChatOnly();
+      showForm('criblForm');
+    } else if (menu === 'kickstart') {
+      clearChatOnly();
+      showForm('kickstartForm');
+    } else {
+      // For universal, soar - clear chat and hide forms
+      clearChatOnly();
+      hideAllForms();
+    }
+  }
+}
+
+function selectSIEM(platform) {
+  STATE.siem = platform;
+  STATE.tab = 'siem';
+  updatePills();
+  
+  // Clear chat and hide forms when switching SIEM platform
+  clearChatOnly();
+  hideAllForms();
+  
+  document.querySelectorAll('#sub-siem .platform-card').forEach(card => {
+    card.classList.remove('active');
+  });
+  event.target.closest('.platform-card').classList.add('active');
+}
+
+function selectNetwork(tool) {
+  STATE.tab = tool;
+  updatePills();
+  
+  // Clear chat and hide forms when switching network tool
+  clearChatOnly();
+  hideAllForms();
+  
+  document.querySelectorAll('#sub-network .platform-card').forEach(card => {
+    card.classList.remove('active');
+  });
+  event.target.closest('.platform-card').classList.add('active');
+}
+
+function selectSigma(platform) {
+  STATE.sigmaPlatform = platform;
+  STATE.tab = 'sigma';
+  updatePills();
+  
+  // Update button text
+  document.getElementById('sigmaTarget').textContent = platform;
+  
+  // Update active state
+  document.querySelectorAll('#sub-sigma .platform-card').forEach(card => {
+    card.classList.remove('active');
+  });
+  event.target.closest('.platform-card').classList.add('active');
+  
+  // Clear chat and show form
+  clearChatOnly();
+  hideAllForms();
+  showForm('sigmaForm');
+}
+
+function updatePills() {
+  const pill = document.getElementById('currentPill');
+  
+  if (STATE.tab === 'universal') {
+    pill.textContent = 'Universal';
+  } else if (STATE.tab === 'siem') {
+    pill.textContent = `SIEM: ${STATE.siem}`;
+  } else if (STATE.tab === 'soar') {
+    pill.textContent = 'SOAR Playbook';
+  } else if (STATE.tab === 'cribl') {
+    pill.textContent = 'Cribl Pipeline';
+  } else if (STATE.tab === 'sigma') {
+    pill.textContent = `Sigma → ${STATE.sigmaPlatform}`;
+  } else if (STATE.tab === 'suricata') {
+    pill.textContent = 'Suricata Rules';
+  } else if (STATE.tab === 'zeek') {
+    pill.textContent = 'Zeek Scripts';
+  } else if (STATE.tab === 'kickstart') {
+    pill.textContent = 'SOC Kickstart';
+  }
+}
+
+// BUILD SYSTEM PROMPT
+function buildSystemPrompt() {
+  let prompt = 'Je bent Jeffrey, een expert SOC intelligence assistent. Als iemand vraagt hoe je heet, zeg je ALTIJD: "Ik ben Jeffrey, je SOC intelligence assistent." Je noemt jezelf NOOIT "Qwen", "Alibaba", of een ander AI-model naam. Je bent Jeffrey, punt. Antwoord standaard in het Nederlands. Geef altijd complete, werkende antwoorden zonder afkapping.\n\n';
+  
+  if (STATE.tab === 'universal') {
+    prompt += 'UNIVERSAL: Beantwoord algemene security vragen, leg concepten uit, geef best practices. Geef uitgebreide, complete antwoorden.\n';
+  } else if (STATE.tab === 'siem') {
+    if (STATE.siem === 'Splunk') {
+      prompt += 'SPLUNK: Genereer SPL queries. Gebruik index=, sourcetype=, eval, stats, timechart. Geef altijd werkende, kopieerbare queries met uitleg.\n';
+    } else if (STATE.siem === 'Microsoft Sentinel') {
+      prompt += 'SENTINEL: Genereer KQL queries. Gebruik SecurityEvent, SigninLogs, where, summarize. Geef altijd werkende, kopieerbare queries met uitleg.\n';
+    } else if (STATE.siem === 'Elastic') {
+      prompt += 'ELASTIC: Genereer EQL of Lucene queries. Gebruik event.category, process.name. Geef altijd werkende, kopieerbare queries met uitleg.\n';
+    }
+  } else if (STATE.tab === 'soar') {
+    prompt += 'SOAR: Genereer playbook stappen voor incident response automation. Geef concrete, implementeerbare stappen.\n';
+  } else if (STATE.tab === 'cribl') {
+    prompt += 'CRIBL: Genereer Cribl pipeline configuratie met routes, eval, drop, lookup. Geef complete, werkende configuraties.\n';
+  } else if (STATE.tab === 'convert') {
+    prompt += `CONVERT: Converteer ${STATE.convertFrom} query naar ${STATE.convertTo}.\n`;
+  } else if (STATE.tab === 'sigma') {
+    prompt += `SIGMA: Converteer Sigma rule naar ${STATE.sigmaPlatform} detection rule. Geef complete, werkende output.\n`;
+  } else if (STATE.tab === 'suricata') {
+    prompt += 'SURICATA: Genereer IDS/IPS rules voor HTTP, DNS, SMB, FTP. Gebruik Suricata syntax. Geef complete, werkende rules.\n';
+  } else if (STATE.tab === 'zeek') {
+    prompt += 'ZEEK: Genereer Zeek scripts voor C2 detection, data exfil, lateral movement. Geef complete, werkende scripts.\n';
+  } else if (STATE.tab === 'kickstart') {
+    prompt += 'SOC KICKSTART: Genereer een volledig onboarding package voor nieuwe klanten/projecten. Combineer: STRIDE threat model, attack trees, benodigde log bronnen, SIEM detection rules, network detection (Suricata/Zeek), monitoring queries, en security checklist. Geef uitgebreide, gestructureerde output.\n';
+  }
+  
+  return prompt;
+}
+
+// CALL LLAMA (AI) — llama.cpp server (OpenAI-compatible)
+async function callLlama() {
+  const systemPrompt = buildSystemPrompt();
+  
+  // Build messages with system prompt + conversation history
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...STATE.conv.map(msg => ({
+      role: msg.role === 'user' ? 'user' : 'assistant',
+      content: msg.content
+    }))
+  ];
+  
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': 'Basic ' + authCredentials
+    },
+    body: JSON.stringify({
+      messages: messages,
+      max_tokens: 2000,
+      temperature: 0.7,
+      top_p: 0.9,
+      repeat_penalty: 1.1,
+      stream: false
+    })
+  });
+  
+  if (res.status === 401) {
+    logout();
+    throw new Error('Session expired');
+  }
+  
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  
+  const data = await res.json();
+  return data.choices[0].message.content || 'No response.';
+}
+
+// MESSAGE RENDERING
+function renderMessage(role, content) {
+  const chatArea = document.getElementById('chatArea');
+  
+  const msgDiv = document.createElement('div');
+  msgDiv.className = 'message ' + role;
+  
+  const avatar = document.createElement('div');
+  avatar.className = 'message-avatar';
+  avatar.textContent = role === 'user' ? 'U' : 'J';
+  
+  const contentDiv = document.createElement('div');
+  contentDiv.className = 'message-content';
+  
+  // Format code blocks in assistant responses
+  if (role === 'assistant') {
+    // Simple code block detection and formatting
+    const formatted = content
+      .replace(/```(\w+)?\n([\s\S]+?)```/g, '<pre><code>$2</code></pre>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>');
+    contentDiv.innerHTML = formatted;
+  } else {
+    contentDiv.textContent = content;
+  }
+  
+  msgDiv.appendChild(avatar);
+  msgDiv.appendChild(contentDiv);
+  
+  chatArea.appendChild(msgDiv);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function showTyping() {
+  const chatArea = document.getElementById('chatArea');
+  
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'message assistant';
+  typingDiv.id = 'typing-indicator';
+  
+  const avatar = document.createElement('div');
+  avatar.className = 'message-avatar';
+  avatar.textContent = 'J';
+  
+  const contentDiv = document.createElement('div');
+  contentDiv.className = 'message-content';
+  
+  const typing = document.createElement('div');
+  typing.className = 'typing';
+  typing.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+  
+  contentDiv.appendChild(typing);
+  typingDiv.appendChild(avatar);
+  typingDiv.appendChild(contentDiv);
+  
+  chatArea.appendChild(typingDiv);
+  chatArea.scrollTop = chatArea.scrollHeight;
+  
+  return typingDiv;
+}
+
+// SEND MESSAGE
+async function sendMessage() {
+  const input = document.getElementById('inputField');
+  const text = input.value.trim();
+  if (!text) return;
+  
+  const welcome = document.getElementById('welcome');
+  if (welcome) welcome.remove();
+  
+  // Hide forms when sending message
+  hideAllForms();
+  
+  input.value = '';
+  autoResize(input);
+  
+  STATE.conv.push({ role: 'user', content: text });
+  renderMessage('user', text);
+  
+  document.getElementById('sendBtn').disabled = true;
+  document.getElementById('chatStatus').textContent = 'Bezig...';
+  
+  const typing = showTyping();
+  
+  try {
+    const response = await callLlama();
+    typing.remove();
+    STATE.conv.push({ role: 'assistant', content: response });
+    renderMessage('assistant', response);
+    document.getElementById('chatStatus').textContent = 'Klaar';
+    
+    // Save chat to history
+    saveCurrentChat();
+  } catch(e) {
+    typing.remove();
+    showNotification('Error: ' + e.message, true);
+    document.getElementById('chatStatus').textContent = 'Fout';
+  } finally {
+    document.getElementById('sendBtn').disabled = false;
+  }
+}
+
+// GENERATE CRIBL
+function generateCribl() {
+  const pipelineId = document.getElementById('criblPipelineId').value.trim();
+  const sampleLog = document.getElementById('criblSampleLog').value.trim();
+  const fields = document.getElementById('criblFields').value.trim();
+  
+  if (!pipelineId || !sampleLog) {
+    showNotification('Vul minimaal Pipeline ID en Sample Log in!', true);
+    return;
+  }
+  
+  const meta = document.getElementById('criblMeta').checked;
+  const drop = document.getElementById('criblDrop').checked;
+  const lookup = document.getElementById('criblLookup').checked;
+  const regex = document.getElementById('criblRegex').checked;
+  
+  let prompt = `Genereer Cribl pipeline configuratie:\n\n`;
+  prompt += `Pipeline ID: ${pipelineId}\n`;
+  prompt += `Sample log: ${sampleLog}\n`;
+  if (fields) prompt += `Velden om te extracten: ${fields}\n`;
+  prompt += `\nAccordeons:\n`;
+  if (meta) prompt += `- Metadata (tenant, index, source)\n`;
+  if (drop) prompt += `- Filter events (drop)\n`;
+  if (lookup) prompt += `- Lookup verrijking\n`;
+  if (regex) prompt += `- Regex parsing\n`;
+  
+  // Hide form, send message
+  hideAllForms();
+  document.getElementById('welcome')?.remove();
+  document.getElementById('inputField').value = prompt;
+  sendMessage();
+}
+
+// GENERATE SIGMA
+function generateSigma() {
+  const yaml = document.getElementById('sigmaYaml').value.trim();
+  
+  if (!yaml) {
+    showNotification('Plak eerst een Sigma YAML regel!', true);
+    return;
+  }
+  
+  let prompt = `Converteer Sigma regel naar ${STATE.sigmaPlatform}:\n\n${yaml}`;
+  
+  // Hide form, send message
+  hideAllForms();
+  document.getElementById('welcome')?.remove();
+  document.getElementById('inputField').value = prompt;
+  sendMessage();
+}
+
+// INPUT AUTO RESIZE
+function autoResize(textarea) {
+  textarea.style.height = 'auto';
+  textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+}
+
+// CLEAR CHAT
+function clearChat() {
+  STATE.conv = [];
+  hideAllForms();
+  const chatArea = document.getElementById('chatArea');
+  chatArea.innerHTML = `
+    <div class="welcome" id="welcome">
+      <h2>👋 Welkom bij Jeffrey Toolkit</h2>
+      <p>Jouw AI-assistent voor SOC operations, detection engineering en security automation.</p>
+      
+      <div class="disclaimer">
+        <p><strong>⏱️ Let op:</strong> Responses kunnen 15-60 seconden duren (Qwen 3.5 27B op CPU).</p>
+        <p>Het model draait volledig offline op CPU/RAM voor maximale veiligheid.</p>
+      </div>
+      
+      <div class="feature-grid">
+        <div class="feature-item">
+          <strong>🔍 SIEM Queries</strong>
+          <span>Splunk, Sentinel, Elastic</span>
+        </div>
+        <div class="feature-item">
+          <strong>📋 SOAR Playbooks</strong>
+          <span>Automated response workflows</span>
+        </div>
+        <div class="feature-item">
+          <strong>🌐 Network Detection</strong>
+          <span>Suricata & Zeek rules</span>
+        </div>
+        <div class="feature-item">
+          <strong>🏢 SOC Kickstart</strong>
+          <span>Threat model + detection + monitoring</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// NOTIFICATION
+function showNotification(message, isError = false) {
+  const notif = document.getElementById('notification');
+  notif.textContent = message;
+  notif.className = 'notification show' + (isError ? ' error' : '');
+  
+  setTimeout(() => {
+    notif.classList.remove('show');
+  }, 3000);
+}
+
+// GENERATE SOC KICKSTART
+function generateKickstart() {
+  const appName = document.getElementById('entAppName').value.trim();
+  const description = document.getElementById('entDesc').value.trim();
+  const appType = document.getElementById('entType').value.trim();
+  const criticality = document.getElementById('entCrit').value.trim();
+  const assets = document.getElementById('entAssets').value.trim();
+  
+  if (!appName) {
+    showNotification('Vul minimaal de applicatie/project naam in!', true);
+    return;
+  }
+  
+  const wantStride = document.getElementById('entStride').checked;
+  const wantLogs = document.getElementById('entLogs').checked;
+  const wantDetection = document.getElementById('entDetection').checked;
+  const wantMonitoring = document.getElementById('entMonitoring').checked;
+  const wantAttackTree = document.getElementById('entAttackTree').checked;
+  const wantChecklist = document.getElementById('entChecklist').checked;
+  
+  let prompt = `SOC KICKSTART PACKAGE voor "${appName}":\n\n`;
+  if (description) prompt += `Beschrijving: ${description}\n`;
+  if (appType) prompt += `Type: ${appType}\n`;
+  if (criticality) prompt += `Kriticaliteit: ${criticality}\n`;
+  if (assets) prompt += `Assets & Data: ${assets}\n`;
+  prompt += `\nGenereer de volgende onderdelen:\n`;
+  let n = 1;
+  if (wantStride) prompt += `${n++}. STRIDE THREAT MODEL\n`;
+  if (wantAttackTree) prompt += `${n++}. ATTACK TREES\n`;
+  if (wantLogs) prompt += `${n++}. BENODIGDE LOG BRONNEN (specificeer welke logs, sourcetypes, en waarom)\n`;
+  if (wantDetection) prompt += `${n++}. DETECTION RULES (SIEM queries + Suricata/Zeek rules)\n`;
+  if (wantMonitoring) prompt += `${n++}. MONITORING QUERIES (dashboards, alerting)\n`;
+  if (wantChecklist) prompt += `${n++}. SECURITY CHECKLIST\n`;
+  
+  hideAllForms();
+  document.getElementById('welcome')?.remove();
+  document.getElementById('inputField').value = prompt;
+  sendMessage();
+}
+
+// EVENT LISTENERS
+document.addEventListener('DOMContentLoaded', () => {
+  // Login form
+  const loginForm = document.getElementById('loginForm');
+  if (loginForm) {
+    loginForm.addEventListener('submit', handleLogin);
+  }
+  
+  // Main app
+  const input = document.getElementById('inputField');
+  const sendBtn = document.getElementById('sendBtn');
+  
+  if (input) {
+    input.addEventListener('input', function() {
+      autoResize(this);
+    });
+    
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+    
+    // Global keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      // Ctrl+N or Cmd+N for new chat
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        newChat();
+      }
+    });
+  }
+  
+  if (sendBtn) {
+    sendBtn.addEventListener('click', sendMessage);
+  }
+  
+  console.log('Jeffrey Toolkit v1.0 - Qwen 3.5 27B Q8 ✓');
+});
+</script>
+
+</div>
+<!-- End Main App -->
+
+</body>
+</html>

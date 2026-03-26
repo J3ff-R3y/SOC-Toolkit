@@ -1,0 +1,18 @@
+# Model files (te groot voor git)
+*.gguf
+
+# Build artifacts
+llama.cpp-master.zip
+llama.cpp-master/
+build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Credentials
+.htpasswd
+*.backup.*
+
+# Logs
+*.log
