@@ -244,15 +244,7 @@ After=network.target
 Type=simple
 User=root
 WorkingDirectory=${LLAMA_BINARY_DIR}
-ExecStart=${LLAMA_BINARY_DIR}/llama-server \\
-    --model ${MODEL_DIR}/Qwen3.5-27B-Q8_0.gguf \\
-    --host 127.0.0.1 \\
-    --port ${LLAMA_PORT} \\
-    --ctx-size 4096 \\
-    --threads ${THREADS} \\
-    --flash-attn \\
-    --chat-template chatml \\
-    --chat-template-kwargs '{"enable_thinking": false}'
+ExecStart=${LLAMA_BINARY_DIR}/llama-server --model ${MODEL_DIR}/Qwen3.5-27B-Q8_0.gguf --host 127.0.0.1 --port ${LLAMA_PORT} --ctx-size 4096 --threads ${THREADS} --flash-attn on --chat-template chatml
 StandardOutput=append:/var/log/llama-server.log
 StandardError=append:/var/log/llama-server.log
 Restart=always
@@ -266,7 +258,7 @@ EOF
 
 systemctl daemon-reload
 systemctl enable llama-server
-log "Service aangemaakt (${THREADS} threads, thinking=off)"
+log "Service aangemaakt (${THREADS} threads, flash-attn on)"
 
 echo ""
 # ═══════════════════════════════════════
