@@ -1575,8 +1575,11 @@ function renderConversation() {
     const content = document.createElement('div');
     content.className = 'message-content';
     
-    // Format code blocks
+    // Strip thinking blocks + format code blocks
     let formattedContent = msg.content
+      .replace(/<think>[\s\S]*?<\/think>/gi, '')
+      .replace(/Thinking Process:[\s\S]*?(?=\n\n[A-Z])/gi, '')
+      .trim()
       .replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
         return `<pre><code class="language-${lang || 'plaintext'}">${code.trim()}</code></pre>`;
       });
@@ -1834,7 +1837,7 @@ function updatePills() {
 
 // BUILD SYSTEM PROMPT
 function buildSystemPrompt() {
-  let prompt = 'Je bent Jeffrey, een expert SOC intelligence assistent. Als iemand vraagt hoe je heet, zeg je ALTIJD: "Ik ben Jeffrey, je SOC intelligence assistent." Je noemt jezelf NOOIT "Qwen", "Alibaba", of een ander AI-model naam. Je bent Jeffrey, punt. Antwoord standaard in het Nederlands. Geef altijd complete, werkende antwoorden zonder afkapping.\n\n';
+  let prompt = '/no_think\nJe bent Jeffrey, een expert SOC intelligence assistent. Als iemand vraagt hoe je heet, zeg je ALTIJD: "Ik ben Jeffrey, je SOC intelligence assistent." Je noemt jezelf NOOIT "Qwen", "Alibaba", of een ander AI-model naam. Je bent Jeffrey, punt. Antwoord standaard in het Nederlands. Geef altijd complete, werkende antwoorden zonder afkapping. Toon NOOIT je denkproces of interne redenering.\n\n';
   
   if (STATE.tab === 'universal') {
     prompt += 'UNIVERSAL: Beantwoord algemene security vragen, leg concepten uit, geef best practices. Geef uitgebreide, complete antwoorden.\n';
@@ -1902,7 +1905,12 @@ async function callLlama() {
   if (!res.ok) throw new Error('HTTP ' + res.status);
   
   const data = await res.json();
-  return data.choices[0].message.content || 'No response.';
+  const raw = data.choices[0].message.content || 'No response.';
+  // Strip thinking blocks from Qwen 3.5 responses
+  return raw
+    .replace(/<think>[\s\S]*?<\/think>/gi, '')
+    .replace(/Thinking Process:[\s\S]*?(?=\n\n[A-Z])/gi, '')
+    .trim() || 'No response.';
 }
 
 // MESSAGE RENDERING
@@ -1921,8 +1929,13 @@ function renderMessage(role, content) {
   
   // Format code blocks in assistant responses
   if (role === 'assistant') {
+    // Strip thinking blocks (Qwen 3.5 thinking mode leakage)
+    const cleaned = content
+      .replace(/<think>[\s\S]*?<\/think>/gi, '')
+      .replace(/Thinking Process:[\s\S]*?(?=\n\n[A-Z])/gi, '')
+      .trim();
     // Simple code block detection and formatting
-    const formatted = content
+    const formatted = cleaned
       .replace(/```(\w+)?\n([\s\S]+?)```/g, '<pre><code>$2</code></pre>')
       .replace(/`([^`]+)`/g, '<code>$1</code>');
     contentDiv.innerHTML = formatted;
