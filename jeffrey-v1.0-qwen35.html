@@ -1119,6 +1119,17 @@ header {
           <span class="menu-icon">📋</span>
           <span>SOAR</span>
         </div>
+        <span class="menu-arrow">▶</span>
+      </div>
+      <div class="submenu" id="sub-soar">
+        <div class="platform-card active" onclick="selectSOAR('Microsoft Sentinel')">
+          <div class="platform-icon" style="background:#3b82f6;color:white">🔵</div>
+          <div class="platform-name">Sentinel Logic Apps</div>
+        </div>
+        <div class="platform-card" onclick="selectSOAR('Splunk SOAR')">
+          <div class="platform-icon" style="background:#16a34a;color:white">🟢</div>
+          <div class="platform-name">Splunk SOAR</div>
+        </div>
       </div>
 
       <div class="menu-item" id="menu-cribl" onclick="toggleMenu('cribl')">
@@ -1301,6 +1312,77 @@ header {
         </div>
         
         <button class="form-btn" onclick="generateSigma()">Converteer naar <span id="sigmaTarget">Splunk</span></button>
+      </div>
+      
+      <!-- SOAR Playbook Form -->
+      <div class="form-container" id="soarForm">
+        <h2 class="form-title">📋 SOAR Playbook Builder</h2>
+        <p class="form-subtitle" id="soarSubtitle">Genereer automation playbooks voor Microsoft Sentinel Logic Apps</p>
+        
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+          <div class="form-group">
+            <label class="form-label">Incident Type</label>
+            <select class="form-input" id="soarIncident">
+              <option value="Brute force / credential attack">Brute Force</option>
+              <option value="Malware detectie">Malware Detectie</option>
+              <option value="Phishing email">Phishing</option>
+              <option value="Lateral movement">Lateral Movement</option>
+              <option value="Data exfiltratie">Data Exfiltratie</option>
+              <option value="Privilege escalation">Privilege Escalation</option>
+              <option value="Ransomware">Ransomware</option>
+              <option value="Insider threat">Insider Threat</option>
+              <option value="DDoS aanval">DDoS</option>
+              <option value="Unauthorized access">Unauthorized Access</option>
+              <option value="Anders">Anders (beschrijf hieronder)</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Severity</label>
+            <select class="form-input" id="soarSeverity">
+              <option value="High">High</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Aanvullende context</label>
+          <textarea class="form-input" id="soarContext" placeholder="Beschrijf de situatie, specifieke IOC's, betrokken systemen, of wat de trigger is..." style="min-height:80px; resize:vertical;"></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Gewenste automation acties</label>
+          <div class="form-checkboxes">
+            <div class="form-checkbox">
+              <input type="checkbox" id="soarEnrich" checked>
+              <label for="soarEnrich">Enrichment (IP/hash/user lookup)</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="soarContain" checked>
+              <label for="soarContain">Containment (isoleer/blokkeer)</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="soarNotify" checked>
+              <label for="soarNotify">Notificatie (Teams/email/ticket)</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="soarEscalate">
+              <label for="soarEscalate">Escalatie workflow</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="soarRemediate">
+              <label for="soarRemediate">Remediatie (password reset, disable account)</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="soarEvidence">
+              <label for="soarEvidence">Evidence collection / forensics</label>
+            </div>
+          </div>
+        </div>
+        
+        <button class="form-btn" onclick="generateSOAR()">📋 Genereer Playbook</button>
       </div>
       
       <!-- SOC Kickstart Form -->
@@ -1927,6 +2009,28 @@ function selectSigma(platform) {
   showForm('sigmaForm');
 }
 
+function selectSOAR(platform) {
+  STATE.soar = platform;
+  STATE.tab = 'soar';
+  updatePills();
+  
+  // Update form subtitle
+  if (platform === 'Microsoft Sentinel') {
+    document.getElementById('soarSubtitle').textContent = 'Genereer automation playbooks voor Microsoft Sentinel Logic Apps / Automation Rules';
+  } else {
+    document.getElementById('soarSubtitle').textContent = 'Genereer automation playbooks voor Splunk SOAR';
+  }
+  
+  document.querySelectorAll('#sub-soar .platform-card').forEach(card => {
+    card.classList.remove('active');
+  });
+  event.target.closest('.platform-card').classList.add('active');
+  
+  clearChatOnly();
+  hideAllForms();
+  showForm('soarForm');
+}
+
 function updatePills() {
   const pill = document.getElementById('currentPill');
   
@@ -1935,7 +2039,7 @@ function updatePills() {
   } else if (STATE.tab === 'siem') {
     pill.textContent = `SIEM: ${STATE.siem}`;
   } else if (STATE.tab === 'soar') {
-    pill.textContent = 'SOAR Playbook';
+    pill.textContent = `SOAR: ${STATE.soar === 'Microsoft Sentinel' ? 'Sentinel' : 'Splunk'}`;
   } else if (STATE.tab === 'cribl') {
     pill.textContent = 'Cribl Pipeline';
   } else if (STATE.tab === 'sigma') {
@@ -1964,7 +2068,11 @@ function buildSystemPrompt() {
       prompt += 'ELASTIC: Genereer EQL of Lucene queries. Gebruik event.category, process.name. Geef altijd werkende, kopieerbare queries met uitleg.\n';
     }
   } else if (STATE.tab === 'soar') {
-    prompt += 'SOAR: Genereer playbook stappen voor incident response automation. Geef concrete, implementeerbare stappen.\n';
+    if (STATE.soar === 'Microsoft Sentinel') {
+      prompt += 'SOAR SENTINEL: Genereer incident response playbooks als Microsoft Sentinel Automation Rules en Logic Apps workflows. Gebruik Azure-native acties: Microsoft Defender, Entra ID, Microsoft Teams, ServiceNow connectors. Geef concrete stappen met Logic App designer-compatibele beschrijvingen. Beschrijf triggers, conditions, en actions.\n';
+    } else {
+      prompt += 'SOAR SPLUNK: Genereer Splunk SOAR playbooks. Gebruik Phantom app acties, decision blocks, en custom functions. Geef concrete, implementeerbare playbook stappen met app/action namen.\n';
+    }
   } else if (STATE.tab === 'cribl') {
     prompt += 'CRIBL: Genereer Cribl pipeline configuratie met routes, eval, drop, lookup. Geef complete, werkende configuraties.\n';
   } else if (STATE.tab === 'convert') {
@@ -2178,6 +2286,54 @@ function generateSigma() {
   let prompt = `Converteer Sigma regel naar ${STATE.sigmaPlatform}:\n\n${yaml}`;
   
   // Hide form, send message
+  hideAllForms();
+  document.getElementById('welcome')?.remove();
+  document.getElementById('inputField').value = prompt;
+  sendMessage();
+}
+
+// GENERATE SOAR PLAYBOOK
+function generateSOAR() {
+  const incident = document.getElementById('soarIncident').value;
+  const severity = document.getElementById('soarSeverity').value;
+  const context = document.getElementById('soarContext').value.trim();
+  
+  const actions = [];
+  if (document.getElementById('soarEnrich').checked) actions.push('Enrichment (IP/hash/user reputation lookup, threat intel correlatie)');
+  if (document.getElementById('soarContain').checked) actions.push('Containment (host isolatie, IP blokkade, account disable)');
+  if (document.getElementById('soarNotify').checked) actions.push('Notificatie (Teams bericht, email alert, ticket aanmaken)');
+  if (document.getElementById('soarEscalate').checked) actions.push('Escalatie (SOC L2/L3, management, CISO)');
+  if (document.getElementById('soarRemediate').checked) actions.push('Remediatie (password reset, token revoke, malware cleanup)');
+  if (document.getElementById('soarEvidence').checked) actions.push('Evidence collection (snapshot, log export, memory dump)');
+  
+  let platform = STATE.soar;
+  let prompt = `SOAR PLAYBOOK voor ${platform}\n`;
+  prompt += `${'='.repeat(50)}\n\n`;
+  prompt += `Incident: ${incident}\n`;
+  prompt += `Severity: ${severity}\n`;
+  if (context) prompt += `Context: ${context}\n`;
+  prompt += `\n`;
+  
+  if (platform === 'Microsoft Sentinel') {
+    prompt += `Genereer een complete Sentinel automation workflow:\n\n`;
+    prompt += `1. TRIGGER: Analytics Rule die dit incident triggert (KQL query)\n`;
+    prompt += `2. AUTOMATION RULE: Sentinel automation rule configuratie\n`;
+    prompt += `3. LOGIC APP WORKFLOW: Stap-voor-stap Logic App met:\n`;
+  } else {
+    prompt += `Genereer een complete Splunk SOAR playbook:\n\n`;
+    prompt += `1. TRIGGER: Correlation search / Notable event\n`;
+    prompt += `2. PLAYBOOK FLOW: Stap-voor-stap met:\n`;
+  }
+  
+  if (actions.length > 0) {
+    prompt += `   Gewenste acties:\n`;
+    actions.forEach(a => { prompt += `   - ${a}\n`; });
+  }
+  
+  prompt += `\n4. DECISION POINTS: Waar moet een analyst handmatig beslissen?\n`;
+  prompt += `5. TRIAGE GUIDE: Wat moet de analyst checken bij deze alert?\n`;
+  prompt += `6. FALSE POSITIVE CRITERIA: Wanneer is het een false positive?\n`;
+
   hideAllForms();
   document.getElementById('welcome')?.remove();
   document.getElementById('inputField').value = prompt;
