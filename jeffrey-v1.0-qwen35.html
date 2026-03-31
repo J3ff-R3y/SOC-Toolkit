@@ -1305,60 +1305,174 @@ header {
       
       <!-- SOC Kickstart Form -->
       <div class="form-container" id="kickstartForm">
-        <h2 class="form-title">🏢 SOC Kickstart</h2>
-        <p class="form-subtitle">Complete onboarding: threat model, log requirements, detection rules, monitoring & security checklist</p>
+        <h2 class="form-title">🚀 SOC Kickstart</h2>
+        <p class="form-subtitle">Complete security onboarding package voor nieuwe applicaties en databronnen</p>
         
-        <div class="form-group">
-          <label class="form-label">Applicatie / Project Naam</label>
-          <input type="text" class="form-input" id="entAppName" placeholder="bijv. SAP, Veeam, Customer Portal, HR System">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+          <div class="form-group" style="grid-column:1/3">
+            <label class="form-label">Applicatie / Systeem Naam *</label>
+            <input type="text" class="form-input" id="ksName" placeholder="bijv. RIVM Portaal, SAP ECC, Veeam Backup">
+          </div>
+          
+          <div class="form-group" style="grid-column:1/3">
+            <label class="form-label">Beschrijving & Doel</label>
+            <textarea class="form-input" id="ksDesc" placeholder="Wat doet deze applicatie? Wie gebruikt het? Welke processen ondersteunt het?" style="min-height:80px; resize:vertical;"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Omgeving</label>
+            <select class="form-input" id="ksEnv">
+              <option value="">— Selecteer —</option>
+              <option value="On-Premise">On-Premise</option>
+              <option value="Cloud (Azure)">Cloud (Azure)</option>
+              <option value="Cloud (AWS)">Cloud (AWS)</option>
+              <option value="Cloud (GCP)">Cloud (GCP)</option>
+              <option value="Hybrid (On-Prem + Cloud)">Hybrid</option>
+              <option value="SaaS">SaaS</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Kriticaliteit</label>
+            <select class="form-input" id="ksCrit">
+              <option value="">— Selecteer —</option>
+              <option value="Critical — uitval heeft directe impact op bedrijfsvoering">Critical</option>
+              <option value="High — belangrijke bedrijfsprocessen afhankelijk">High</option>
+              <option value="Medium — ondersteunend systeem">Medium</option>
+              <option value="Low — niet-essentieel">Low</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Dataclassificatie</label>
+            <select class="form-input" id="ksDataClass">
+              <option value="">— Selecteer —</option>
+              <option value="Publiek">Publiek</option>
+              <option value="Intern">Intern</option>
+              <option value="Vertrouwelijk (PII, HR, financieel)">Vertrouwelijk</option>
+              <option value="Geheim (staatsgeheim, medisch, juridisch)">Geheim</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Netwerk Exposure</label>
+            <select class="form-input" id="ksExposure">
+              <option value="">— Selecteer —</option>
+              <option value="Internet-facing (publiek bereikbaar)">Internet-facing</option>
+              <option value="DMZ">DMZ</option>
+              <option value="Intern netwerk">Intern netwerk</option>
+              <option value="Air-gapped / geïsoleerd">Air-gapped</option>
+            </select>
+          </div>
         </div>
         
         <div class="form-group">
-          <label class="form-label">Beschrijving</label>
-          <textarea class="form-input" id="entDesc" placeholder="Beschrijf de applicatie, het doel, en de architectuur..." style="min-height:100px; resize:vertical;"></textarea>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Type</label>
-          <input type="text" class="form-input" id="entType" placeholder="bijv. Web App, Database, Infrastructure, SaaS, On-Premise">
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Kriticaliteit</label>
-          <input type="text" class="form-input" id="entCrit" placeholder="bijv. Critical, High, Medium, Low">
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Assets & Data Types</label>
-          <input type="text" class="form-input" id="entAssets" placeholder="bijv. PII, financiële data, API keys, klantgegevens">
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Gewenste output</label>
+          <label class="form-label">Authenticatie</label>
           <div class="form-checkboxes">
             <div class="form-checkbox">
-              <input type="checkbox" id="entStride" checked>
-              <label for="entStride">STRIDE Threat Model</label>
+              <input type="checkbox" id="ksAuthSSO">
+              <label for="ksAuthSSO">SSO / SAML / OAuth</label>
             </div>
             <div class="form-checkbox">
-              <input type="checkbox" id="entLogs" checked>
-              <label for="entLogs">Benodigde logs</label>
+              <input type="checkbox" id="ksAuthAD">
+              <label for="ksAuthAD">LDAP / Active Directory</label>
             </div>
             <div class="form-checkbox">
-              <input type="checkbox" id="entDetection" checked>
-              <label for="entDetection">Detection rules (SIEM + Network)</label>
+              <input type="checkbox" id="ksAuthLocal">
+              <label for="ksAuthLocal">Lokale accounts</label>
             </div>
             <div class="form-checkbox">
-              <input type="checkbox" id="entMonitoring" checked>
-              <label for="entMonitoring">Monitoring queries</label>
+              <input type="checkbox" id="ksAuthAPI">
+              <label for="ksAuthAPI">API keys / tokens</label>
             </div>
             <div class="form-checkbox">
-              <input type="checkbox" id="entAttackTree">
-              <label for="entAttackTree">Attack trees</label>
+              <input type="checkbox" id="ksAuthMFA">
+              <label for="ksAuthMFA">MFA ingeschakeld</label>
             </div>
             <div class="form-checkbox">
-              <input type="checkbox" id="entChecklist" checked>
-              <label for="entChecklist">Security checklist</label>
+              <input type="checkbox" id="ksAuthCert">
+              <label for="ksAuthCert">Certificaten / mTLS</label>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Compliance & Frameworks</label>
+          <div class="form-checkboxes">
+            <div class="form-checkbox">
+              <input type="checkbox" id="ksCompBIO">
+              <label for="ksCompBIO">BIO / Overheid</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="ksCompNIS2">
+              <label for="ksCompNIS2">NIS2</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="ksCompISO">
+              <label for="ksCompISO">ISO 27001</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="ksCompGDPR">
+              <label for="ksCompGDPR">AVG / GDPR</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="ksCompSOC2">
+              <label for="ksCompSOC2">SOC 2</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="ksCompNEN">
+              <label for="ksCompNEN">NEN 7510 (zorg)</label>
+            </div>
+          </div>
+        </div>
+        
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+          <div class="form-group">
+            <label class="form-label">SIEM Platform (voor queries)</label>
+            <select class="form-input" id="ksSIEM">
+              <option value="Splunk (SPL)">Splunk</option>
+              <option value="Microsoft Sentinel (KQL)">Sentinel</option>
+              <option value="Elastic (EQL/Lucene)">Elastic</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Bekende log bronnen</label>
+            <input type="text" class="form-input" id="ksLogSources" placeholder="bijv. Windows Event, Apache, Syslog, API audit logs">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Aanvullende context</label>
+          <textarea class="form-input" id="ksNotes" placeholder="Bijzonderheden: bekende kwetsbaarheden, eerdere incidenten, integraties met andere systemen, specifieke zorgen..." style="min-height:60px; resize:vertical;"></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Gewenste onderdelen</label>
+          <div class="form-checkboxes">
+            <div class="form-checkbox">
+              <input type="checkbox" id="ksStride" checked>
+              <label for="ksStride">STRIDE Threat Model</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="ksAttack" checked>
+              <label for="ksAttack">MITRE ATT&CK mapping</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="ksLogs" checked>
+              <label for="ksLogs">Benodigde log bronnen</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="ksDetection" checked>
+              <label for="ksDetection">Detection rules (SIEM + IDS)</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="ksMonitoring" checked>
+              <label for="ksMonitoring">Monitoring & alerting</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="ksChecklist" checked>
+              <label for="ksChecklist">Security hardening checklist</label>
             </div>
           </div>
         </div>
@@ -1862,7 +1976,7 @@ function buildSystemPrompt() {
   } else if (STATE.tab === 'zeek') {
     prompt += 'ZEEK: Genereer Zeek scripts voor C2 detection, data exfil, lateral movement. Geef complete, werkende scripts.\n';
   } else if (STATE.tab === 'kickstart') {
-    prompt += 'SOC KICKSTART: Genereer een volledig onboarding package voor nieuwe klanten/projecten. Combineer: STRIDE threat model, attack trees, benodigde log bronnen, SIEM detection rules, network detection (Suricata/Zeek), monitoring queries, en security checklist. Geef uitgebreide, gestructureerde output.\n';
+    prompt += 'SOC KICKSTART: Je genereert een professioneel security onboarding package. Gebruik het systeemprofiel (omgeving, kriticaliteit, dataclassificatie, exposure, authenticatie, compliance) om je analyse te richten. Geef per onderdeel concrete, actionable output. Detection rules moeten werkende queries zijn in het opgegeven SIEM platform. MITRE ATT&CK referenties met TID nummers. Log bronnen met specifieke sourcetypes. Hardening checklist afgestemd op het compliance framework. Structureer elk onderdeel met duidelijke headers.\n';
   }
   
   return prompt;
@@ -2126,37 +2240,98 @@ function showNotification(message, isError = false) {
 
 // GENERATE SOC KICKSTART
 function generateKickstart() {
-  const appName = document.getElementById('entAppName').value.trim();
-  const description = document.getElementById('entDesc').value.trim();
-  const appType = document.getElementById('entType').value.trim();
-  const criticality = document.getElementById('entCrit').value.trim();
-  const assets = document.getElementById('entAssets').value.trim();
+  const name = document.getElementById('ksName').value.trim();
+  const desc = document.getElementById('ksDesc').value.trim();
+  const env = document.getElementById('ksEnv').value;
+  const crit = document.getElementById('ksCrit').value;
+  const dataClass = document.getElementById('ksDataClass').value;
+  const exposure = document.getElementById('ksExposure').value;
+  const siem = document.getElementById('ksSIEM').value;
+  const logSources = document.getElementById('ksLogSources').value.trim();
+  const notes = document.getElementById('ksNotes').value.trim();
   
-  if (!appName) {
-    showNotification('Vul minimaal de applicatie/project naam in!', true);
+  if (!name) {
+    showNotification('Vul minimaal de applicatie/systeem naam in!', true);
     return;
   }
   
-  const wantStride = document.getElementById('entStride').checked;
-  const wantLogs = document.getElementById('entLogs').checked;
-  const wantDetection = document.getElementById('entDetection').checked;
-  const wantMonitoring = document.getElementById('entMonitoring').checked;
-  const wantAttackTree = document.getElementById('entAttackTree').checked;
-  const wantChecklist = document.getElementById('entChecklist').checked;
+  // Collect auth methods
+  const authMethods = [];
+  if (document.getElementById('ksAuthSSO').checked) authMethods.push('SSO/SAML/OAuth');
+  if (document.getElementById('ksAuthAD').checked) authMethods.push('LDAP/Active Directory');
+  if (document.getElementById('ksAuthLocal').checked) authMethods.push('Lokale accounts');
+  if (document.getElementById('ksAuthAPI').checked) authMethods.push('API keys/tokens');
+  if (document.getElementById('ksAuthMFA').checked) authMethods.push('MFA ingeschakeld');
+  if (document.getElementById('ksAuthCert').checked) authMethods.push('Certificaten/mTLS');
   
-  let prompt = `SOC KICKSTART PACKAGE voor "${appName}":\n\n`;
-  if (description) prompt += `Beschrijving: ${description}\n`;
-  if (appType) prompt += `Type: ${appType}\n`;
-  if (criticality) prompt += `Kriticaliteit: ${criticality}\n`;
-  if (assets) prompt += `Assets & Data: ${assets}\n`;
-  prompt += `\nGenereer de volgende onderdelen:\n`;
+  // Collect compliance
+  const compliance = [];
+  if (document.getElementById('ksCompBIO').checked) compliance.push('BIO');
+  if (document.getElementById('ksCompNIS2').checked) compliance.push('NIS2');
+  if (document.getElementById('ksCompISO').checked) compliance.push('ISO 27001');
+  if (document.getElementById('ksCompGDPR').checked) compliance.push('AVG/GDPR');
+  if (document.getElementById('ksCompSOC2').checked) compliance.push('SOC 2');
+  if (document.getElementById('ksCompNEN').checked) compliance.push('NEN 7510');
+  
+  // Collect output sections
+  const wantStride = document.getElementById('ksStride').checked;
+  const wantAttack = document.getElementById('ksAttack').checked;
+  const wantLogs = document.getElementById('ksLogs').checked;
+  const wantDetection = document.getElementById('ksDetection').checked;
+  const wantMonitoring = document.getElementById('ksMonitoring').checked;
+  const wantChecklist = document.getElementById('ksChecklist').checked;
+  
+  // Build structured prompt
+  let prompt = `SOC KICKSTART PACKAGE voor "${name}"\n`;
+  prompt += `${'='.repeat(50)}\n\n`;
+  prompt += `SYSTEEM PROFIEL:\n`;
+  if (desc) prompt += `  Beschrijving: ${desc}\n`;
+  if (env) prompt += `  Omgeving: ${env}\n`;
+  if (crit) prompt += `  Kriticaliteit: ${crit}\n`;
+  if (dataClass) prompt += `  Dataclassificatie: ${dataClass}\n`;
+  if (exposure) prompt += `  Netwerk exposure: ${exposure}\n`;
+  if (authMethods.length > 0) prompt += `  Authenticatie: ${authMethods.join(', ')}\n`;
+  if (compliance.length > 0) prompt += `  Compliance: ${compliance.join(', ')}\n`;
+  if (logSources) prompt += `  Bekende log bronnen: ${logSources}\n`;
+  if (notes) prompt += `  Aanvullend: ${notes}\n`;
+  prompt += `  SIEM platform: ${siem}\n`;
+  
+  prompt += `\nGENEREER DE VOLGENDE ONDERDELEN:\n\n`;
   let n = 1;
-  if (wantStride) prompt += `${n++}. STRIDE THREAT MODEL\n`;
-  if (wantAttackTree) prompt += `${n++}. ATTACK TREES\n`;
-  if (wantLogs) prompt += `${n++}. BENODIGDE LOG BRONNEN (specificeer welke logs, sourcetypes, en waarom)\n`;
-  if (wantDetection) prompt += `${n++}. DETECTION RULES (SIEM queries + Suricata/Zeek rules)\n`;
-  if (wantMonitoring) prompt += `${n++}. MONITORING QUERIES (dashboards, alerting)\n`;
-  if (wantChecklist) prompt += `${n++}. SECURITY CHECKLIST\n`;
+  
+  if (wantStride) {
+    prompt += `${n++}. STRIDE THREAT MODEL\n`;
+    prompt += `   Per STRIDE categorie: beschrijf de dreiging, risico (H/M/L), en concrete mitigatie.\n`;
+    prompt += `   Houd rekening met de omgeving (${env || 'onbekend'}) en exposure (${exposure || 'onbekend'}).\n\n`;
+  }
+  if (wantAttack) {
+    prompt += `${n++}. MITRE ATT&CK MAPPING\n`;
+    prompt += `   Relevante Tactics en Techniques (TID nummers) voor dit systeem.\n`;
+    prompt += `   Focus op: Initial Access, Persistence, Privilege Escalation, Lateral Movement, Exfiltration.\n\n`;
+  }
+  if (wantLogs) {
+    prompt += `${n++}. BENODIGDE LOG BRONNEN\n`;
+    prompt += `   Per log bron: naam, sourcetype/index, welke events, retentie advies, en waarom deze nodig is.\n`;
+    if (logSources) prompt += `   Bekende bronnen: ${logSources} — vul aan wat mist.\n`;
+    prompt += `\n`;
+  }
+  if (wantDetection) {
+    prompt += `${n++}. DETECTION RULES\n`;
+    prompt += `   Genereer werkende ${siem} queries voor de top 5 dreigingen.\n`;
+    prompt += `   Per rule: naam, query, severity, MITRE mapping, en triage instructies.\n`;
+    prompt += `   Voeg ook relevante Suricata of Zeek rules toe indien van toepassing.\n\n`;
+  }
+  if (wantMonitoring) {
+    prompt += `${n++}. MONITORING & ALERTING\n`;
+    prompt += `   Baseline metrics, threshold alerts, en dashboard panels in ${siem}.\n`;
+    prompt += `   Beschrijf: wat monitoren, drempel, actie bij alert.\n\n`;
+  }
+  if (wantChecklist) {
+    prompt += `${n++}. SECURITY HARDENING CHECKLIST\n`;
+    prompt += `   Concrete actiepunten per categorie: netwerk, authenticatie, logging, patching, backup.\n`;
+    if (compliance.length > 0) prompt += `   Houd rekening met: ${compliance.join(', ')} vereisten.\n`;
+    prompt += `\n`;
+  }
   
   hideAllForms();
   document.getElementById('welcome')?.remove();
