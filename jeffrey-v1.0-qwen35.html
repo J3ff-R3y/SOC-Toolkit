@@ -1301,17 +1301,180 @@ header {
         <button class="form-btn" onclick="generateCribl()">Genereer Pipeline</button>
       </div>
       
-      <!-- Sigma Form -->
+      <!-- SIEM Query Builder Form -->
+      <div class="form-container" id="siemForm">
+        <h2 class="form-title" id="siemFormTitle">🔍 SIEM Query Builder — Splunk</h2>
+        <p class="form-subtitle">Genereer werkende, kopieerbare detection queries</p>
+        
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+          <div class="form-group">
+            <label class="form-label">Use Case</label>
+            <select class="form-input" id="siemUseCase">
+              <option value="">— Vrije vraag (gebruik tekstveld) —</option>
+              <option value="Failed/brute force logins">Failed / Brute Force Logins</option>
+              <option value="Impossible travel / anomalous login location">Impossible Travel</option>
+              <option value="Privilege escalation">Privilege Escalation</option>
+              <option value="New service/scheduled task created">Persistence (service/task)</option>
+              <option value="PowerShell execution (encoded/obfuscated)">Suspicious PowerShell</option>
+              <option value="Lateral movement (PsExec, WMI, RDP)">Lateral Movement</option>
+              <option value="Data exfiltration (large outbound transfers)">Data Exfiltratie</option>
+              <option value="Account created or modified">Account Changes</option>
+              <option value="Firewall/IDS alert correlation">Firewall / IDS Alerts</option>
+              <option value="DNS tunneling / DGA detection">DNS Anomalies</option>
+              <option value="Malware indicators (hash, filename, path)">Malware IOC's</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Tijdrange</label>
+            <select class="form-input" id="siemTimeRange">
+              <option value="afgelopen 1 uur">1 uur</option>
+              <option value="afgelopen 4 uur" selected>4 uur</option>
+              <option value="afgelopen 24 uur">24 uur</option>
+              <option value="afgelopen 7 dagen">7 dagen</option>
+              <option value="afgelopen 30 dagen">30 dagen</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Data bron / Index (optioneel)</label>
+          <input type="text" class="form-input" id="siemDataSource" placeholder="bijv. wineventlog, syslog, firewall, o365, azure_ad">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Specifieke vraag of aanvulling</label>
+          <textarea class="form-input" id="siemFreeText" placeholder="bijv. Toon alleen externe IP's, filter op specifieke gebruiker, voeg GeoIP lookup toe..." style="min-height:60px; resize:vertical;"></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Output opties</label>
+          <div class="form-checkboxes">
+            <div class="form-checkbox">
+              <input type="checkbox" id="siemExplain" checked>
+              <label for="siemExplain">Uitleg per query onderdeel</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="siemDashboard">
+              <label for="siemDashboard">Dashboard panel suggestie</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="siemAlert">
+              <label for="siemAlert">Alert/threshold configuratie</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="siemMitre">
+              <label for="siemMitre">MITRE ATT&CK mapping</label>
+            </div>
+          </div>
+        </div>
+        
+        <button class="form-btn" onclick="generateSIEM()">🔍 Genereer Query</button>
+      </div>
+      
+      <!-- Sigma Rule Converter Form -->
       <div class="form-container" id="sigmaForm">
         <h2 class="form-title">Σ Sigma Rule Converter</h2>
         <p class="form-subtitle">Converteer Sigma rules naar platform-specifieke detection rules</p>
         
         <div class="form-group">
           <label class="form-label">Sigma Rule (YAML)</label>
-          <textarea class="form-input form-textarea" id="sigmaYaml" placeholder="Plak hier je Sigma YAML regel..." style="min-height:250px"></textarea>
+          <textarea class="form-input form-textarea" id="sigmaYaml" placeholder="Plak hier je Sigma YAML regel..." style="min-height:200px"></textarea>
         </div>
         
-        <button class="form-btn" onclick="generateSigma()">Converteer naar <span id="sigmaTarget">Splunk</span></button>
+        <div class="form-group">
+          <label class="form-label">Conversie opties</label>
+          <div class="form-checkboxes">
+            <div class="form-checkbox">
+              <input type="checkbox" id="sigmaExplain" checked>
+              <label for="sigmaExplain">Uitleg van de conversie</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="sigmaFieldMap">
+              <label for="sigmaFieldMap">Field mapping tabel</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="sigmaFalsePos">
+              <label for="sigmaFalsePos">False positive analyse</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="sigmaTuning">
+              <label for="sigmaTuning">Tuning suggesties</label>
+            </div>
+          </div>
+        </div>
+        
+        <button class="form-btn" onclick="generateSigma()">Σ Converteer naar <span id="sigmaTarget">Splunk</span></button>
+      </div>
+      
+      <!-- Network Detection Form -->
+      <div class="form-container" id="networkForm">
+        <h2 class="form-title" id="networkFormTitle">🌐 Network Detection — Suricata</h2>
+        <p class="form-subtitle">Genereer IDS/IPS rules voor netwerk threat detection</p>
+        
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+          <div class="form-group">
+            <label class="form-label">Threat Type</label>
+            <select class="form-input" id="netThreat">
+              <option value="">— Vrije vraag (gebruik tekstveld) —</option>
+              <option value="C2 (Command & Control) communicatie">C2 / Command & Control</option>
+              <option value="DNS tunneling / DGA domains">DNS Tunneling / DGA</option>
+              <option value="Data exfiltratie via HTTP/HTTPS">Data Exfiltratie (HTTP)</option>
+              <option value="Data exfiltratie via DNS">Data Exfiltratie (DNS)</option>
+              <option value="Lateral movement (SMB, RDP, WMI)">Lateral Movement</option>
+              <option value="Port scanning / reconnaissance">Port Scan / Recon</option>
+              <option value="Malware download / dropper">Malware Download</option>
+              <option value="Brute force (SSH, RDP, FTP)">Brute Force</option>
+              <option value="TLS/SSL anomalieën (expired cert, self-signed)">TLS Anomalieën</option>
+              <option value="ICMP tunneling">ICMP Tunneling</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Protocol Focus</label>
+            <select class="form-input" id="netProtocol">
+              <option value="alle relevante protocollen">Alle</option>
+              <option value="HTTP/HTTPS">HTTP(S)</option>
+              <option value="DNS">DNS</option>
+              <option value="SMB">SMB</option>
+              <option value="SSH">SSH</option>
+              <option value="FTP">FTP</option>
+              <option value="SMTP/IMAP">Email (SMTP/IMAP)</option>
+              <option value="RDP">RDP</option>
+              <option value="ICMP">ICMP</option>
+              <option value="TLS/SSL">TLS/SSL</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">IOC's of specifieke context (optioneel)</label>
+          <textarea class="form-input" id="netContext" placeholder="bijv. Specifieke IP ranges, domeinnamen, user-agents, file hashes, of beschrijving van de dreiging..." style="min-height:60px; resize:vertical;"></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Output opties</label>
+          <div class="form-checkboxes">
+            <div class="form-checkbox">
+              <input type="checkbox" id="netExplain" checked>
+              <label for="netExplain">Uitleg per rule</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="netMitre" checked>
+              <label for="netMitre">MITRE ATT&CK mapping</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="netPerformance">
+              <label for="netPerformance">Performance impact notities</label>
+            </div>
+            <div class="form-checkbox">
+              <input type="checkbox" id="netFalsePos">
+              <label for="netFalsePos">False positive mitigatie</label>
+            </div>
+          </div>
+        </div>
+        
+        <button class="form-btn" onclick="generateNetwork()">🌐 Genereer Rules</button>
       </div>
       
       <!-- SOAR Playbook Form -->
@@ -1965,9 +2128,12 @@ function selectSIEM(platform) {
   STATE.tab = 'siem';
   updatePills();
   
-  // Clear chat and hide forms when switching SIEM platform
+  // Update form title
+  document.getElementById('siemFormTitle').textContent = `🔍 SIEM Query Builder — ${platform}`;
+  
   clearChatOnly();
   hideAllForms();
+  showForm('siemForm');
   
   document.querySelectorAll('#sub-siem .platform-card').forEach(card => {
     card.classList.remove('active');
@@ -1979,9 +2145,13 @@ function selectNetwork(tool) {
   STATE.tab = tool;
   updatePills();
   
-  // Clear chat and hide forms when switching network tool
+  // Update form title
+  const label = tool === 'suricata' ? 'Suricata' : 'Zeek';
+  document.getElementById('networkFormTitle').textContent = `🌐 Network Detection — ${label}`;
+  
   clearChatOnly();
   hideAllForms();
+  showForm('networkForm');
   
   document.querySelectorAll('#sub-network .platform-card').forEach(card => {
     card.classList.remove('active');
@@ -2061,11 +2231,11 @@ function buildSystemPrompt() {
     prompt += 'UNIVERSAL: Beantwoord algemene security vragen, leg concepten uit, geef best practices. Geef uitgebreide, complete antwoorden.\n';
   } else if (STATE.tab === 'siem') {
     if (STATE.siem === 'Splunk') {
-      prompt += 'SPLUNK: Genereer SPL queries. Gebruik index=, sourcetype=, eval, stats, timechart. Geef altijd werkende, kopieerbare queries met uitleg.\n';
+      prompt += 'SPLUNK: Genereer SPL queries. Gebruik index=, sourcetype=, eval, stats, timechart, lookup, where. Geef altijd werkende, kopieerbare queries. Voeg per query uitleg toe over wat elke regel doet. Gebruik realistische field names.\n';
     } else if (STATE.siem === 'Microsoft Sentinel') {
-      prompt += 'SENTINEL: Genereer KQL queries. Gebruik SecurityEvent, SigninLogs, where, summarize. Geef altijd werkende, kopieerbare queries met uitleg.\n';
+      prompt += 'SENTINEL: Genereer KQL queries voor Microsoft Sentinel. Gebruik SecurityEvent, SigninLogs, AuditLogs, CommonSecurityLog, Syslog. Operators: where, summarize, extend, project, join, ago(). Geef werkende, kopieerbare queries met uitleg.\n';
     } else if (STATE.siem === 'Elastic') {
-      prompt += 'ELASTIC: Genereer EQL of Lucene queries. Gebruik event.category, process.name. Geef altijd werkende, kopieerbare queries met uitleg.\n';
+      prompt += 'ELASTIC: Genereer Elastic EQL of KQL queries. Gebruik event.category, event.action, process.name, source.ip, destination.ip. Geef werkende queries voor Kibana/Elastic Security met uitleg.\n';
     }
   } else if (STATE.tab === 'soar') {
     if (STATE.soar === 'Microsoft Sentinel') {
@@ -2078,11 +2248,11 @@ function buildSystemPrompt() {
   } else if (STATE.tab === 'convert') {
     prompt += `CONVERT: Converteer ${STATE.convertFrom} query naar ${STATE.convertTo}.\n`;
   } else if (STATE.tab === 'sigma') {
-    prompt += `SIGMA: Converteer Sigma rule naar ${STATE.sigmaPlatform} detection rule. Geef complete, werkende output.\n`;
+    prompt += `SIGMA: Converteer Sigma rule naar ${STATE.sigmaPlatform} detection rule. Geef de volledige geconverteerde query, leg field mappings uit, en noteer mogelijke platform-specifieke beperkingen of aanpassingen.\n`;
   } else if (STATE.tab === 'suricata') {
-    prompt += 'SURICATA: Genereer IDS/IPS rules voor HTTP, DNS, SMB, FTP. Gebruik Suricata syntax. Geef complete, werkende rules.\n';
+    prompt += 'SURICATA: Genereer Suricata IDS/IPS rules. Gebruik correcte syntax: action, protocol, source, destination, options (msg, content, pcre, flow, sid, rev, classtype, reference). Geef werkende rules met uitleg en MITRE ATT&CK mapping.\n';
   } else if (STATE.tab === 'zeek') {
-    prompt += 'ZEEK: Genereer Zeek scripts voor C2 detection, data exfil, lateral movement. Geef complete, werkende scripts.\n';
+    prompt += 'ZEEK: Genereer Zeek/Bro scripts (.zeek). Gebruik events (connection_established, dns_request, http_request, etc.), Intel framework, Notice framework. Geef complete, werkende scripts met uitleg en MITRE ATT&CK mapping.\n';
   } else if (STATE.tab === 'kickstart') {
     prompt += 'SOC KICKSTART: Je genereert een professioneel security onboarding package. Gebruik het systeemprofiel (omgeving, kriticaliteit, dataclassificatie, exposure, authenticatie, compliance) om je analyse te richten. Geef per onderdeel concrete, actionable output. Detection rules moeten werkende queries zijn in het opgegeven SIEM platform. MITRE ATT&CK referenties met TID nummers. Log bronnen met specifieke sourcetypes. Hardening checklist afgestemd op het compliance framework. Structureer elk onderdeel met duidelijke headers.\n';
   }
@@ -2274,6 +2444,41 @@ function generateCribl() {
   sendMessage();
 }
 
+// GENERATE SIEM QUERY
+function generateSIEM() {
+  const useCase = document.getElementById('siemUseCase').value;
+  const timeRange = document.getElementById('siemTimeRange').value;
+  const dataSource = document.getElementById('siemDataSource').value.trim();
+  const freeText = document.getElementById('siemFreeText').value.trim();
+  
+  if (!useCase && !freeText) {
+    showNotification('Selecteer een use case of vul een specifieke vraag in!', true);
+    return;
+  }
+  
+  const wantExplain = document.getElementById('siemExplain').checked;
+  const wantDashboard = document.getElementById('siemDashboard').checked;
+  const wantAlert = document.getElementById('siemAlert').checked;
+  const wantMitre = document.getElementById('siemMitre').checked;
+  
+  let prompt = `${STATE.siem} QUERY\n`;
+  prompt += `${'='.repeat(40)}\n\n`;
+  if (useCase) prompt += `Use case: ${useCase}\n`;
+  prompt += `Tijdrange: ${timeRange}\n`;
+  if (dataSource) prompt += `Data bron/index: ${dataSource}\n`;
+  if (freeText) prompt += `Specifiek: ${freeText}\n`;
+  prompt += `\nGenereer een werkende, kopieerbare ${STATE.siem} query.\n`;
+  if (wantExplain) prompt += `Voeg per query onderdeel uitleg toe (als comments of na de query).\n`;
+  if (wantDashboard) prompt += `Geef ook een dashboard panel suggestie (visualisatie type, velden).\n`;
+  if (wantAlert) prompt += `Geef alert/threshold configuratie: drempel, severity, actie.\n`;
+  if (wantMitre) prompt += `Voeg MITRE ATT&CK Tactic + Technique (TID) toe.\n`;
+  
+  hideAllForms();
+  document.getElementById('welcome')?.remove();
+  document.getElementById('inputField').value = prompt;
+  sendMessage();
+}
+
 // GENERATE SIGMA
 function generateSigma() {
   const yaml = document.getElementById('sigmaYaml').value.trim();
@@ -2283,9 +2488,53 @@ function generateSigma() {
     return;
   }
   
-  let prompt = `Converteer Sigma regel naar ${STATE.sigmaPlatform}:\n\n${yaml}`;
+  const wantExplain = document.getElementById('sigmaExplain').checked;
+  const wantFieldMap = document.getElementById('sigmaFieldMap').checked;
+  const wantFalsePos = document.getElementById('sigmaFalsePos').checked;
+  const wantTuning = document.getElementById('sigmaTuning').checked;
   
-  // Hide form, send message
+  let prompt = `Converteer Sigma regel naar ${STATE.sigmaPlatform}:\n\n${yaml}\n\n`;
+  prompt += `Geef de volledige geconverteerde query.\n`;
+  if (wantExplain) prompt += `Leg de conversie uit: welke Sigma velden worden hoe vertaald.\n`;
+  if (wantFieldMap) prompt += `Toon een field mapping tabel (Sigma veld → ${STATE.sigmaPlatform} veld).\n`;
+  if (wantFalsePos) prompt += `Analyseer false positive risico en geef whitelist suggesties.\n`;
+  if (wantTuning) prompt += `Geef tuning suggesties: hoe de rule verscherpen of verbreden per omgeving.\n`;
+  
+  hideAllForms();
+  document.getElementById('welcome')?.remove();
+  document.getElementById('inputField').value = prompt;
+  sendMessage();
+}
+
+// GENERATE NETWORK DETECTION
+function generateNetwork() {
+  const threat = document.getElementById('netThreat').value;
+  const protocol = document.getElementById('netProtocol').value;
+  const context = document.getElementById('netContext').value.trim();
+  
+  if (!threat && !context) {
+    showNotification('Selecteer een threat type of vul context in!', true);
+    return;
+  }
+  
+  const wantExplain = document.getElementById('netExplain').checked;
+  const wantMitre = document.getElementById('netMitre').checked;
+  const wantPerf = document.getElementById('netPerformance').checked;
+  const wantFP = document.getElementById('netFalsePos').checked;
+  
+  const tool = STATE.tab === 'suricata' ? 'Suricata' : 'Zeek';
+  
+  let prompt = `${tool} DETECTION RULES\n`;
+  prompt += `${'='.repeat(40)}\n\n`;
+  if (threat) prompt += `Threat: ${threat}\n`;
+  prompt += `Protocol: ${protocol}\n`;
+  if (context) prompt += `Context/IOC's: ${context}\n`;
+  prompt += `\nGenereer werkende ${tool} rules.\n`;
+  if (wantExplain) prompt += `Voeg per rule uitleg toe over wat het detecteert en hoe.\n`;
+  if (wantMitre) prompt += `Voeg MITRE ATT&CK Tactic + Technique (TID) mapping toe.\n`;
+  if (wantPerf) prompt += `Noteer performance impact en optimalisatie tips.\n`;
+  if (wantFP) prompt += `Beschrijf false positive scenario's en hoe te mitigeren.\n`;
+  
   hideAllForms();
   document.getElementById('welcome')?.remove();
   document.getElementById('inputField').value = prompt;
