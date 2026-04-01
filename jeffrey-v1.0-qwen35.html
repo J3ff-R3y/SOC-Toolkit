@@ -1223,7 +1223,7 @@ header {
     <div class="chat-header">
       <div class="chat-pill" id="currentPill">Universal</div>
       <span class="chat-status">Qwen 3.5 27B Q8</span>
-      <span class="chat-timing" title="Qwen 3.5 27B draait op CPU/RAM — responses kunnen even duren">⏱️ 15-60 sec</span>
+      <span class="chat-timing" title="Qwen 3.5 27B draait op CPU/RAM — responses kunnen even duren">⏱️ 1-5 min</span>
     </div>
 
     <div class="chat-area" id="chatArea">
@@ -1232,7 +1232,7 @@ header {
         <p>Jouw AI-assistent voor SOC operations, detection engineering en security automation.</p>
         
         <div class="disclaimer">
-          <p><strong>⏱️ Let op:</strong> Responses kunnen 15-60 seconden duren (Qwen 3.5 27B op CPU).</p>
+          <p><strong>⏱️ Let op:</strong> Responses duren 1-5 minuten afhankelijk van complexiteit.</p>
           <p>Het model draait volledig offline op CPU/RAM voor maximale veiligheid.</p>
         </div>
         
@@ -2376,17 +2376,29 @@ async function sendMessage() {
   const text = input.value.trim();
   if (!text) return;
   
+  await sendToModel(text, text);
+}
+
+// SEND FORM MESSAGE (shows summary to user, sends full prompt to model)
+async function sendFormMessage(fullPrompt, displaySummary) {
+  await sendToModel(fullPrompt, displaySummary);
+}
+
+async function sendToModel(fullPrompt, displayText) {
+  if (!fullPrompt) return;
+  
   const welcome = document.getElementById('welcome');
   if (welcome) welcome.remove();
   
-  // Hide forms when sending message
   hideAllForms();
   
+  const input = document.getElementById('inputField');
   input.value = '';
   autoResize(input);
   
-  STATE.conv.push({ role: 'user', content: text });
-  renderMessage('user', text);
+  // Store full prompt for model, show display text to user
+  STATE.conv.push({ role: 'user', content: fullPrompt });
+  renderMessage('user', displayText);
   
   document.getElementById('sendBtn').disabled = true;
   document.getElementById('chatStatus').textContent = 'Bezig...';
@@ -2438,10 +2450,10 @@ function generateCribl() {
   if (regex) prompt += `- Regex parsing\n`;
   
   // Hide form, send message
+  const summary = `🔧 Cribl Pipeline: ${pipelineId}`;
   hideAllForms();
   document.getElementById('welcome')?.remove();
-  document.getElementById('inputField').value = prompt;
-  sendMessage();
+  sendFormMessage(prompt, summary);
 }
 
 // GENERATE SIEM QUERY
@@ -2473,13 +2485,11 @@ function generateSIEM() {
   if (wantAlert) prompt += `Geef alert/threshold configuratie: drempel, severity, actie.\n`;
   if (wantMitre) prompt += `Voeg MITRE ATT&CK Tactic + Technique (TID) toe.\n`;
   
+  const summary = `🔍 ${STATE.siem}: ${useCase || freeText} (${timeRange})`;
   hideAllForms();
   document.getElementById('welcome')?.remove();
-  document.getElementById('inputField').value = prompt;
-  sendMessage();
+  sendFormMessage(prompt, summary);
 }
-
-// GENERATE SIGMA
 function generateSigma() {
   const yaml = document.getElementById('sigmaYaml').value.trim();
   
@@ -2500,10 +2510,10 @@ function generateSigma() {
   if (wantFalsePos) prompt += `Analyseer false positive risico en geef whitelist suggesties.\n`;
   if (wantTuning) prompt += `Geef tuning suggesties: hoe de rule verscherpen of verbreden per omgeving.\n`;
   
+  const summary = `Σ Sigma → ${STATE.sigmaPlatform} conversie`;
   hideAllForms();
   document.getElementById('welcome')?.remove();
-  document.getElementById('inputField').value = prompt;
-  sendMessage();
+  sendFormMessage(prompt, summary);
 }
 
 // GENERATE NETWORK DETECTION
@@ -2535,10 +2545,10 @@ function generateNetwork() {
   if (wantPerf) prompt += `Noteer performance impact en optimalisatie tips.\n`;
   if (wantFP) prompt += `Beschrijf false positive scenario's en hoe te mitigeren.\n`;
   
+  const summary = `🌐 ${tool}: ${threat || context}`;
   hideAllForms();
   document.getElementById('welcome')?.remove();
-  document.getElementById('inputField').value = prompt;
-  sendMessage();
+  sendFormMessage(prompt, summary);
 }
 
 // GENERATE SOAR PLAYBOOK
@@ -2583,10 +2593,10 @@ function generateSOAR() {
   prompt += `5. TRIAGE GUIDE: Wat moet de analyst checken bij deze alert?\n`;
   prompt += `6. FALSE POSITIVE CRITERIA: Wanneer is het een false positive?\n`;
 
+  const summary = `📋 SOAR ${STATE.soar}: ${incident} (${severity})`;
   hideAllForms();
   document.getElementById('welcome')?.remove();
-  document.getElementById('inputField').value = prompt;
-  sendMessage();
+  sendFormMessage(prompt, summary);
 }
 
 // INPUT AUTO RESIZE
@@ -2606,7 +2616,7 @@ function clearChat() {
       <p>Jouw AI-assistent voor SOC operations, detection engineering en security automation.</p>
       
       <div class="disclaimer">
-        <p><strong>⏱️ Let op:</strong> Responses kunnen 15-60 seconden duren (Qwen 3.5 27B op CPU).</p>
+        <p><strong>⏱️ Let op:</strong> Responses duren 1-5 minuten afhankelijk van complexiteit.</p>
         <p>Het model draait volledig offline op CPU/RAM voor maximale veiligheid.</p>
       </div>
       
@@ -2738,10 +2748,10 @@ function generateKickstart() {
     prompt += `\n`;
   }
   
+  const summary = `🚀 SOC Kickstart: ${name}${crit ? ' (' + crit.split(' —')[0] + ')' : ''}`;
   hideAllForms();
   document.getElementById('welcome')?.remove();
-  document.getElementById('inputField').value = prompt;
-  sendMessage();
+  sendFormMessage(prompt, summary);
 }
 
 // EVENT LISTENERS
