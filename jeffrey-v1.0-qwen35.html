@@ -1132,12 +1132,6 @@ header {
         </div>
       </div>
 
-      <div class="menu-item" id="menu-cribl" onclick="toggleMenu('cribl')">
-        <div class="menu-label">
-          <span class="menu-icon">🔧</span>
-          <span>Cribl Pipeline</span>
-        </div>
-      </div>
 
       <div class="menu-item" id="menu-sigma" onclick="toggleMenu('sigma')">
         <div class="menu-label">
@@ -1223,7 +1217,7 @@ header {
     <div class="chat-header">
       <div class="chat-pill" id="currentPill">Universal</div>
       <span class="chat-status">Qwen 3.5 27B Q8</span>
-      <span class="chat-timing" title="Qwen 3.5 27B draait op CPU/RAM — responses kunnen even duren">⏱️ 1-5 min</span>
+      <span class="chat-timing" title="Simpele vraag: 30s-2m | SOAR/Sigma/Network: 2-5m | SOC Kickstart: 5-15m">⏱️ 30s - 15 min</span>
     </div>
 
     <div class="chat-area" id="chatArea">
@@ -1232,8 +1226,12 @@ header {
         <p>Jouw AI-assistent voor SOC operations, detection engineering en security automation.</p>
         
         <div class="disclaimer">
-          <p><strong>⏱️ Let op:</strong> Responses duren 1-5 minuten afhankelijk van complexiteit.</p>
           <p>Het model draait volledig offline op CPU/RAM voor maximale veiligheid.</p>
+          <p style="margin-top:8px; font-size:13px; color:var(--text-secondary)">
+            ⏱️ <strong>Simpele vraag / SIEM query:</strong> 30 sec - 2 min &nbsp;|&nbsp;
+            <strong>SOAR / Sigma / Network:</strong> 2-5 min &nbsp;|&nbsp;
+            <strong>SOC Kickstart:</strong> 5-15 min
+          </p>
         </div>
         
         <div class="feature-grid">
@@ -1254,51 +1252,6 @@ header {
             <span>Threat model + detection + monitoring</span>
           </div>
         </div>
-      </div>
-      
-      <!-- Cribl Pipeline Form -->
-      <div class="form-container" id="criblForm">
-        <h2 class="form-title">🔧 Cribl Pipeline Builder</h2>
-        <p class="form-subtitle">Genereer complete Cribl Stream pipelines met jouw TELL patronen</p>
-        
-        <div class="form-group">
-          <label class="form-label">Pipeline ID</label>
-          <input type="text" class="form-input" id="criblPipelineId" placeholder="bijv. windows_security_parser">
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Sample Log (plak ruwe log)</label>
-          <textarea class="form-input form-textarea" id="criblSampleLog" placeholder="Plak hier een ruwe log entry..."></textarea>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Velden om te Extracten (komma gescheiden)</label>
-          <input type="text" class="form-input" id="criblFields" placeholder="bijv. EventID, User, ProcessName">
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Benodigde Acties</label>
-          <div class="form-checkboxes">
-            <div class="form-checkbox">
-              <input type="checkbox" id="criblMeta" checked>
-              <label for="criblMeta">Metadata toevoegen (tenant, index)</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="criblDrop">
-              <label for="criblDrop">Events filteren (drop)</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="criblLookup">
-              <label for="criblLookup">Lookup verrijking</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="criblRegex">
-              <label for="criblRegex">Regex parsing</label>
-            </div>
-          </div>
-        </div>
-        
-        <button class="form-btn" onclick="generateCribl()">Genereer Pipeline</button>
       </div>
       
       <!-- SIEM Query Builder Form -->
@@ -2109,10 +2062,7 @@ function toggleMenu(menu) {
     menuItem.classList.add('active');
     
     // Show forms and clear chat for form-based features
-    if (menu === 'cribl') {
-      clearChatOnly();
-      showForm('criblForm');
-    } else if (menu === 'kickstart') {
+    if (menu === 'kickstart') {
       clearChatOnly();
       showForm('kickstartForm');
     } else {
@@ -2210,8 +2160,6 @@ function updatePills() {
     pill.textContent = `SIEM: ${STATE.siem}`;
   } else if (STATE.tab === 'soar') {
     pill.textContent = `SOAR: ${STATE.soar === 'Microsoft Sentinel' ? 'Sentinel' : 'Splunk'}`;
-  } else if (STATE.tab === 'cribl') {
-    pill.textContent = 'Cribl Pipeline';
   } else if (STATE.tab === 'sigma') {
     pill.textContent = `Sigma → ${STATE.sigmaPlatform}`;
   } else if (STATE.tab === 'suricata') {
@@ -2243,8 +2191,6 @@ function buildSystemPrompt() {
     } else {
       prompt += 'SOAR SPLUNK: Genereer Splunk SOAR playbooks. Gebruik Phantom app acties, decision blocks, en custom functions. Geef concrete, implementeerbare playbook stappen met app/action namen.\n';
     }
-  } else if (STATE.tab === 'cribl') {
-    prompt += 'CRIBL: Genereer Cribl pipeline configuratie met routes, eval, drop, lookup. Geef complete, werkende configuraties.\n';
   } else if (STATE.tab === 'convert') {
     prompt += `CONVERT: Converteer ${STATE.convertFrom} query naar ${STATE.convertTo}.\n`;
   } else if (STATE.tab === 'sigma') {
@@ -2423,39 +2369,6 @@ async function sendToModel(fullPrompt, displayText) {
   }
 }
 
-// GENERATE CRIBL
-function generateCribl() {
-  const pipelineId = document.getElementById('criblPipelineId').value.trim();
-  const sampleLog = document.getElementById('criblSampleLog').value.trim();
-  const fields = document.getElementById('criblFields').value.trim();
-  
-  if (!pipelineId || !sampleLog) {
-    showNotification('Vul minimaal Pipeline ID en Sample Log in!', true);
-    return;
-  }
-  
-  const meta = document.getElementById('criblMeta').checked;
-  const drop = document.getElementById('criblDrop').checked;
-  const lookup = document.getElementById('criblLookup').checked;
-  const regex = document.getElementById('criblRegex').checked;
-  
-  let prompt = `Genereer Cribl pipeline configuratie:\n\n`;
-  prompt += `Pipeline ID: ${pipelineId}\n`;
-  prompt += `Sample log: ${sampleLog}\n`;
-  if (fields) prompt += `Velden om te extracten: ${fields}\n`;
-  prompt += `\nAccordeons:\n`;
-  if (meta) prompt += `- Metadata (tenant, index, source)\n`;
-  if (drop) prompt += `- Filter events (drop)\n`;
-  if (lookup) prompt += `- Lookup verrijking\n`;
-  if (regex) prompt += `- Regex parsing\n`;
-  
-  // Hide form, send message
-  const summary = `🔧 Cribl Pipeline: ${pipelineId}`;
-  hideAllForms();
-  document.getElementById('welcome')?.remove();
-  sendFormMessage(prompt, summary);
-}
-
 // GENERATE SIEM QUERY
 function generateSIEM() {
   const useCase = document.getElementById('siemUseCase').value;
@@ -2616,8 +2529,12 @@ function clearChat() {
       <p>Jouw AI-assistent voor SOC operations, detection engineering en security automation.</p>
       
       <div class="disclaimer">
-        <p><strong>⏱️ Let op:</strong> Responses duren 1-5 minuten afhankelijk van complexiteit.</p>
         <p>Het model draait volledig offline op CPU/RAM voor maximale veiligheid.</p>
+        <p style="margin-top:8px; font-size:13px; color:var(--text-secondary)">
+          ⏱️ <strong>Simpele vraag / SIEM query:</strong> 30 sec - 2 min |
+          <strong>SOAR / Sigma / Network:</strong> 2-5 min |
+          <strong>SOC Kickstart:</strong> 5-15 min
+        </p>
       </div>
       
       <div class="feature-grid">

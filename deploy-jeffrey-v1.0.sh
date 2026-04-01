@@ -278,8 +278,9 @@ log "HTML gedeployed naar ${TOOLKIT_DIR}/index.html"
 cat > "$APACHE_CONF" << 'APACHECONF'
 Listen 8080
 
-ProxyTimeout 600
-Timeout 600
+ProxyTimeout 900
+Timeout 900
+RequestReadTimeout header=60 body=900
 
 <VirtualHost *:8080>
     ServerName localhost
