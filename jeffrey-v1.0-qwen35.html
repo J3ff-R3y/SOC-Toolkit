@@ -3,2718 +3,727 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jeffrey Toolkit v1.0 — SOC Intelligence Suite</title>
+<title>Jeffrey Toolkit v1.0 — Enterprise SOC Suite</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Claude.ai color scheme */
-  --bg-primary: #F3F0EB;
-  --bg-secondary: #ffffff;
-  --bg-tertiary: #F9F7F4;
-  --bg-hover: #EDE9E3;
-  --border: #E0DDD7;
-  --border-light: #D1CCC4;
-  
-  --accent: #75361D;
-  --accent-hover: #5A2816;
-  --accent-light: #E8C4A8;
-  --accent-dim: rgba(117, 54, 29, 0.08);
-  
-  --text-primary: #1A1815;
-  --text-secondary: #5A554E;
-  --text-dim: #7A756D;
-  
-  --success: #16a34a;
-  --warning: #75361D;
-  --error: #C43030;
-  
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.08);
+  --bg-primary: #F3F0EB; --bg-secondary: #ffffff; --bg-tertiary: #F9F7F4; --bg-hover: #EDE9E3;
+  --border: #E0DDD7; --border-light: #D1CCC4;
+  --accent: #75361D; --accent-hover: #5A2816; --accent-light: #E8C4A8; --accent-dim: rgba(117, 54, 29, 0.08);
+  --text-primary: #1A1815; --text-secondary: #5A554E; --text-dim: #7A756D;
+  --success: #16a34a; --warning: #d97706; --error: #C43030;
+  --font-sans: 'Inter', sans-serif;
+  --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px;
 }
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html, body {
-  height: 100%;
-}
-
-body {
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: 15px;
-  line-height: 1.6;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  -webkit-font-smoothing: antialiased;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: var(--font-sans); background: var(--bg-primary); color: var(--text-primary); display: flex; flex-direction: column; overflow: hidden; }
 
 /* HEADER */
-header {
-  position: relative;
-  z-index: 100;
-  padding: 12px 20px;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  box-shadow: var(--shadow-sm);
-}
+header { padding: 12px 20px; background: var(--bg-secondary); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; z-index: 100; }
+.logo { display: flex; align-items: center; gap: 12px; }
+.logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; color: white; }
+.logo-text h1 { font-size: 16px; font-weight: 700; }
+.logo-text p { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+.header-actions { display: flex; align-items: center; gap: 12px; }
+.timer-badge { display: none; align-items: center; gap: 8px; font-family: monospace; font-size: 14px; color: var(--warning); font-weight: 600; }
+.icon-btn { width: 32px; height: 32px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-tertiary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+.icon-btn:hover { background: var(--bg-hover); }
+.stop-btn { display: none; background: #fee2e2; color: var(--error); border-color: #fca5a5; }
 
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.logo-icon {
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 14px;
-  color: white;
-  box-shadow: var(--shadow-md);
-}
-
-.logo-text h1 {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
-}
-
-.logo-text p {
-  font-size: 11px;
-  color: var(--text-dim);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.status-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--success);
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.icon-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--bg-tertiary);
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  font-size: 16px;
-}
-
-.icon-btn:hover {
-  background: var(--bg-hover);
-  border-color: var(--border-light);
-  color: var(--text-primary);
-}
-
-/* MAIN APP */
-.app {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
-
-/* SIDEBAR */
-.sidebar {
-  width: 280px;
-  background: var(--bg-secondary);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  max-height: calc(100vh - 60px);
-}
-
-.sidebar-section {
-  padding: 20px;
-  border-bottom: 1px solid var(--border);
-}
-
-.section-label {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-dim);
-  margin-bottom: 12px;
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  padding: 8px 0;
-  margin-bottom: 12px;
-  user-select: none;
-}
-
-.section-header:hover .section-toggle {
-  color: var(--text-primary);
-}
-
-.section-header .section-label {
-  margin-bottom: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.section-toggle {
-  font-size: 14px;
-  color: var(--text-dim);
-  transition: transform 0.2s, color 0.2s;
-}
-
-.section-header.collapsed .section-toggle {
-  transform: rotate(-90deg);
-}
-
-.section-content {
-  overflow: hidden;
-  transition: max-height 0.3s ease, opacity 0.3s ease;
-  max-height: 2000px;
-  opacity: 1;
-}
-
-.section-content.collapsed {
-  max-height: 0;
-  opacity: 0;
-  margin-bottom: 0;
-}
-
-.menu-item {
-  padding: 10px 12px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all 0.2s;
-  margin-bottom: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.menu-item:hover {
-  background: var(--bg-hover);
-  border-color: var(--border-light);
-}
-
-.menu-item.active {
-  background: var(--accent-dim);
-  border-color: var(--accent);
-}
-
-.menu-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.menu-icon {
-  font-size: 16px;
-}
-
-.menu-arrow {
-  font-size: 12px;
-  color: var(--text-dim);
-  transition: transform 0.2s;
-}
-
-.menu-item.expanded .menu-arrow {
-  transform: rotate(90deg);
-}
-
-.submenu {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s ease;
-  padding-left: 8px;
-  margin-top: 0;
-}
-
-.submenu.show {
-  max-height: 800px;
-  margin-top: 6px;
-}
-
-.platform-card {
-  padding: 10px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.2s;
-  margin-bottom: 4px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.platform-card:hover {
-  background: var(--bg-hover);
-  border-color: var(--accent-light);
-}
-
-.platform-card.active {
-  background: var(--accent-light);
-  border-color: var(--accent);
-}
-
-.platform-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  flex-shrink: 0;
-}
-
-.platform-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-/* CHAT HISTORY */
-.chat-history-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.chat-history-item {
-  padding: 10px 12px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  animation: fadeInSlide 0.2s ease-out;
-}
-
-@keyframes fadeInSlide {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.chat-history-item:hover {
-  background: var(--bg-hover);
-  border-color: var(--border-light);
-}
-
-.chat-history-item.active {
-  background: var(--accent-dim);
-  border-color: var(--accent);
-}
-
-.chat-history-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.chat-history-title {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  margin-bottom: 4px;
-}
-
-.chat-history-meta {
-  font-size: 11px;
-  color: var(--text-dim);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.chat-history-delete {
-  width: 24px;
-  height: 24px;
-  border-radius: 4px;
-  border: none;
-  background: transparent;
-  color: var(--text-dim);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  transition: all 0.2s;
-  flex-shrink: 0;
-}
-
-.chat-history-delete:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-  transform: scale(1.1);
-}
-
-.chat-history-empty {
-  padding: 20px;
-  text-align: center;
-  color: var(--text-dim);
-  font-size: 13px;
-}
-
-.new-chat-btn {
-  width: 100%;
-  padding: 10px;
-  background: var(--accent);
-  color: white;
-  border: none;
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  margin-top: 8px;
-}
-
-.new-chat-btn:hover {
-  background: var(--accent-hover);
-  transform: translateY(-1px);
-}
+/* APP LAYOUT & SIDEBAR */
+.app { display: flex; flex: 1; overflow: hidden; }
+.sidebar { width: 280px; background: var(--bg-secondary); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+.sidebar-section { padding: 20px; border-bottom: 1px solid var(--border); }
+.section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-dim); margin-bottom: 12px; }
+.menu-item { padding: 10px 12px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-md); cursor: pointer; transition: 0.2s; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; font-size: 14px; font-weight: 600; }
+.menu-item:hover { background: var(--bg-hover); }
+.menu-item.active { background: var(--accent-dim); border-color: var(--accent); }
 
 /* CHAT AREA */
-.chat-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-primary);
-  overflow: hidden;
-}
-
-.chat-header {
-  padding: 16px 20px;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.chat-pill {
-  padding: 6px 12px;
-  background: var(--accent-light);
-  border: 1px solid var(--accent);
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent-hover);
-}
-
-.chat-status {
-  margin-left: auto;
-  font-size: 13px;
-  color: var(--text-dim);
-  font-weight: 500;
-}
-
-.chat-timing {
-  margin-left: 12px;
-  font-size: 12px;
-  color: var(--accent);
-  font-weight: 600;
-  cursor: help;
-}
-
-.disclaimer {
-  background: rgba(234, 179, 8, 0.1);
-  border: 1px solid rgba(234, 179, 8, 0.3);
-  border-radius: var(--radius-md);
-  padding: 16px;
-  margin: 24px auto;
-  max-width: 500px;
-  text-align: center;
-}
-
-.disclaimer p {
-  margin: 6px 0;
-  font-size: 14px;
-  color: var(--text-primary);
-}
-
-.disclaimer strong {
-  color: var(--accent);
-}
-
-.chat-area {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
-}
-
-.welcome {
-  max-width: 600px;
-  margin: 60px auto;
-  text-align: center;
-}
-
-.welcome h2 {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 12px;
-}
-
-.welcome p {
-  font-size: 15px;
-  color: var(--text-secondary);
-  margin-bottom: 24px;
-}
-
-.feature-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  max-width: 500px;
-  margin: 0 auto;
-}
-
-.feature-item {
-  padding: 16px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  text-align: left;
-  box-shadow: var(--shadow-sm);
-}
-
-.feature-item strong {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 4px;
-}
-
-.feature-item span {
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-.message {
-  margin-bottom: 20px;
-  display: flex;
-  gap: 12px;
-}
-
-.message-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 14px;
-  flex-shrink: 0;
-}
-
-.message.user .message-avatar {
-  background: var(--accent-light);
-  color: var(--accent-hover);
-}
-
-.message.assistant .message-avatar {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-}
-
-.message-content {
-  flex: 1;
-  padding: 12px 16px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-}
-
-.message.user .message-content {
-  background: var(--accent-dim);
-  border-color: var(--accent-light);
-}
-
-/* CODE BLOCKS IN MESSAGES */
-.message-content pre {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 12px;
-  margin: 8px 0;
-  overflow-x: auto;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.message-content code {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  background: rgba(0, 0, 0, 0.1);
-  padding: 2px 6px;
-  border-radius: 3px;
-}
-
-.message-content pre code {
-  background: none;
-  padding: 0;
-}
-
-
-.typing {
-  display: flex;
-  gap: 4px;
-  padding: 12px;
-}
-
-.typing-dot {
-  width: 8px;
-  height: 8px;
-  background: var(--text-dim);
-  border-radius: 50%;
-  animation: typing 1.4s infinite;
-}
-
-.typing-dot:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.typing-dot:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-@keyframes typing {
-  0%, 60%, 100% {
-    transform: translateY(0);
-  }
-  30% {
-    transform: translateY(-10px);
-  }
-}
-
-/* INPUT AREA */
-.input-container {
-  padding: 16px 20px;
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border);
-}
-
-.input-wrapper {
-  display: flex;
-  gap: 8px;
-  align-items: flex-end;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-.input-field {
-  flex: 1;
-  padding: 12px 16px;
-  background: var(--bg-tertiary);
-  border: 2px solid var(--border);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
-  font-size: 15px;
-  font-family: var(--font-sans);
-  resize: none;
-  min-height: 72px;
-  max-height: 200px;
-  transition: all 0.2s;
-}
-
-.input-field:focus {
-  outline: none;
-  border-color: var(--accent);
-  background: var(--bg-secondary);
-}
-
-.send-btn {
-  width: 44px;
-  height: 44px;
-  background: var(--accent);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  transition: all 0.2s;
-  flex-shrink: 0;
-}
-
-.send-btn:hover {
-  background: var(--accent-hover);
-}
-
-.send-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* NOTIFICATION */
-.notification {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  padding: 12px 20px;
-  background: var(--text-primary);
-  color: white;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  font-size: 14px;
-  font-weight: 500;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.3s;
-  z-index: 1000;
-}
-
-.notification.show {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.notification.error {
-  background: var(--error);
-}
-
-/* FORMS */
-.form-container {
-  max-width: 700px;
-  margin: 40px auto;
-  padding: 24px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  display: none;
-}
-
-.form-container.show {
-  display: block;
-}
-
-.form-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 8px;
-}
-
-.form-subtitle {
-  font-size: 14px;
-  color: var(--text-secondary);
-  margin-bottom: 24px;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-label {
-  display: block;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 8px;
-}
-
-.form-input {
-  width: 100%;
-  padding: 10px 14px;
-  background: var(--bg-tertiary);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
-  font-size: 14px;
-  font-family: var(--font-sans);
-  transition: all 0.2s;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: var(--accent);
-  background: var(--bg-secondary);
-}
-
-.form-textarea {
-  min-height: 150px;
-  resize: vertical;
-  font-family: var(--font-mono);
-  font-size: 13px;
-}
-
-.form-checkboxes {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-top: 12px;
-}
-
-.form-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px;
-  background: var(--bg-tertiary);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.form-checkbox:hover {
-  background: var(--bg-hover);
-  border-color: var(--accent-light);
-}
-
-.form-checkbox input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-}
-
-.form-checkbox label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-primary);
-  cursor: pointer;
-  flex: 1;
-}
-
-.form-btn {
-  width: 100%;
-  padding: 12px;
-  background: var(--accent);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: var(--font-sans);
-}
-
-.form-btn:hover {
-  background: var(--accent-hover);
-  transform: translateY(-1px);
-}
-
-.form-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* LOGIN SCREEN */
-.login-screen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--bg-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-.login-screen.hidden {
-  display: none;
-}
-
-.login-box {
-  width: 100%;
-  max-width: 400px;
-  padding: 40px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-}
-
-.login-logo {
-  width: 60px;
-  height: 60px;
-  margin: 0 auto 24px;
-  background: var(--accent);
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-  font-weight: 700;
-  color: white;
-}
-
-.login-title {
-  text-align: center;
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 8px;
-}
-
-.login-subtitle {
-  text-align: center;
-  font-size: 14px;
-  color: var(--text-secondary);
-  margin-bottom: 32px;
-}
-
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.login-input {
-  width: 100%;
-  padding: 12px 16px;
-  background: var(--bg-tertiary);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
-  font-size: 14px;
-  font-family: var(--font-sans);
-  transition: all 0.2s;
-}
-
-.login-input:focus {
-  outline: none;
-  border-color: var(--accent);
-  background: var(--bg-secondary);
-}
-
-.login-btn {
-  width: 100%;
-  padding: 12px;
-  background: var(--accent);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: var(--font-sans);
-}
-
-.login-btn:hover {
-  background: var(--accent-hover);
-  transform: translateY(-1px);
-}
-
-.login-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.login-error {
-  padding: 12px;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: var(--radius-md);
-  color: #ef4444;
-  font-size: 13px;
-  text-align: center;
-  margin-top: 16px;
-  display: none;
-}
-
-.login-error.show {
-  display: block;
-}
-
-.main-app {
-  display: none;
-  flex: 1;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.main-app.visible {
-  display: flex;
-}
+.chat-container { flex: 1; display: flex; flex-direction: column; background: var(--bg-primary); overflow: hidden; }
+.chat-area { flex: 1; overflow-y: auto; padding: 20px; }
+.message { margin-bottom: 24px; display: flex; gap: 12px; max-width: 900px; margin-left: auto; margin-right: auto; }
+.message-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+.message.user .message-avatar { background: var(--accent-light); color: var(--accent-hover); }
+.message.assistant .message-avatar { background: var(--bg-tertiary); border: 1px solid var(--border); }
+.message-content-wrapper { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.message-timestamp { font-size: 11px; color: var(--text-dim); margin-left: 4px; }
+.message-content { padding: 16px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); line-height: 1.6; font-size: 14px; }
+.message.user .message-content { background: var(--accent-dim); border-color: var(--accent-light); }
+.message-content pre { background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 6px; overflow-x: auto; margin: 10px 0; font-family: monospace; font-size: 13px; }
+.message-content code { font-family: monospace; background: rgba(0,0,0,0.05); padding: 2px 4px; border-radius: 4px; }
+.message-content pre code { background: transparent; padding: 0; }
+.thinking-box { font-style: italic; color: var(--text-dim); font-size: 13px; padding-bottom: 8px; border-bottom: 1px dashed var(--border); margin-bottom: 8px; animation: pulse 2s infinite; }
+
+/* INPUT & FORMS */
+.input-container { padding: 16px 20px; background: var(--bg-secondary); border-top: 1px solid var(--border); }
+.input-wrapper { display: flex; gap: 8px; align-items: flex-end; max-width: 900px; margin: 0 auto; position: relative; }
+.file-upload-wrapper { position: relative; }
+.file-upload-input { display: none; }
+.file-upload-btn { width: 44px; height: 44px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-md); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: 0.2s; }
+.file-upload-btn.has-file { background: var(--success); color: white; border-color: var(--success); }
+.input-field { flex: 1; padding: 12px 16px; background: var(--bg-tertiary); border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 15px; font-family: inherit; resize: none; min-height: 44px; max-height: 200px; }
+.send-btn { width: 44px; height: 44px; background: var(--accent); color: white; border: none; border-radius: var(--radius-md); cursor: pointer; font-size: 18px; }
+
+.form-container { max-width: 800px; margin: 40px auto; padding: 24px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-lg); display: none; }
+.form-container.show { display: block; }
+.form-title { font-size: 20px; font-weight: 700; margin-bottom: 16px; }
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+.form-input { width: 100%; padding: 10px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-md); font-family: inherit; }
+.form-btn { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; }
+
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+/* LOGIN */
+.login-screen { display:flex; align-items:center; justify-content:center; height:100vh; background:var(--bg-primary); }
+.login-card { background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-lg); padding:40px; width:380px; text-align:center; box-shadow:0 4px 24px rgba(0,0,0,0.08); }
+.login-card h2 { margin-bottom:8px; font-size:22px; }
+.login-card p { color:var(--text-secondary); font-size:14px; margin-bottom:24px; }
+.login-card input { width:100%; padding:12px; margin-bottom:12px; border:1px solid var(--border); border-radius:var(--radius-md); font-size:14px; font-family:inherit; background:var(--bg-tertiary); }
+.login-card button { width:100%; padding:12px; background:var(--accent); color:white; border:none; border-radius:var(--radius-md); font-weight:600; font-size:14px; cursor:pointer; }
+.login-card button:hover { background:var(--accent-hover); }
+.login-error { color:var(--error); font-size:13px; margin-bottom:12px; display:none; }
+
+/* CHAT HISTORY */
+.chat-history { max-height: 300px; overflow-y: auto; }
+.chat-history-item { padding:8px 10px; font-size:13px; border-radius:var(--radius-sm); cursor:pointer; margin-bottom:4px; border:1px solid transparent; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; justify-content:space-between; align-items:center; }
+.chat-history-item:hover { background:var(--bg-hover); }
+.chat-history-item.active { background:var(--accent-dim); border-color:var(--accent); }
+.chat-history-item .delete-btn { opacity:0; font-size:12px; cursor:pointer; padding:2px 4px; border-radius:4px; }
+.chat-history-item:hover .delete-btn { opacity:0.6; }
+.chat-history-item .delete-btn:hover { opacity:1; background:var(--error); color:white; }
+.new-chat-btn { width:100%; padding:8px; background:var(--accent); color:white; border:none; border-radius:var(--radius-md); font-weight:600; font-size:13px; cursor:pointer; margin-bottom:8px; }
+.new-chat-btn:hover { background:var(--accent-hover); }
+.chat-meta { font-size:11px; color:var(--text-dim); margin-top:2px; }
+
+/* FORM ENHANCEMENTS */
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.form-grid-full { grid-column:1/3; }
+.form-checkboxes { display:flex; flex-wrap:wrap; gap:8px; }
+.form-checkbox { display:flex; align-items:center; gap:6px; font-size:13px; }
+.form-checkbox input[type="checkbox"] { accent-color:var(--accent); }
+.form-subtitle { font-size:14px; color:var(--text-secondary); margin-bottom:16px; }
 </style>
 </head>
 <body>
 
-<!-- Login Screen -->
-<div class="login-screen" id="loginScreen">
-  <div class="login-box">
-    <div class="login-logo">JT</div>
-    <h1 class="login-title">Jeffrey Toolkit</h1>
-    <p class="login-subtitle">SOC Intelligence Suite v1.0 — Qwen 3.5 27B</p>
-    
-    <form class="login-form" id="loginForm">
-      <input 
-        type="text" 
-        class="login-input" 
-        id="username" 
-        placeholder="Username"
-        autocomplete="username"
-        required
-      >
-      <input 
-        type="password" 
-        class="login-input" 
-        id="password" 
-        placeholder="Password"
-        autocomplete="current-password"
-        required
-      >
-      <button type="submit" class="login-btn" id="loginButton">Inloggen</button>
-    </form>
-    
-    <div class="login-error" id="loginError">
-      Ongeldige gebruikersnaam of wachtwoord
-    </div>
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <div class="logo-icon" style="width:48px;height:48px;font-size:18px;margin:0 auto 16px;">JT</div>
+    <h2>Jeffrey Toolkit</h2>
+    <p>SOC Intelligence Suite — Log in om verder te gaan</p>
+    <div class="login-error" id="loginError">Ongeldige gebruikersnaam of wachtwoord</div>
+    <input type="text" id="loginUser" placeholder="Gebruikersnaam" autocomplete="username">
+    <input type="password" id="loginPass" placeholder="Wachtwoord" autocomplete="current-password">
+    <button onclick="handleLogin()">Inloggen</button>
   </div>
 </div>
 
-<!-- Main App -->
-<div class="main-app" id="mainApp">
-
+<!-- APP (hidden until logged in) -->
+<div id="appContainer" style="display:none; flex-direction:column; height:100%;">
 <header>
   <div class="logo">
     <div class="logo-icon">JT</div>
-    <div class="logo-text">
-      <h1>Jeffrey Toolkit</h1>
-      <p>SOC Intelligence Suite — v1.0</p>
-    </div>
+    <div class="logo-text"><h1>Jeffrey Toolkit</h1><p>Enterprise SOC Suite</p></div>
   </div>
   <div class="header-actions">
-    <div class="status-badge">
-      <span class="status-dot"></span>
-      <span id="chatStatus">Klaar</span>
-    </div>
+    <div class="timer-badge" id="timerBadge">⏱️ <span id="timerText">00:00</span></div>
+    <button class="icon-btn stop-btn" id="stopBtn" title="Stop Genereren">⏹</button>
     <button class="icon-btn" onclick="clearChat()" title="Nieuw gesprek">🗑️</button>
-    <button class="icon-btn" onclick="logout()" title="Uitloggen">🚪</button>
+    <button class="icon-btn" onclick="handleLogout()" title="Uitloggen">🚪</button>
   </div>
 </header>
 
 <div class="app">
   <aside class="sidebar">
     <div class="sidebar-section">
-      <div class="section-header" onclick="toggleSection('tools')">
-        <div class="section-label">🔧 Tools</div>
-        <div class="section-toggle">▼</div>
-      </div>
-      
-      <div class="section-content" id="section-tools">
-      <div class="menu-item active" id="menu-universal" onclick="toggleMenu('universal')">
-        <div class="menu-label">
-          <span class="menu-icon">🌐</span>
-          <span>Universal</span>
-        </div>
-      </div>
-
-      <div class="menu-item" id="menu-siem" onclick="toggleMenu('siem')">
-        <div class="menu-label">
-          <span class="menu-icon">🔍</span>
-          <span>SIEM</span>
-        </div>
-        <span class="menu-arrow">▶</span>
-      </div>
-      <div class="submenu" id="sub-siem">
-        <div class="platform-card active" onclick="selectSIEM('Splunk')">
-          <div class="platform-icon" style="background:#16a34a;color:white">🟢</div>
-          <div class="platform-name">Splunk</div>
-        </div>
-        <div class="platform-card" onclick="selectSIEM('Microsoft Sentinel')">
-          <div class="platform-icon" style="background:#3b82f6;color:white">🔵</div>
-          <div class="platform-name">Microsoft Sentinel</div>
-        </div>
-        <div class="platform-card" onclick="selectSIEM('Elastic')">
-          <div class="platform-icon" style="background:#eab308;color:white">🟡</div>
-          <div class="platform-name">Elastic</div>
-        </div>
-      </div>
-
-      <div class="menu-item" id="menu-soar" onclick="toggleMenu('soar')">
-        <div class="menu-label">
-          <span class="menu-icon">📋</span>
-          <span>SOAR</span>
-        </div>
-        <span class="menu-arrow">▶</span>
-      </div>
-      <div class="submenu" id="sub-soar">
-        <div class="platform-card active" onclick="selectSOAR('Microsoft Sentinel')">
-          <div class="platform-icon" style="background:#3b82f6;color:white">🔵</div>
-          <div class="platform-name">Sentinel Logic Apps</div>
-        </div>
-        <div class="platform-card" onclick="selectSOAR('Splunk SOAR')">
-          <div class="platform-icon" style="background:#16a34a;color:white">🟢</div>
-          <div class="platform-name">Splunk SOAR</div>
-        </div>
-      </div>
-
-
-      <div class="menu-item" id="menu-sigma" onclick="toggleMenu('sigma')">
-        <div class="menu-label">
-          <span class="menu-icon">Σ</span>
-          <span>Sigma</span>
-        </div>
-        <span class="menu-arrow">▶</span>
-      </div>
-      <div class="submenu" id="sub-sigma">
-        <div class="platform-card active" onclick="selectSigma('Splunk')">
-          <div class="platform-icon" style="background:#16a34a;color:white">🟢</div>
-          <div class="platform-name">Splunk</div>
-        </div>
-        <div class="platform-card" onclick="selectSigma('Sentinel')">
-          <div class="platform-icon" style="background:#3b82f6;color:white">🔵</div>
-          <div class="platform-name">Sentinel</div>
-        </div>
-        <div class="platform-card" onclick="selectSigma('Elastic')">
-          <div class="platform-icon" style="background:#eab308;color:white">🟡</div>
-          <div class="platform-name">Elastic</div>
-        </div>
-      </div>
-
-      <div class="menu-item" id="menu-network" onclick="toggleMenu('network')">
-        <div class="menu-label">
-          <span class="menu-icon">🌐</span>
-          <span>Network Detection</span>
-        </div>
-        <span class="menu-arrow">▶</span>
-      </div>
-      <div class="submenu" id="sub-network">
-        <div class="platform-card" onclick="selectNetwork('suricata')">
-          <div class="platform-icon" style="background:#dc2626;color:white">🔴</div>
-          <div class="platform-name">Suricata Rules</div>
-        </div>
-        <div class="platform-card" onclick="selectNetwork('zeek')">
-          <div class="platform-icon" style="background:#16a34a;color:white">🟢</div>
-          <div class="platform-name">Zeek Scripts</div>
-        </div>
-      </div>
-
-      <div class="menu-item" id="menu-kickstart" onclick="toggleMenu('kickstart')">
-        <div class="menu-label">
-          <span class="menu-icon">🏢</span>
-          <span>SOC Kickstart</span>
-        </div>
-      </div>
-      </div><!-- End section-content -->
+      <div class="section-label">🔧 Tools</div>
+      <div class="menu-item active" onclick="toggleMenu('universal')"><span>🌐 Universal Chat</span></div>
+      <div class="menu-item" onclick="toggleMenu('siem')"><span>🔍 SIEM Query Builder</span></div>
+      <div class="menu-item" onclick="toggleMenu('soar')"><span>📋 SOAR Playbooks</span></div>
+      <div class="menu-item" onclick="toggleMenu('sigma')"><span>Σ Sigma Rules</span></div>
+      <div class="menu-item" onclick="toggleMenu('network')"><span>🌐 Network Detection</span></div>
+      <div class="menu-item" onclick="toggleMenu('kickstart')"><span>🚀 SOC Kickstart</span></div>
     </div>
-
     <div class="sidebar-section">
-      <div class="section-header" onclick="toggleSection('history')">
-        <div class="section-label">💬 Recent Chats</div>
-        <div class="section-toggle">▼</div>
-      </div>
-      
-      <div class="section-content" id="section-history">
-        <button class="new-chat-btn" onclick="newChat()">+ Nieuwe Chat</button>
-        <div class="chat-history-list" id="chatHistoryList">
-          <div class="chat-history-empty">Nog geen chats opgeslagen</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="sidebar-section">
-      <div class="section-label">Taal / Language</div>
-      <div class="menu-item">
-        <div class="menu-label">
-          <span class="menu-icon">🇳🇱</span>
-          <span>Nederlands</span>
-        </div>
-      </div>
-      <div class="menu-item">
-        <div class="menu-label">
-          <span class="menu-icon">🇬🇧</span>
-          <span>English</span>
-        </div>
-      </div>
+      <div class="section-label">💬 Recent Chats</div>
+      <button class="new-chat-btn" onclick="newChat()">+ Nieuwe Chat</button>
+      <div class="chat-history" id="chatHistory"></div>
+      <button style="width:100%;padding:6px;background:none;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;color:var(--text-dim);cursor:pointer;margin-top:8px;" onclick="if(confirm('Alle chat geschiedenis wissen?')){localStorage.removeItem('jeffrey_chats');renderChatHistory();}">Wis geschiedenis</button>
     </div>
   </aside>
 
   <main class="chat-container">
-    <div class="chat-header">
-      <div class="chat-pill" id="currentPill">Universal</div>
-      <span class="chat-status">Qwen 3.5 27B Q8</span>
-      <span class="chat-timing" title="Simpele vraag: 30s-2m | SOAR/Sigma/Network: 2-5m | SOC Kickstart: 5-15m">⏱️ 30s - 15 min</span>
-    </div>
-
     <div class="chat-area" id="chatArea">
-      <div class="welcome" id="welcome">
-        <h2>👋 Welkom bij Jeffrey Toolkit</h2>
-        <p>Jouw AI-assistent voor SOC operations, detection engineering en security automation.</p>
-        
-        <div class="disclaimer">
-          <p>Het model draait volledig offline op CPU/RAM voor maximale veiligheid.</p>
-          <p style="margin-top:8px; font-size:13px; color:var(--text-secondary)">
-            ⏱️ <strong>Simpele vraag / SIEM query:</strong> 30 sec - 2 min &nbsp;|&nbsp;
-            <strong>SOAR / Sigma / Network:</strong> 2-5 min &nbsp;|&nbsp;
-            <strong>SOC Kickstart:</strong> 5-15 min
-          </p>
-        </div>
-        
-        <div class="feature-grid">
-          <div class="feature-item">
-            <strong>🔍 SIEM Queries</strong>
-            <span>Splunk, Sentinel, Elastic</span>
-          </div>
-          <div class="feature-item">
-            <strong>📋 SOAR Playbooks</strong>
-            <span>Automated response workflows</span>
-          </div>
-          <div class="feature-item">
-            <strong>🌐 Network Detection</strong>
-            <span>Suricata & Zeek rules</span>
-          </div>
-          <div class="feature-item">
-            <strong>🏢 SOC Kickstart</strong>
-            <span>Threat model + detection + monitoring</span>
-          </div>
-        </div>
+      <div id="welcome" style="text-align:center; margin-top:60px; color:var(--text-secondary);">
+        <h2 style="color:var(--text-primary);">Welkom bij Jeffrey</h2>
+        <p>Selecteer een tool in het menu of upload een document als context.</p>
       </div>
       
-      <!-- SIEM Query Builder Form -->
       <div class="form-container" id="siemForm">
-        <h2 class="form-title" id="siemFormTitle">🔍 SIEM Query Builder — Splunk</h2>
+        <h2 class="form-title">🔍 SIEM Query Builder</h2>
         <p class="form-subtitle">Genereer werkende, kopieerbare detection queries</p>
-        
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-          <div class="form-group">
-            <label class="form-label">Use Case</label>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Platform</label>
+            <select class="form-input" id="siemPlatform"><option>Splunk</option><option>Microsoft Sentinel</option><option>Elastic</option></select></div>
+          <div class="form-group"><label class="form-label">Use Case</label>
             <select class="form-input" id="siemUseCase">
-              <option value="">— Vrije vraag (gebruik tekstveld) —</option>
-              <option value="Failed/brute force logins">Failed / Brute Force Logins</option>
-              <option value="Impossible travel / anomalous login location">Impossible Travel</option>
-              <option value="Privilege escalation">Privilege Escalation</option>
-              <option value="New service/scheduled task created">Persistence (service/task)</option>
-              <option value="PowerShell execution (encoded/obfuscated)">Suspicious PowerShell</option>
-              <option value="Lateral movement (PsExec, WMI, RDP)">Lateral Movement</option>
-              <option value="Data exfiltration (large outbound transfers)">Data Exfiltratie</option>
-              <option value="Account created or modified">Account Changes</option>
-              <option value="Firewall/IDS alert correlation">Firewall / IDS Alerts</option>
-              <option value="DNS tunneling / DGA detection">DNS Anomalies</option>
-              <option value="Malware indicators (hash, filename, path)">Malware IOC's</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">Tijdrange</label>
-            <select class="form-input" id="siemTimeRange">
-              <option value="afgelopen 1 uur">1 uur</option>
-              <option value="afgelopen 4 uur" selected>4 uur</option>
-              <option value="afgelopen 24 uur">24 uur</option>
-              <option value="afgelopen 7 dagen">7 dagen</option>
-              <option value="afgelopen 30 dagen">30 dagen</option>
-            </select>
-          </div>
+              <option value="">— Vrije vraag —</option>
+              <option>Failed / Brute Force Logins</option><option>Impossible Travel</option><option>Privilege Escalation</option>
+              <option>Persistence (service/task)</option><option>Suspicious PowerShell</option><option>Lateral Movement</option>
+              <option>Data Exfiltratie</option><option>Account Changes</option><option>DNS Anomalieën</option><option>Malware IOC's</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Tijdrange</label>
+            <select class="form-input" id="siemTime"><option>1 uur</option><option selected>4 uur</option><option>24 uur</option><option>7 dagen</option></select></div>
+          <div class="form-group"><label class="form-label">Data bron / Index</label>
+            <input class="form-input" id="siemSource" placeholder="bijv. wineventlog, syslog, firewall"></div>
+          <div class="form-group form-grid-full"><label class="form-label">Specifieke vraag</label>
+            <textarea class="form-input" id="siemText" rows="2" placeholder="Bijv. Toon alleen externe IP's, filter op specifieke gebruiker..."></textarea></div>
         </div>
-        
-        <div class="form-group">
-          <label class="form-label">Data bron / Index (optioneel)</label>
-          <input type="text" class="form-input" id="siemDataSource" placeholder="bijv. wineventlog, syslog, firewall, o365, azure_ad">
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Specifieke vraag of aanvulling</label>
-          <textarea class="form-input" id="siemFreeText" placeholder="bijv. Toon alleen externe IP's, filter op specifieke gebruiker, voeg GeoIP lookup toe..." style="min-height:60px; resize:vertical;"></textarea>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Output opties</label>
+        <div class="form-group"><label class="form-label">Output opties</label>
           <div class="form-checkboxes">
-            <div class="form-checkbox">
-              <input type="checkbox" id="siemExplain" checked>
-              <label for="siemExplain">Uitleg per query onderdeel</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="siemDashboard">
-              <label for="siemDashboard">Dashboard panel suggestie</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="siemAlert">
-              <label for="siemAlert">Alert/threshold configuratie</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="siemMitre">
-              <label for="siemMitre">MITRE ATT&CK mapping</label>
-            </div>
+            <label class="form-checkbox"><input type="checkbox" id="siemExplain" checked> Uitleg per onderdeel</label>
+            <label class="form-checkbox"><input type="checkbox" id="siemMitre"> MITRE ATT&CK mapping</label>
+            <label class="form-checkbox"><input type="checkbox" id="siemAlert"> Alert configuratie</label>
           </div>
         </div>
-        
         <button class="form-btn" onclick="generateSIEM()">🔍 Genereer Query</button>
       </div>
-      
-      <!-- Sigma Rule Converter Form -->
-      <div class="form-container" id="sigmaForm">
-        <h2 class="form-title">Σ Sigma Rule Converter</h2>
-        <p class="form-subtitle">Converteer Sigma rules naar platform-specifieke detection rules</p>
-        
-        <div class="form-group">
-          <label class="form-label">Sigma Rule (YAML)</label>
-          <textarea class="form-input form-textarea" id="sigmaYaml" placeholder="Plak hier je Sigma YAML regel..." style="min-height:200px"></textarea>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Conversie opties</label>
-          <div class="form-checkboxes">
-            <div class="form-checkbox">
-              <input type="checkbox" id="sigmaExplain" checked>
-              <label for="sigmaExplain">Uitleg van de conversie</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="sigmaFieldMap">
-              <label for="sigmaFieldMap">Field mapping tabel</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="sigmaFalsePos">
-              <label for="sigmaFalsePos">False positive analyse</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="sigmaTuning">
-              <label for="sigmaTuning">Tuning suggesties</label>
-            </div>
-          </div>
-        </div>
-        
-        <button class="form-btn" onclick="generateSigma()">Σ Converteer naar <span id="sigmaTarget">Splunk</span></button>
-      </div>
-      
-      <!-- Network Detection Form -->
-      <div class="form-container" id="networkForm">
-        <h2 class="form-title" id="networkFormTitle">🌐 Network Detection — Suricata</h2>
-        <p class="form-subtitle">Genereer IDS/IPS rules voor netwerk threat detection</p>
-        
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-          <div class="form-group">
-            <label class="form-label">Threat Type</label>
-            <select class="form-input" id="netThreat">
-              <option value="">— Vrije vraag (gebruik tekstveld) —</option>
-              <option value="C2 (Command & Control) communicatie">C2 / Command & Control</option>
-              <option value="DNS tunneling / DGA domains">DNS Tunneling / DGA</option>
-              <option value="Data exfiltratie via HTTP/HTTPS">Data Exfiltratie (HTTP)</option>
-              <option value="Data exfiltratie via DNS">Data Exfiltratie (DNS)</option>
-              <option value="Lateral movement (SMB, RDP, WMI)">Lateral Movement</option>
-              <option value="Port scanning / reconnaissance">Port Scan / Recon</option>
-              <option value="Malware download / dropper">Malware Download</option>
-              <option value="Brute force (SSH, RDP, FTP)">Brute Force</option>
-              <option value="TLS/SSL anomalieën (expired cert, self-signed)">TLS Anomalieën</option>
-              <option value="ICMP tunneling">ICMP Tunneling</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">Protocol Focus</label>
-            <select class="form-input" id="netProtocol">
-              <option value="alle relevante protocollen">Alle</option>
-              <option value="HTTP/HTTPS">HTTP(S)</option>
-              <option value="DNS">DNS</option>
-              <option value="SMB">SMB</option>
-              <option value="SSH">SSH</option>
-              <option value="FTP">FTP</option>
-              <option value="SMTP/IMAP">Email (SMTP/IMAP)</option>
-              <option value="RDP">RDP</option>
-              <option value="ICMP">ICMP</option>
-              <option value="TLS/SSL">TLS/SSL</option>
-            </select>
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">IOC's of specifieke context (optioneel)</label>
-          <textarea class="form-input" id="netContext" placeholder="bijv. Specifieke IP ranges, domeinnamen, user-agents, file hashes, of beschrijving van de dreiging..." style="min-height:60px; resize:vertical;"></textarea>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Output opties</label>
-          <div class="form-checkboxes">
-            <div class="form-checkbox">
-              <input type="checkbox" id="netExplain" checked>
-              <label for="netExplain">Uitleg per rule</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="netMitre" checked>
-              <label for="netMitre">MITRE ATT&CK mapping</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="netPerformance">
-              <label for="netPerformance">Performance impact notities</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="netFalsePos">
-              <label for="netFalsePos">False positive mitigatie</label>
-            </div>
-          </div>
-        </div>
-        
-        <button class="form-btn" onclick="generateNetwork()">🌐 Genereer Rules</button>
-      </div>
-      
-      <!-- SOAR Playbook Form -->
+
       <div class="form-container" id="soarForm">
         <h2 class="form-title">📋 SOAR Playbook Builder</h2>
-        <p class="form-subtitle" id="soarSubtitle">Genereer automation playbooks voor Microsoft Sentinel Logic Apps</p>
-        
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-          <div class="form-group">
-            <label class="form-label">Incident Type</label>
+        <p class="form-subtitle">Genereer automation playbooks voor incident response</p>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Platform</label>
+            <select class="form-input" id="soarPlatform"><option>Sentinel Logic Apps</option><option>Splunk SOAR</option></select></div>
+          <div class="form-group"><label class="form-label">Incident Type</label>
             <select class="form-input" id="soarIncident">
-              <option value="Brute force / credential attack">Brute Force</option>
-              <option value="Malware detectie">Malware Detectie</option>
-              <option value="Phishing email">Phishing</option>
-              <option value="Lateral movement">Lateral Movement</option>
-              <option value="Data exfiltratie">Data Exfiltratie</option>
-              <option value="Privilege escalation">Privilege Escalation</option>
-              <option value="Ransomware">Ransomware</option>
-              <option value="Insider threat">Insider Threat</option>
-              <option value="DDoS aanval">DDoS</option>
-              <option value="Unauthorized access">Unauthorized Access</option>
-              <option value="Anders">Anders (beschrijf hieronder)</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">Severity</label>
-            <select class="form-input" id="soarSeverity">
-              <option value="High">High</option>
-              <option value="Medium" selected>Medium</option>
-              <option value="Low">Low</option>
-            </select>
-          </div>
+              <option>Brute Force</option><option>Malware Detectie</option><option>Phishing</option><option>Lateral Movement</option>
+              <option>Data Exfiltratie</option><option>Ransomware</option><option>Insider Threat</option><option>Unauthorized Access</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Severity</label>
+            <select class="form-input" id="soarSeverity"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+          <div class="form-group form-grid-full"><label class="form-label">Context</label>
+            <textarea class="form-input" id="soarText" rows="2" placeholder="Beschrijf de situatie, specifieke IOC's, betrokken systemen..."></textarea></div>
         </div>
-        
-        <div class="form-group">
-          <label class="form-label">Aanvullende context</label>
-          <textarea class="form-input" id="soarContext" placeholder="Beschrijf de situatie, specifieke IOC's, betrokken systemen, of wat de trigger is..." style="min-height:80px; resize:vertical;"></textarea>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Gewenste automation acties</label>
+        <div class="form-group"><label class="form-label">Gewenste acties</label>
           <div class="form-checkboxes">
-            <div class="form-checkbox">
-              <input type="checkbox" id="soarEnrich" checked>
-              <label for="soarEnrich">Enrichment (IP/hash/user lookup)</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="soarContain" checked>
-              <label for="soarContain">Containment (isoleer/blokkeer)</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="soarNotify" checked>
-              <label for="soarNotify">Notificatie (Teams/email/ticket)</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="soarEscalate">
-              <label for="soarEscalate">Escalatie workflow</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="soarRemediate">
-              <label for="soarRemediate">Remediatie (password reset, disable account)</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="soarEvidence">
-              <label for="soarEvidence">Evidence collection / forensics</label>
-            </div>
+            <label class="form-checkbox"><input type="checkbox" id="soarEnrich" checked> Enrichment</label>
+            <label class="form-checkbox"><input type="checkbox" id="soarContain" checked> Containment</label>
+            <label class="form-checkbox"><input type="checkbox" id="soarNotify" checked> Notificatie</label>
+            <label class="form-checkbox"><input type="checkbox" id="soarEscalate"> Escalatie</label>
+            <label class="form-checkbox"><input type="checkbox" id="soarRemediate"> Remediatie</label>
           </div>
         </div>
-        
         <button class="form-btn" onclick="generateSOAR()">📋 Genereer Playbook</button>
       </div>
-      
-      <!-- SOC Kickstart Form -->
+
+      <div class="form-container" id="sigmaForm">
+        <h2 class="form-title">Σ Sigma Rule Engine</h2>
+        <p class="form-subtitle">Converteer of genereer Sigma rules voor je SIEM platform</p>
+        <div class="form-group"><label class="form-label">Doelplatform</label>
+          <select class="form-input" id="sigmaPlatform"><option>Splunk</option><option>Sentinel</option><option>Elastic</option></select></div>
+        <div class="form-group"><label class="form-label">Detectie logica of bestaande rule</label>
+          <textarea class="form-input" id="sigmaText" rows="4" placeholder="Plak een Sigma YAML, of beschrijf wat je wilt detecteren..."></textarea></div>
+        <div class="form-group"><label class="form-label">Conversie opties</label>
+          <div class="form-checkboxes">
+            <label class="form-checkbox"><input type="checkbox" id="sigmaExplain" checked> Uitleg van conversie</label>
+            <label class="form-checkbox"><input type="checkbox" id="sigmaFieldMap"> Field mapping tabel</label>
+            <label class="form-checkbox"><input type="checkbox" id="sigmaFP"> False positive analyse</label>
+            <label class="form-checkbox"><input type="checkbox" id="sigmaTuning"> Tuning suggesties</label>
+          </div>
+        </div>
+        <button class="form-btn" onclick="generateSigma()">Σ Analyseer / Genereer Sigma</button>
+      </div>
+
+      <div class="form-container" id="networkForm">
+        <h2 class="form-title">🌐 Network Detection</h2>
+        <p class="form-subtitle">Genereer IDS/IPS rules voor netwerk threat detection</p>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Engine</label>
+            <select class="form-input" id="networkPlatform"><option>Suricata</option><option>Zeek</option></select></div>
+          <div class="form-group"><label class="form-label">Threat Type</label>
+            <select class="form-input" id="netThreat">
+              <option value="">— Vrije vraag —</option>
+              <option>C2 / Command & Control</option><option>DNS Tunneling / DGA</option><option>Data Exfiltratie (HTTP)</option>
+              <option>Lateral Movement</option><option>Port Scan / Recon</option><option>Malware Download</option>
+              <option>Brute Force (SSH/RDP)</option><option>TLS Anomalieën</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Protocol</label>
+            <select class="form-input" id="netProtocol"><option>Alle</option><option>HTTP(S)</option><option>DNS</option><option>SMB</option><option>SSH</option><option>TLS/SSL</option></select></div>
+          <div class="form-group form-grid-full"><label class="form-label">IOC's / Context</label>
+            <textarea class="form-input" id="networkText" rows="2" placeholder="Bijv. IP ranges, domeinnamen, user-agents, hashes..."></textarea></div>
+        </div>
+        <div class="form-group"><label class="form-label">Output opties</label>
+          <div class="form-checkboxes">
+            <label class="form-checkbox"><input type="checkbox" id="netExplain" checked> Uitleg per rule</label>
+            <label class="form-checkbox"><input type="checkbox" id="netMitre" checked> MITRE ATT&CK</label>
+            <label class="form-checkbox"><input type="checkbox" id="netFP"> False positive mitigatie</label>
+          </div>
+        </div>
+        <button class="form-btn" onclick="generateNetwork()">🌐 Genereer Rules</button>
+      </div>
+
       <div class="form-container" id="kickstartForm">
         <h2 class="form-title">🚀 SOC Kickstart</h2>
-        <p class="form-subtitle">Complete security onboarding package voor nieuwe applicaties en databronnen</p>
-        
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-          <div class="form-group" style="grid-column:1/3">
-            <label class="form-label">Applicatie / Systeem Naam *</label>
-            <input type="text" class="form-input" id="ksName" placeholder="bijv. RIVM Portaal, SAP ECC, Veeam Backup">
-          </div>
-          
-          <div class="form-group" style="grid-column:1/3">
-            <label class="form-label">Beschrijving & Doel</label>
-            <textarea class="form-input" id="ksDesc" placeholder="Wat doet deze applicatie? Wie gebruikt het? Welke processen ondersteunt het?" style="min-height:80px; resize:vertical;"></textarea>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">Omgeving</label>
-            <select class="form-input" id="ksEnv">
-              <option value="">— Selecteer —</option>
-              <option value="On-Premise">On-Premise</option>
-              <option value="Cloud (Azure)">Cloud (Azure)</option>
-              <option value="Cloud (AWS)">Cloud (AWS)</option>
-              <option value="Cloud (GCP)">Cloud (GCP)</option>
-              <option value="Hybrid (On-Prem + Cloud)">Hybrid</option>
-              <option value="SaaS">SaaS</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">Kriticaliteit</label>
-            <select class="form-input" id="ksCrit">
-              <option value="">— Selecteer —</option>
-              <option value="Critical — uitval heeft directe impact op bedrijfsvoering">Critical</option>
-              <option value="High — belangrijke bedrijfsprocessen afhankelijk">High</option>
-              <option value="Medium — ondersteunend systeem">Medium</option>
-              <option value="Low — niet-essentieel">Low</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">Dataclassificatie</label>
-            <select class="form-input" id="ksDataClass">
-              <option value="">— Selecteer —</option>
-              <option value="Publiek">Publiek</option>
-              <option value="Intern">Intern</option>
-              <option value="Vertrouwelijk (PII, HR, financieel)">Vertrouwelijk</option>
-              <option value="Geheim (staatsgeheim, medisch, juridisch)">Geheim</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">Netwerk Exposure</label>
-            <select class="form-input" id="ksExposure">
-              <option value="">— Selecteer —</option>
-              <option value="Internet-facing (publiek bereikbaar)">Internet-facing</option>
-              <option value="DMZ">DMZ</option>
-              <option value="Intern netwerk">Intern netwerk</option>
-              <option value="Air-gapped / geïsoleerd">Air-gapped</option>
-            </select>
-          </div>
+        <p class="form-subtitle">Complete security onboarding — threat model → detection rules (chained workflow)</p>
+        <div class="form-grid">
+          <div class="form-group form-grid-full"><label class="form-label">Applicatie / Systeem Naam *</label>
+            <input class="form-input" id="ksName" placeholder="bijv. RIVM Portaal, SAP ECC, HR Systeem"></div>
+          <div class="form-group"><label class="form-label">Omgeving</label>
+            <select class="form-input" id="ksEnvType"><option value="">— Selecteer —</option><option>On-Premise</option><option>Cloud (Azure)</option><option>Cloud (AWS)</option><option>Hybrid</option><option>SaaS</option></select></div>
+          <div class="form-group"><label class="form-label">Kriticaliteit</label>
+            <select class="form-input" id="ksCrit"><option value="">— Selecteer —</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></div>
+          <div class="form-group"><label class="form-label">Dataclassificatie</label>
+            <select class="form-input" id="ksData"><option value="">— Selecteer —</option><option>Publiek</option><option>Intern</option><option>Vertrouwelijk (PII)</option><option>Geheim</option></select></div>
+          <div class="form-group"><label class="form-label">Exposure</label>
+            <select class="form-input" id="ksExposure"><option value="">— Selecteer —</option><option>Internet-facing</option><option>DMZ</option><option>Intern netwerk</option><option>Air-gapped</option></select></div>
+          <div class="form-group form-grid-full"><label class="form-label">Aanvullende context</label>
+            <textarea class="form-input" id="ksEnv" rows="2" placeholder="Authenticatie, integraties, bekende kwetsbaarheden, compliance (BIO/NIS2/ISO27001)..."></textarea></div>
         </div>
-        
-        <div class="form-group">
-          <label class="form-label">Authenticatie</label>
+        <div class="form-group"><label class="form-label">Authenticatie</label>
           <div class="form-checkboxes">
-            <div class="form-checkbox">
-              <input type="checkbox" id="ksAuthSSO">
-              <label for="ksAuthSSO">SSO / SAML / OAuth</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="ksAuthAD">
-              <label for="ksAuthAD">LDAP / Active Directory</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="ksAuthLocal">
-              <label for="ksAuthLocal">Lokale accounts</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="ksAuthAPI">
-              <label for="ksAuthAPI">API keys / tokens</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="ksAuthMFA">
-              <label for="ksAuthMFA">MFA ingeschakeld</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="ksAuthCert">
-              <label for="ksAuthCert">Certificaten / mTLS</label>
-            </div>
+            <label class="form-checkbox"><input type="checkbox" id="ksSSO"> SSO/SAML</label>
+            <label class="form-checkbox"><input type="checkbox" id="ksAD"> LDAP/AD</label>
+            <label class="form-checkbox"><input type="checkbox" id="ksMFA"> MFA</label>
+            <label class="form-checkbox"><input type="checkbox" id="ksAPI"> API keys</label>
+            <label class="form-checkbox"><input type="checkbox" id="ksLocal"> Lokale accounts</label>
           </div>
         </div>
-        
-        <div class="form-group">
-          <label class="form-label">Compliance & Frameworks</label>
-          <div class="form-checkboxes">
-            <div class="form-checkbox">
-              <input type="checkbox" id="ksCompBIO">
-              <label for="ksCompBIO">BIO / Overheid</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="ksCompNIS2">
-              <label for="ksCompNIS2">NIS2</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="ksCompISO">
-              <label for="ksCompISO">ISO 27001</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="ksCompGDPR">
-              <label for="ksCompGDPR">AVG / GDPR</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="ksCompSOC2">
-              <label for="ksCompSOC2">SOC 2</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="ksCompNEN">
-              <label for="ksCompNEN">NEN 7510 (zorg)</label>
-            </div>
-          </div>
-        </div>
-        
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-          <div class="form-group">
-            <label class="form-label">SIEM Platform (voor queries)</label>
-            <select class="form-input" id="ksSIEM">
-              <option value="Splunk (SPL)">Splunk</option>
-              <option value="Microsoft Sentinel (KQL)">Sentinel</option>
-              <option value="Elastic (EQL/Lucene)">Elastic</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">Bekende log bronnen</label>
-            <input type="text" class="form-input" id="ksLogSources" placeholder="bijv. Windows Event, Apache, Syslog, API audit logs">
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Aanvullende context</label>
-          <textarea class="form-input" id="ksNotes" placeholder="Bijzonderheden: bekende kwetsbaarheden, eerdere incidenten, integraties met andere systemen, specifieke zorgen..." style="min-height:60px; resize:vertical;"></textarea>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Gewenste onderdelen</label>
-          <div class="form-checkboxes">
-            <div class="form-checkbox">
-              <input type="checkbox" id="ksStride" checked>
-              <label for="ksStride">STRIDE Threat Model</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="ksAttack" checked>
-              <label for="ksAttack">MITRE ATT&CK mapping</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="ksLogs" checked>
-              <label for="ksLogs">Benodigde log bronnen</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="ksDetection" checked>
-              <label for="ksDetection">Detection rules (SIEM + IDS)</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="ksMonitoring" checked>
-              <label for="ksMonitoring">Monitoring & alerting</label>
-            </div>
-            <div class="form-checkbox">
-              <input type="checkbox" id="ksChecklist" checked>
-              <label for="ksChecklist">Security hardening checklist</label>
-            </div>
-          </div>
-        </div>
-        
-        <button class="form-btn" onclick="generateKickstart()">🚀 Genereer SOC Kickstart Package</button>
+        <button class="form-btn" onclick="generateKickstartChain()">🚀 Start Kickstart Workflow</button>
       </div>
     </div>
 
     <div class="input-container">
       <div class="input-wrapper">
-        <textarea 
-          class="input-field" 
-          id="inputField" 
-          placeholder="Stel je vraag aan Jeffrey..."
-          rows="1"
-        ></textarea>
+        <div class="file-upload-wrapper">
+          <label for="fileUpload" class="file-upload-btn" id="fileUploadLabel" title="Upload TXT/CSV/JSON context">📎</label>
+          <input type="file" id="fileUpload" class="file-upload-input" accept=".txt,.csv,.json,.md,.log">
+        </div>
+        <textarea class="input-field" id="inputField" placeholder="Stel je vraag of drop een alert hier..." rows="1"></textarea>
         <button class="send-btn" id="sendBtn">➤</button>
       </div>
     </div>
   </main>
 </div>
-
-<div class="notification" id="notification"></div>
-
+</div> <!-- /appContainer -->
 
 <script>
-// STATE MANAGEMENT
-const STATE = {
-  tab: 'universal',
-  siem: 'Splunk',
-  soar: 'Splunk SOAR',
-  lang: 'nl',
-  conv: [],
-  convertFrom: 'SPL',
-  convertTo: 'KQL',
-  sigmaPlatform: 'Splunk',
-  currentChatId: null
-};
-
-// CHAT HISTORY MANAGEMENT
-const MAX_CHATS = 10;
-
-function loadChatHistory() {
-  const history = localStorage.getItem('jeffrey_chat_history');
-  return history ? JSON.parse(history) : [];
-}
-
-function saveChatHistory(chats) {
-  localStorage.setItem('jeffrey_chat_history', JSON.stringify(chats));
-}
-
-function saveCurrentChat() {
-  if (STATE.conv.length === 0) return;
-  
-  const chats = loadChatHistory();
-  const now = new Date();
-  
-  // Generate title from first user message
-  const firstUserMsg = STATE.conv.find(msg => msg.role === 'user');
-  const title = firstUserMsg ? firstUserMsg.content.substring(0, 50) : 'Nieuwe chat';
-  
-  const chatData = {
-    id: STATE.currentChatId || Date.now().toString(),
-    title: title,
-    timestamp: now.toISOString(),
-    conversation: [...STATE.conv],
-    tab: STATE.tab,
-    siem: STATE.siem,
-    soar: STATE.soar
-  };
-  
-  // Update existing or add new
-  const existingIndex = chats.findIndex(c => c.id === chatData.id);
-  if (existingIndex >= 0) {
-    chats[existingIndex] = chatData;
-  } else {
-    chats.unshift(chatData);
-    // Keep only last MAX_CHATS
-    if (chats.length > MAX_CHATS) {
-      chats.pop();
-    }
-  }
-  
-  STATE.currentChatId = chatData.id;
-  saveChatHistory(chats);
-  renderChatHistory();
-}
-
-function loadChat(chatId) {
-  const chats = loadChatHistory();
-  const chat = chats.find(c => c.id === chatId);
-  
-  if (!chat) return;
-  
-  // Don't reload if already current
-  if (STATE.currentChatId === chatId) return;
-  
-  // Visual feedback
-  document.getElementById('chatStatus').textContent = 'Chat laden...';
-  
-  // Restore conversation
-  STATE.conv = [...chat.conversation];
-  STATE.currentChatId = chat.id;
-  STATE.tab = chat.tab || 'universal';
-  STATE.siem = chat.siem || 'Splunk';
-  STATE.soar = chat.soar || 'Splunk SOAR';
-  
-  // Update UI
-  updatePills();
-  renderConversation();
-  renderChatHistory(); // Update active state
-  
-  // Reset status
-  setTimeout(() => {
-    document.getElementById('chatStatus').textContent = 'Klaar';
-  }, 300);
-  
-  // Show notification
-  showNotification('Chat hersteld', false);
-}
-
-function deleteChat(chatId) {
-  event.stopPropagation();
-  
-  // Confirmation dialog
-  const chats = loadChatHistory();
-  const chat = chats.find(c => c.id === chatId);
-  
-  if (!chat) return;
-  
-  // Simple confirm for now - can be made prettier later
-  if (!confirm(`Chat verwijderen?\n\n"${chat.title}"\n\nDeze actie kan niet ongedaan gemaakt worden.`)) {
-    return;
-  }
-  
-  const filtered = chats.filter(c => c.id !== chatId);
-  saveChatHistory(filtered);
-  
-  // If deleting current chat, clear it
-  if (STATE.currentChatId === chatId) {
-    newChat();
-  } else {
-    renderChatHistory();
-  }
-  
-  // Show brief notification
-  showNotification('Chat verwijderd', false);
-}
-
-function newChat() {
-  STATE.conv = [];
-  STATE.currentChatId = null;
-  clearChat();
-  renderChatHistory();
-}
-
-function renderChatHistory() {
-  const container = document.getElementById('chatHistoryList');
-  const chats = loadChatHistory();
-  
-  if (chats.length === 0) {
-    container.innerHTML = '<div class="chat-history-empty">Nog geen chats opgeslagen</div>';
-    return;
-  }
-  
-  container.innerHTML = chats.map(chat => {
-    const date = new Date(chat.timestamp);
-    const timeStr = date.toLocaleString('nl-NL', { 
-      day: '2-digit', 
-      month: 'short', 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-    
-    const isActive = chat.id === STATE.currentChatId;
-    
-    return `
-      <div class="chat-history-item ${isActive ? 'active' : ''}" onclick="loadChat('${chat.id}')">
-        <div class="chat-history-content">
-          <div class="chat-history-title">${chat.title}</div>
-          <div class="chat-history-meta">
-            <span>📅 ${timeStr}</span>
-            <span>•</span>
-            <span>${chat.conversation.length} msgs</span>
-          </div>
-        </div>
-        <button class="chat-history-delete" onclick="deleteChat('${chat.id}')" title="Verwijder chat">
-          🗑️
-        </button>
-      </div>
-    `;
-  }).join('');
-}
-
-function renderConversation() {
-  const chatArea = document.getElementById('chatArea');
-  
-  // Remove welcome message
-  const welcome = document.getElementById('welcome');
-  if (welcome) welcome.remove();
-  
-  // Clear and re-render all messages
-  const messages = chatArea.querySelectorAll('.message');
-  messages.forEach(el => el.remove());
-  
-  STATE.conv.forEach(msg => {
-    const div = document.createElement('div');
-    div.className = `message ${msg.role}`;
-    
-    const avatar = document.createElement('div');
-    avatar.className = 'message-avatar';
-    avatar.textContent = msg.role === 'user' ? 'U' : 'J';
-    
-    const content = document.createElement('div');
-    content.className = 'message-content';
-    
-    // Strip thinking blocks + format code blocks
-    let formattedContent = msg.content
-      .replace(/<think>[\s\S]*?<\/think>/gi, '')
-      .replace(/Thinking Process:[\s\S]*?(?=\n\n[A-Z])/gi, '')
-      .trim()
-      .replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
-        return `<pre><code class="language-${lang || 'plaintext'}">${code.trim()}</code></pre>`;
-      });
-    
-    content.innerHTML = formattedContent;
-    
-    div.appendChild(avatar);
-    div.appendChild(content);
-    chatArea.appendChild(div);
-  });
-  
-  // Scroll to bottom
-  chatArea.scrollTop = chatArea.scrollHeight;
-}
-
-// AUTHENTICATION
+// STATE
+let abortController = null;
+let timerInterval = null;
+let uploadedContext = '';
 let authCredentials = '';
 
-// Check if already logged in
-window.addEventListener('DOMContentLoaded', () => {
-  const savedCreds = sessionStorage.getItem('jeffrey_auth');
-  if (savedCreds) {
-    authCredentials = savedCreds;
-    document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('mainApp').classList.add('visible');
-    
-    // Restore collapsed section states
-    restoreSectionStates();
-    
-    // Render chat history
-    renderChatHistory();
-  }
-});
-
-// Restore section collapsed states from localStorage
-function restoreSectionStates() {
-  const sections = ['tools', 'history']; // Add more sections as needed
-  sections.forEach(sectionId => {
-    const isCollapsed = localStorage.getItem('section-' + sectionId + '-collapsed') === 'true';
-    if (isCollapsed) {
-      const header = document.querySelector(`[onclick="toggleSection('${sectionId}')"]`);
-      const content = document.getElementById('section-' + sectionId);
-      if (header && content) {
-        header.classList.add('collapsed');
-        content.classList.add('collapsed');
-      }
-    }
-  });
-}
-
-// Handle login
-function handleLogin(event) {
-  event.preventDefault();
+// AUTH
+function handleLogin() {
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  if (!user || !pass) return;
   
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value;
-  const loginButton = document.getElementById('loginButton');
-  const loginError = document.getElementById('loginError');
+  authCredentials = btoa(user + ':' + pass);
   
-  if (!username || !password) return;
-  
-  loginButton.disabled = true;
-  loginButton.textContent = 'Bezig...';
-  loginError.classList.remove('show');
-  
-  const credentials = btoa(username + ':' + password);
-  
+  // Test credentials against the API
   fetch('/api/chat', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Basic ' + credentials
-    },
-    body: JSON.stringify({
-      messages: [{ role: "user", content: "Test" }],
-      max_tokens: 5,
-      temperature: 0.1
-    })
-  })
-  .then(response => {
-    if (response.status === 401) {
-      throw new Error('Unauthorized');
-    }
-    return { success: true };
-  })
-  .then(() => {
-    authCredentials = credentials;
-    sessionStorage.setItem('jeffrey_auth', credentials);
-    document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('mainApp').classList.add('visible');
-    document.getElementById('loginForm').reset();
-    loginButton.disabled = false;
-    loginButton.textContent = 'Inloggen';
-  })
-  .catch(error => {
-    loginError.classList.add('show');
-    loginButton.disabled = false;
-    loginButton.textContent = 'Inloggen';
-  });
-}
-
-// Logout function
-function logout() {
-  authCredentials = '';
-  sessionStorage.removeItem('jeffrey_auth');
-  document.getElementById('loginScreen').classList.remove('hidden');
-  document.getElementById('mainApp').classList.remove('visible');
-  document.getElementById('loginForm').reset();
-}
-
-// FORM VISIBILITY
-function showForm(formId) {
-  document.querySelectorAll('.form-container').forEach(form => {
-    form.classList.remove('show');
-  });
-  
-  const form = document.getElementById(formId);
-  if (form) {
-    form.classList.add('show');
-  }
-}
-
-function hideAllForms() {
-  document.querySelectorAll('.form-container').forEach(form => {
-    form.classList.remove('show');
-  });
-}
-
-// CLEAR CHAT ONLY (not forms)
-function clearChatOnly() {
-  STATE.conv = [];
-  const chatArea = document.getElementById('chatArea');
-  const messages = chatArea.querySelectorAll('.message, .welcome');
-  messages.forEach(el => el.remove());
-}
-
-// MENU INTERACTIONS
-function toggleSection(sectionId) {
-  const header = event.currentTarget;
-  const content = document.getElementById('section-' + sectionId);
-  
-  header.classList.toggle('collapsed');
-  content.classList.toggle('collapsed');
-  
-  // Save state to localStorage
-  const isCollapsed = header.classList.contains('collapsed');
-  localStorage.setItem('section-' + sectionId + '-collapsed', isCollapsed);
-}
-
-function toggleMenu(menu) {
-  const submenu = document.getElementById('sub-' + menu);
-  const menuItem = document.getElementById('menu-' + menu);
-  
-  // Always hide forms when switching
-  hideAllForms();
-  
-  if (submenu) {
-    submenu.classList.toggle('show');
-    menuItem.classList.toggle('expanded');
-  } else {
-    STATE.tab = menu;
-    updatePills();
-    
-    // Update active state
-    document.querySelectorAll('.menu-item').forEach(item => {
-      item.classList.remove('active');
-    });
-    menuItem.classList.add('active');
-    
-    // Show forms and clear chat for form-based features
-    if (menu === 'kickstart') {
-      clearChatOnly();
-      showForm('kickstartForm');
-    } else {
-      // For universal, soar - clear chat and hide forms
-      clearChatOnly();
-      hideAllForms();
-    }
-  }
-}
-
-function selectSIEM(platform) {
-  STATE.siem = platform;
-  STATE.tab = 'siem';
-  updatePills();
-  
-  // Update form title
-  document.getElementById('siemFormTitle').textContent = `🔍 SIEM Query Builder — ${platform}`;
-  
-  clearChatOnly();
-  hideAllForms();
-  showForm('siemForm');
-  
-  document.querySelectorAll('#sub-siem .platform-card').forEach(card => {
-    card.classList.remove('active');
-  });
-  event.target.closest('.platform-card').classList.add('active');
-}
-
-function selectNetwork(tool) {
-  STATE.tab = tool;
-  updatePills();
-  
-  // Update form title
-  const label = tool === 'suricata' ? 'Suricata' : 'Zeek';
-  document.getElementById('networkFormTitle').textContent = `🌐 Network Detection — ${label}`;
-  
-  clearChatOnly();
-  hideAllForms();
-  showForm('networkForm');
-  
-  document.querySelectorAll('#sub-network .platform-card').forEach(card => {
-    card.classList.remove('active');
-  });
-  event.target.closest('.platform-card').classList.add('active');
-}
-
-function selectSigma(platform) {
-  STATE.sigmaPlatform = platform;
-  STATE.tab = 'sigma';
-  updatePills();
-  
-  // Update button text
-  document.getElementById('sigmaTarget').textContent = platform;
-  
-  // Update active state
-  document.querySelectorAll('#sub-sigma .platform-card').forEach(card => {
-    card.classList.remove('active');
-  });
-  event.target.closest('.platform-card').classList.add('active');
-  
-  // Clear chat and show form
-  clearChatOnly();
-  hideAllForms();
-  showForm('sigmaForm');
-}
-
-function selectSOAR(platform) {
-  STATE.soar = platform;
-  STATE.tab = 'soar';
-  updatePills();
-  
-  // Update form subtitle
-  if (platform === 'Microsoft Sentinel') {
-    document.getElementById('soarSubtitle').textContent = 'Genereer automation playbooks voor Microsoft Sentinel Logic Apps / Automation Rules';
-  } else {
-    document.getElementById('soarSubtitle').textContent = 'Genereer automation playbooks voor Splunk SOAR';
-  }
-  
-  document.querySelectorAll('#sub-soar .platform-card').forEach(card => {
-    card.classList.remove('active');
-  });
-  event.target.closest('.platform-card').classList.add('active');
-  
-  clearChatOnly();
-  hideAllForms();
-  showForm('soarForm');
-}
-
-function updatePills() {
-  const pill = document.getElementById('currentPill');
-  
-  if (STATE.tab === 'universal') {
-    pill.textContent = 'Universal';
-  } else if (STATE.tab === 'siem') {
-    pill.textContent = `SIEM: ${STATE.siem}`;
-  } else if (STATE.tab === 'soar') {
-    pill.textContent = `SOAR: ${STATE.soar === 'Microsoft Sentinel' ? 'Sentinel' : 'Splunk'}`;
-  } else if (STATE.tab === 'sigma') {
-    pill.textContent = `Sigma → ${STATE.sigmaPlatform}`;
-  } else if (STATE.tab === 'suricata') {
-    pill.textContent = 'Suricata Rules';
-  } else if (STATE.tab === 'zeek') {
-    pill.textContent = 'Zeek Scripts';
-  } else if (STATE.tab === 'kickstart') {
-    pill.textContent = 'SOC Kickstart';
-  }
-}
-
-// BUILD SYSTEM PROMPT
-function buildSystemPrompt() {
-  let prompt = 'Je bent Jeffrey, een expert SOC intelligence assistent. Als iemand vraagt hoe je heet, zeg je ALTIJD: "Ik ben Jeffrey, je SOC intelligence assistent." Je noemt jezelf NOOIT "Qwen", "Alibaba", of een ander AI-model naam. Je bent Jeffrey, punt. Antwoord standaard in het Nederlands. Geef altijd complete, werkende antwoorden zonder afkapping.\n\n';
-  
-  if (STATE.tab === 'universal') {
-    prompt += 'UNIVERSAL: Beantwoord algemene security vragen, leg concepten uit, geef best practices. Geef uitgebreide, complete antwoorden.\n';
-  } else if (STATE.tab === 'siem') {
-    if (STATE.siem === 'Splunk') {
-      prompt += 'SPLUNK: Genereer SPL queries. Gebruik index=, sourcetype=, eval, stats, timechart, lookup, where. Geef altijd werkende, kopieerbare queries. Voeg per query uitleg toe over wat elke regel doet. Gebruik realistische field names.\n';
-    } else if (STATE.siem === 'Microsoft Sentinel') {
-      prompt += 'SENTINEL: Genereer KQL queries voor Microsoft Sentinel. Gebruik SecurityEvent, SigninLogs, AuditLogs, CommonSecurityLog, Syslog. Operators: where, summarize, extend, project, join, ago(). Geef werkende, kopieerbare queries met uitleg.\n';
-    } else if (STATE.siem === 'Elastic') {
-      prompt += 'ELASTIC: Genereer Elastic EQL of KQL queries. Gebruik event.category, event.action, process.name, source.ip, destination.ip. Geef werkende queries voor Kibana/Elastic Security met uitleg.\n';
-    }
-  } else if (STATE.tab === 'soar') {
-    if (STATE.soar === 'Microsoft Sentinel') {
-      prompt += 'SOAR SENTINEL: Genereer incident response playbooks als Microsoft Sentinel Automation Rules en Logic Apps workflows. Gebruik Azure-native acties: Microsoft Defender, Entra ID, Microsoft Teams, ServiceNow connectors. Geef concrete stappen met Logic App designer-compatibele beschrijvingen. Beschrijf triggers, conditions, en actions.\n';
-    } else {
-      prompt += 'SOAR SPLUNK: Genereer Splunk SOAR playbooks. Gebruik Phantom app acties, decision blocks, en custom functions. Geef concrete, implementeerbare playbook stappen met app/action namen.\n';
-    }
-  } else if (STATE.tab === 'convert') {
-    prompt += `CONVERT: Converteer ${STATE.convertFrom} query naar ${STATE.convertTo}.\n`;
-  } else if (STATE.tab === 'sigma') {
-    prompt += `SIGMA: Converteer Sigma rule naar ${STATE.sigmaPlatform} detection rule. Geef de volledige geconverteerde query, leg field mappings uit, en noteer mogelijke platform-specifieke beperkingen of aanpassingen.\n`;
-  } else if (STATE.tab === 'suricata') {
-    prompt += 'SURICATA: Genereer Suricata IDS/IPS rules. Gebruik correcte syntax: action, protocol, source, destination, options (msg, content, pcre, flow, sid, rev, classtype, reference). Geef werkende rules met uitleg en MITRE ATT&CK mapping.\n';
-  } else if (STATE.tab === 'zeek') {
-    prompt += 'ZEEK: Genereer Zeek/Bro scripts (.zeek). Gebruik events (connection_established, dns_request, http_request, etc.), Intel framework, Notice framework. Geef complete, werkende scripts met uitleg en MITRE ATT&CK mapping.\n';
-  } else if (STATE.tab === 'kickstart') {
-    prompt += 'SOC KICKSTART: Je genereert een professioneel security onboarding package. Gebruik het systeemprofiel (omgeving, kriticaliteit, dataclassificatie, exposure, authenticatie, compliance) om je analyse te richten. Geef per onderdeel concrete, actionable output. Detection rules moeten werkende queries zijn in het opgegeven SIEM platform. MITRE ATT&CK referenties met TID nummers. Log bronnen met specifieke sourcetypes. Hardening checklist afgestemd op het compliance framework. Structureer elk onderdeel met duidelijke headers.\n';
-  }
-  
-  return prompt;
-}
-
-// CALL LLAMA (AI) — llama.cpp server (OpenAI-compatible)
-async function callLlama() {
-  const systemPrompt = buildSystemPrompt();
-  
-  // Build messages with system prompt + conversation history
-  const messages = [
-    { role: 'system', content: systemPrompt },
-    ...STATE.conv.map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'assistant',
-      content: msg.content
-    }))
-  ];
-  
-  const res = await fetch('/api/chat', {
-    method: 'POST',
-    headers: { 
-      'Content-Type': 'application/json',
       'Authorization': 'Basic ' + authCredentials
     },
-    body: JSON.stringify({
-      messages: messages,
-      max_tokens: 8192,
-      temperature: 0.7,
-      top_p: 0.9,
-      repeat_penalty: 1.1,
-      stream: false
-    })
+    body: JSON.stringify({ messages: [{role:"user", content:"test"}], max_tokens: 1 })
+  }).then(res => {
+    if (res.ok) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('appContainer').style.display = 'flex';
+      document.getElementById('loginError').style.display = 'none';
+    } else {
+      authCredentials = '';
+      document.getElementById('loginError').style.display = 'block';
+    }
+  }).catch(() => {
+    authCredentials = '';
+    document.getElementById('loginError').textContent = 'Server niet bereikbaar';
+    document.getElementById('loginError').style.display = 'block';
   });
-  
-  if (res.status === 401) {
-    logout();
-    throw new Error('Session expired');
-  }
-  
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  
-  const data = await res.json();
-  const raw = data.choices[0].message.content || 'No response.';
-  // Strip thinking blocks from Qwen 3.5 responses
-  return raw
-    .replace(/<think>[\s\S]*?<\/think>/gi, '')
-    .replace(/Thinking Process:[\s\S]*?(?=\n\n[A-Z])/gi, '')
-    .trim() || 'No response.';
 }
 
-// MESSAGE RENDERING
-function renderMessage(role, content) {
-  const chatArea = document.getElementById('chatArea');
+function handleLogout() {
+  authCredentials = '';
+  document.getElementById('appContainer').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  clearChat();
+}
+
+// Enter key on login
+document.getElementById('loginPass').addEventListener('keydown', e => { if(e.key === 'Enter') handleLogin(); });
+document.getElementById('loginUser').addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('loginPass').focus(); });
+
+// UI WISSSELS
+function toggleMenu(menu) {
+  document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+  event.currentTarget.classList.add('active');
   
-  const msgDiv = document.createElement('div');
-  msgDiv.className = 'message ' + role;
+  // Save current chat if it has messages, then start fresh
+  if (chatMessages.length > 0) saveChat();
+  chatMessages = [];
+  currentChatId = null;
   
-  const avatar = document.createElement('div');
-  avatar.className = 'message-avatar';
-  avatar.textContent = role === 'user' ? 'U' : 'J';
+  // Clear messages from chat area
+  document.getElementById('chatArea').querySelectorAll('.message').forEach(m => m.remove());
+  document.querySelectorAll('.form-container').forEach(f => f.classList.remove('show'));
+  document.getElementById('welcome').style.display = 'none';
   
-  const contentDiv = document.createElement('div');
-  contentDiv.className = 'message-content';
-  
-  // Format code blocks in assistant responses
-  if (role === 'assistant') {
-    // Strip thinking blocks (Qwen 3.5 thinking mode leakage)
-    const cleaned = content
-      .replace(/<think>[\s\S]*?<\/think>/gi, '')
-      .replace(/Thinking Process:[\s\S]*?(?=\n\n[A-Z])/gi, '')
-      .trim();
-    // Simple code block detection and formatting
-    const formatted = cleaned
-      .replace(/```(\w+)?\n([\s\S]+?)```/g, '<pre><code>$2</code></pre>')
-      .replace(/`([^`]+)`/g, '<code>$1</code>');
-    contentDiv.innerHTML = formatted;
+  if(menu !== 'universal') {
+    const targetForm = document.getElementById(menu + 'Form');
+    if(targetForm) targetForm.classList.add('show');
   } else {
-    contentDiv.textContent = content;
+    document.getElementById('welcome').style.display = 'block';
   }
-  
-  msgDiv.appendChild(avatar);
-  msgDiv.appendChild(contentDiv);
-  
-  chatArea.appendChild(msgDiv);
-  chatArea.scrollTop = chatArea.scrollHeight;
+  renderChatHistory();
+}
+function clearChat() { 
+  document.getElementById('chatArea').querySelectorAll('.message').forEach(m => m.remove());
+  uploadedContext = ''; 
+  chatMessages = [];
+  currentChatId = null;
+  document.getElementById('fileUploadLabel').classList.remove('has-file'); 
+  document.getElementById('welcome').style.display = 'block';
+  document.querySelectorAll('.form-container').forEach(f => f.classList.remove('show'));
 }
 
-function showTyping() {
-  const chatArea = document.getElementById('chatArea');
-  
-  const typingDiv = document.createElement('div');
-  typingDiv.className = 'message assistant';
-  typingDiv.id = 'typing-indicator';
-  
-  const avatar = document.createElement('div');
-  avatar.className = 'message-avatar';
-  avatar.textContent = 'J';
-  
-  const contentDiv = document.createElement('div');
-  contentDiv.className = 'message-content';
-  
-  const typing = document.createElement('div');
-  typing.className = 'typing';
-  typing.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
-  
-  contentDiv.appendChild(typing);
-  typingDiv.appendChild(avatar);
-  typingDiv.appendChild(contentDiv);
-  
-  chatArea.appendChild(typingDiv);
-  chatArea.scrollTop = chatArea.scrollHeight;
-  
-  return typingDiv;
+// FILE UPLOAD (LOCAL RAG)
+document.getElementById('fileUpload').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    uploadedContext = `\n\n--- GEÜPLOADE CONTEXT (${file.name}) ---\n${evt.target.result}\n-----------------------------------\n`;
+    document.getElementById('fileUploadLabel').classList.add('has-file');
+    document.getElementById('inputField').placeholder = `Vraag iets over ${file.name}...`;
+  };
+  reader.readAsText(file);
+});
+
+// TIMERS
+function startTimer() {
+  const start = Date.now();
+  document.getElementById('timerBadge').style.display = 'flex';
+  document.getElementById('stopBtn').style.display = 'flex';
+  timerInterval = setInterval(() => {
+    const s = Math.floor((Date.now() - start) / 1000);
+    document.getElementById('timerText').innerText = String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
+  }, 1000);
+}
+function stopTimer() {
+  clearInterval(timerInterval);
+  document.getElementById('timerBadge').style.display = 'none';
+  document.getElementById('stopBtn').style.display = 'none';
 }
 
-// SEND MESSAGE
-async function sendMessage() {
-  const input = document.getElementById('inputField');
-  const text = input.value.trim();
-  if (!text) return;
-  
-  await sendToModel(text, text);
+document.getElementById('stopBtn').addEventListener('click', () => {
+  if(abortController) abortController.abort();
+  stopTimer();
+});
+
+// CHAT RENDERING
+function getTime() { return new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}); }
+
+function addMessage(role, text) {
+  const ca = document.getElementById('chatArea');
+  const id = 'msg-' + Date.now();
+  const html = `
+    <div class="message ${role}">
+      <div class="message-avatar">${role==='user'?'U':'J'}</div>
+      <div class="message-content-wrapper">
+        <div class="message-timestamp">${getTime()}</div>
+        <div class="message-content" id="${id}">${text}</div>
+      </div>
+    </div>`;
+  ca.insertAdjacentHTML('beforeend', html);
+  ca.scrollTop = ca.scrollHeight;
+  return id;
 }
 
-// SEND FORM MESSAGE (shows summary to user, sends full prompt to model)
-async function sendFormMessage(fullPrompt, displaySummary) {
-  await sendToModel(fullPrompt, displaySummary);
-}
+// STREAMING ENGINE WITH ERROR HANDLING
+async function streamToModel(fullPrompt, displaySummary) {
+  document.querySelectorAll('.form-container').forEach(f => f.classList.remove('show'));
+  document.getElementById('welcome').style.display = 'none';
+  document.getElementById('inputField').value = '';
+  
+  chatMessages.push({ role: 'user', content: fullPrompt, display: displaySummary });
+  addMessage('user', displaySummary);
+  const responseId = addMessage('assistant', '<div class="thinking-box">🤔 Jeffrey analyseert de vraag...</div>');
+  const responseBox = document.getElementById(responseId);
+  
+  abortController = new AbortController();
+  startTimer();
 
-async function sendToModel(fullPrompt, displayText) {
-  if (!fullPrompt) return;
-  
-  const welcome = document.getElementById('welcome');
-  if (welcome) welcome.remove();
-  
-  hideAllForms();
-  
-  const input = document.getElementById('inputField');
-  input.value = '';
-  autoResize(input);
-  
-  // Store full prompt for model, show display text to user
-  STATE.conv.push({ role: 'user', content: fullPrompt });
-  renderMessage('user', displayText);
-  
-  document.getElementById('sendBtn').disabled = true;
-  document.getElementById('chatStatus').textContent = 'Bezig...';
-  
-  const typing = showTyping();
-  
   try {
-    const response = await callLlama();
-    typing.remove();
-    STATE.conv.push({ role: 'assistant', content: response });
-    renderMessage('assistant', response);
-    document.getElementById('chatStatus').textContent = 'Klaar';
+    const finalPrompt = uploadedContext ? `${fullPrompt}\n\n${uploadedContext}` : fullPrompt;
     
-    // Save chat to history
-    saveCurrentChat();
-  } catch(e) {
-    typing.remove();
-    showNotification('Error: ' + e.message, true);
-    document.getElementById('chatStatus').textContent = 'Fout';
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': 'Basic ' + authCredentials
+      },
+      signal: abortController.signal,
+      body: JSON.stringify({
+        messages: [
+          {role: "system", content: 'Je bent Jeffrey, een expert SOC intelligence assistent. Alleen als iemand expliciet vraagt hoe je heet, zeg je "Ik ben Jeffrey, je SOC intelligence assistent." Begin antwoorden NIET met een introductie van jezelf. Ga direct inhoudelijk aan de slag. Je noemt jezelf NOOIT "Qwen", "Alibaba", of een ander AI-model naam. Antwoord standaard in het Nederlands. Geef complete, werkende antwoorden.'}, 
+          {role: "user", content: finalPrompt}
+        ],
+        max_tokens: 8192,
+        temperature: 0.7,
+        stream: true
+      })
+    });
+
+    // ERROR HANDLING VOOR UNAUTHORIZED OF ANDERE SERVER ERRORS
+    if (!res.ok) {
+        if (res.status === 401) { handleLogout(); throw new Error("Sessie verlopen — log opnieuw in."); }
+        throw new Error(`Server fout: HTTP ${res.status}`);
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let isThinking = false;
+    let finalOutput = '';
+
+    while(true) {
+      const {done, value} = await reader.read();
+      if(done) break;
+      
+      const chunk = decoder.decode(value, {stream: true});
+      const lines = chunk.split('\n');
+      
+      for(const line of lines) {
+        if(line.startsWith('data: ') && line !== 'data: [DONE]') {
+          try {
+            const data = JSON.parse(line.substring(6));
+            let token = data.choices[0].delta.content || '';
+            
+            if (token.includes('<think>')) isThinking = true;
+            if (token.includes('</think>')) {
+               isThinking = false; 
+               token = token.split('</think>')[1] || '';
+               responseBox.innerHTML = ''; 
+            }
+            
+            if (!isThinking && token) {
+               finalOutput += token;
+               let displayHtml = finalOutput
+                 .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                 .replace(/\n/g, '<br>');
+               responseBox.innerHTML = displayHtml;
+               document.getElementById('chatArea').scrollTop = document.getElementById('chatArea').scrollHeight;
+            }
+          } catch(e) {}
+        }
+      }
+    }
+    
+    // Save to chat history
+    chatMessages.push({ role: 'assistant', content: finalOutput });
+    saveChat();
+    
+  } catch(err) {
+    if(err.name === 'AbortError') {
+      responseBox.innerHTML += '<br><br><span style="color:var(--error)">[Generatie afgebroken door gebruiker]</span>';
+    } else {
+      responseBox.innerHTML = `<span style="color:var(--error)">Er is een fout opgetreden: ${err.message}. Controleer de llama-server logs.</span>`;
+    }
   } finally {
-    document.getElementById('sendBtn').disabled = false;
+    stopTimer();
+    abortController = null;
   }
 }
 
-// GENERATE SIEM QUERY
+// TRIGGERS
+document.getElementById('sendBtn').addEventListener('click', () => {
+  const v = document.getElementById('inputField').value;
+  if(v) streamToModel(v, v);
+});
+
 function generateSIEM() {
-  const useCase = document.getElementById('siemUseCase').value;
-  const timeRange = document.getElementById('siemTimeRange').value;
-  const dataSource = document.getElementById('siemDataSource').value.trim();
-  const freeText = document.getElementById('siemFreeText').value.trim();
+  const p = document.getElementById('siemPlatform').value;
+  const uc = document.getElementById('siemUseCase').value;
+  const t = document.getElementById('siemTime').value;
+  const src = document.getElementById('siemSource').value.trim();
+  const txt = document.getElementById('siemText').value.trim();
+  if (!uc && !txt) return alert('Selecteer een use case of vul een vraag in');
   
-  if (!useCase && !freeText) {
-    showNotification('Selecteer een use case of vul een specifieke vraag in!', true);
-    return;
-  }
+  let prompt = `${p} QUERY\nUse case: ${uc || txt}\nTijdrange: ${t}\n`;
+  if (src) prompt += `Data bron: ${src}\n`;
+  if (txt && uc) prompt += `Specifiek: ${txt}\n`;
+  prompt += `Genereer een werkende, kopieerbare ${p} query.\n`;
+  if (document.getElementById('siemExplain').checked) prompt += `Voeg uitleg toe per onderdeel.\n`;
+  if (document.getElementById('siemMitre').checked) prompt += `Voeg MITRE ATT&CK mapping toe.\n`;
+  if (document.getElementById('siemAlert').checked) prompt += `Geef alert/threshold configuratie.\n`;
   
-  const wantExplain = document.getElementById('siemExplain').checked;
-  const wantDashboard = document.getElementById('siemDashboard').checked;
-  const wantAlert = document.getElementById('siemAlert').checked;
-  const wantMitre = document.getElementById('siemMitre').checked;
-  
-  let prompt = `${STATE.siem} QUERY\n`;
-  prompt += `${'='.repeat(40)}\n\n`;
-  if (useCase) prompt += `Use case: ${useCase}\n`;
-  prompt += `Tijdrange: ${timeRange}\n`;
-  if (dataSource) prompt += `Data bron/index: ${dataSource}\n`;
-  if (freeText) prompt += `Specifiek: ${freeText}\n`;
-  prompt += `\nGenereer een werkende, kopieerbare ${STATE.siem} query.\n`;
-  if (wantExplain) prompt += `Voeg per query onderdeel uitleg toe (als comments of na de query).\n`;
-  if (wantDashboard) prompt += `Geef ook een dashboard panel suggestie (visualisatie type, velden).\n`;
-  if (wantAlert) prompt += `Geef alert/threshold configuratie: drempel, severity, actie.\n`;
-  if (wantMitre) prompt += `Voeg MITRE ATT&CK Tactic + Technique (TID) toe.\n`;
-  
-  const summary = `🔍 ${STATE.siem}: ${useCase || freeText} (${timeRange})`;
-  hideAllForms();
-  document.getElementById('welcome')?.remove();
-  sendFormMessage(prompt, summary);
-}
-function generateSigma() {
-  const yaml = document.getElementById('sigmaYaml').value.trim();
-  
-  if (!yaml) {
-    showNotification('Plak eerst een Sigma YAML regel!', true);
-    return;
-  }
-  
-  const wantExplain = document.getElementById('sigmaExplain').checked;
-  const wantFieldMap = document.getElementById('sigmaFieldMap').checked;
-  const wantFalsePos = document.getElementById('sigmaFalsePos').checked;
-  const wantTuning = document.getElementById('sigmaTuning').checked;
-  
-  let prompt = `Converteer Sigma regel naar ${STATE.sigmaPlatform}:\n\n${yaml}\n\n`;
-  prompt += `Geef de volledige geconverteerde query.\n`;
-  if (wantExplain) prompt += `Leg de conversie uit: welke Sigma velden worden hoe vertaald.\n`;
-  if (wantFieldMap) prompt += `Toon een field mapping tabel (Sigma veld → ${STATE.sigmaPlatform} veld).\n`;
-  if (wantFalsePos) prompt += `Analyseer false positive risico en geef whitelist suggesties.\n`;
-  if (wantTuning) prompt += `Geef tuning suggesties: hoe de rule verscherpen of verbreden per omgeving.\n`;
-  
-  const summary = `Σ Sigma → ${STATE.sigmaPlatform} conversie`;
-  hideAllForms();
-  document.getElementById('welcome')?.remove();
-  sendFormMessage(prompt, summary);
+  streamToModel(prompt, `🔍 ${p}: ${uc || txt} (${t})`);
 }
 
-// GENERATE NETWORK DETECTION
-function generateNetwork() {
-  const threat = document.getElementById('netThreat').value;
-  const protocol = document.getElementById('netProtocol').value;
-  const context = document.getElementById('netContext').value.trim();
-  
-  if (!threat && !context) {
-    showNotification('Selecteer een threat type of vul context in!', true);
-    return;
-  }
-  
-  const wantExplain = document.getElementById('netExplain').checked;
-  const wantMitre = document.getElementById('netMitre').checked;
-  const wantPerf = document.getElementById('netPerformance').checked;
-  const wantFP = document.getElementById('netFalsePos').checked;
-  
-  const tool = STATE.tab === 'suricata' ? 'Suricata' : 'Zeek';
-  
-  let prompt = `${tool} DETECTION RULES\n`;
-  prompt += `${'='.repeat(40)}\n\n`;
-  if (threat) prompt += `Threat: ${threat}\n`;
-  prompt += `Protocol: ${protocol}\n`;
-  if (context) prompt += `Context/IOC's: ${context}\n`;
-  prompt += `\nGenereer werkende ${tool} rules.\n`;
-  if (wantExplain) prompt += `Voeg per rule uitleg toe over wat het detecteert en hoe.\n`;
-  if (wantMitre) prompt += `Voeg MITRE ATT&CK Tactic + Technique (TID) mapping toe.\n`;
-  if (wantPerf) prompt += `Noteer performance impact en optimalisatie tips.\n`;
-  if (wantFP) prompt += `Beschrijf false positive scenario's en hoe te mitigeren.\n`;
-  
-  const summary = `🌐 ${tool}: ${threat || context}`;
-  hideAllForms();
-  document.getElementById('welcome')?.remove();
-  sendFormMessage(prompt, summary);
-}
-
-// GENERATE SOAR PLAYBOOK
 function generateSOAR() {
-  const incident = document.getElementById('soarIncident').value;
-  const severity = document.getElementById('soarSeverity').value;
-  const context = document.getElementById('soarContext').value.trim();
+  const p = document.getElementById('soarPlatform').value;
+  const inc = document.getElementById('soarIncident').value;
+  const sev = document.getElementById('soarSeverity').value;
+  const txt = document.getElementById('soarText').value.trim();
   
   const actions = [];
-  if (document.getElementById('soarEnrich').checked) actions.push('Enrichment (IP/hash/user reputation lookup, threat intel correlatie)');
-  if (document.getElementById('soarContain').checked) actions.push('Containment (host isolatie, IP blokkade, account disable)');
-  if (document.getElementById('soarNotify').checked) actions.push('Notificatie (Teams bericht, email alert, ticket aanmaken)');
-  if (document.getElementById('soarEscalate').checked) actions.push('Escalatie (SOC L2/L3, management, CISO)');
-  if (document.getElementById('soarRemediate').checked) actions.push('Remediatie (password reset, token revoke, malware cleanup)');
-  if (document.getElementById('soarEvidence').checked) actions.push('Evidence collection (snapshot, log export, memory dump)');
+  if (document.getElementById('soarEnrich').checked) actions.push('Enrichment (IP/hash/user lookup)');
+  if (document.getElementById('soarContain').checked) actions.push('Containment (isoleer/blokkeer)');
+  if (document.getElementById('soarNotify').checked) actions.push('Notificatie (Teams/email/ticket)');
+  if (document.getElementById('soarEscalate').checked) actions.push('Escalatie workflow');
+  if (document.getElementById('soarRemediate').checked) actions.push('Remediatie (password reset, disable)');
   
-  let platform = STATE.soar;
-  let prompt = `SOAR PLAYBOOK voor ${platform}\n`;
-  prompt += `${'='.repeat(50)}\n\n`;
-  prompt += `Incident: ${incident}\n`;
-  prompt += `Severity: ${severity}\n`;
-  if (context) prompt += `Context: ${context}\n`;
-  prompt += `\n`;
+  let prompt = `SOAR PLAYBOOK voor ${p}\nIncident: ${inc}\nSeverity: ${sev}\n`;
+  if (txt) prompt += `Context: ${txt}\n`;
+  if (actions.length) prompt += `Acties: ${actions.join(', ')}\n`;
+  prompt += `Genereer: trigger, workflow stappen, decision points, triage guide, false positive criteria.\n`;
   
-  if (platform === 'Microsoft Sentinel') {
-    prompt += `Genereer een complete Sentinel automation workflow:\n\n`;
-    prompt += `1. TRIGGER: Analytics Rule die dit incident triggert (KQL query)\n`;
-    prompt += `2. AUTOMATION RULE: Sentinel automation rule configuratie\n`;
-    prompt += `3. LOGIC APP WORKFLOW: Stap-voor-stap Logic App met:\n`;
-  } else {
-    prompt += `Genereer een complete Splunk SOAR playbook:\n\n`;
-    prompt += `1. TRIGGER: Correlation search / Notable event\n`;
-    prompt += `2. PLAYBOOK FLOW: Stap-voor-stap met:\n`;
-  }
-  
-  if (actions.length > 0) {
-    prompt += `   Gewenste acties:\n`;
-    actions.forEach(a => { prompt += `   - ${a}\n`; });
-  }
-  
-  prompt += `\n4. DECISION POINTS: Waar moet een analyst handmatig beslissen?\n`;
-  prompt += `5. TRIAGE GUIDE: Wat moet de analyst checken bij deze alert?\n`;
-  prompt += `6. FALSE POSITIVE CRITERIA: Wanneer is het een false positive?\n`;
-
-  const summary = `📋 SOAR ${STATE.soar}: ${incident} (${severity})`;
-  hideAllForms();
-  document.getElementById('welcome')?.remove();
-  sendFormMessage(prompt, summary);
+  streamToModel(prompt, `📋 ${p}: ${inc} (${sev})`);
 }
 
-// INPUT AUTO RESIZE
-function autoResize(textarea) {
-  textarea.style.height = 'auto';
-  textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
-}
-
-// CLEAR CHAT
-function clearChat() {
-  STATE.conv = [];
-  hideAllForms();
-  const chatArea = document.getElementById('chatArea');
-  chatArea.innerHTML = `
-    <div class="welcome" id="welcome">
-      <h2>👋 Welkom bij Jeffrey Toolkit</h2>
-      <p>Jouw AI-assistent voor SOC operations, detection engineering en security automation.</p>
-      
-      <div class="disclaimer">
-        <p>Het model draait volledig offline op CPU/RAM voor maximale veiligheid.</p>
-        <p style="margin-top:8px; font-size:13px; color:var(--text-secondary)">
-          ⏱️ <strong>Simpele vraag / SIEM query:</strong> 30 sec - 2 min |
-          <strong>SOAR / Sigma / Network:</strong> 2-5 min |
-          <strong>SOC Kickstart:</strong> 5-15 min
-        </p>
-      </div>
-      
-      <div class="feature-grid">
-        <div class="feature-item">
-          <strong>🔍 SIEM Queries</strong>
-          <span>Splunk, Sentinel, Elastic</span>
-        </div>
-        <div class="feature-item">
-          <strong>📋 SOAR Playbooks</strong>
-          <span>Automated response workflows</span>
-        </div>
-        <div class="feature-item">
-          <strong>🌐 Network Detection</strong>
-          <span>Suricata & Zeek rules</span>
-        </div>
-        <div class="feature-item">
-          <strong>🏢 SOC Kickstart</strong>
-          <span>Threat model + detection + monitoring</span>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-// NOTIFICATION
-function showNotification(message, isError = false) {
-  const notif = document.getElementById('notification');
-  notif.textContent = message;
-  notif.className = 'notification show' + (isError ? ' error' : '');
+function generateSigma() {
+  const p = document.getElementById('sigmaPlatform').value;
+  const txt = document.getElementById('sigmaText').value.trim();
+  if (!txt) return alert('Vul detectie logica of een Sigma rule in');
   
-  setTimeout(() => {
-    notif.classList.remove('show');
-  }, 3000);
+  let prompt = `Sigma analyse voor ${p}:\n${txt}\n\nGeef de volledige geconverteerde query.\n`;
+  if (document.getElementById('sigmaExplain').checked) prompt += `Leg de conversie uit.\n`;
+  if (document.getElementById('sigmaFieldMap').checked) prompt += `Toon field mapping tabel.\n`;
+  if (document.getElementById('sigmaFP').checked) prompt += `Analyseer false positive risico.\n`;
+  if (document.getElementById('sigmaTuning').checked) prompt += `Geef tuning suggesties.\n`;
+  
+  streamToModel(prompt, `Σ Sigma → ${p}`);
 }
 
-// GENERATE SOC KICKSTART
-function generateKickstart() {
+function generateNetwork() {
+  const engine = document.getElementById('networkPlatform').value;
+  const threat = document.getElementById('netThreat').value;
+  const proto = document.getElementById('netProtocol').value;
+  const txt = document.getElementById('networkText').value.trim();
+  if (!threat && !txt) return alert('Selecteer een threat type of vul context in');
+  
+  let prompt = `${engine} DETECTION\nThreat: ${threat || txt}\nProtocol: ${proto}\n`;
+  if (txt && threat) prompt += `Context/IOC's: ${txt}\n`;
+  prompt += `Genereer werkende ${engine} rules.\n`;
+  if (document.getElementById('netExplain').checked) prompt += `Voeg uitleg toe per rule.\n`;
+  if (document.getElementById('netMitre').checked) prompt += `Voeg MITRE ATT&CK mapping toe.\n`;
+  if (document.getElementById('netFP').checked) prompt += `Beschrijf false positive mitigatie.\n`;
+  
+  streamToModel(prompt, `🌐 ${engine}: ${threat || txt}`);
+}
+
+async function generateKickstartChain() {
   const name = document.getElementById('ksName').value.trim();
-  const desc = document.getElementById('ksDesc').value.trim();
-  const env = document.getElementById('ksEnv').value;
+  const env = document.getElementById('ksEnvType').value;
   const crit = document.getElementById('ksCrit').value;
-  const dataClass = document.getElementById('ksDataClass').value;
+  const data = document.getElementById('ksData').value;
   const exposure = document.getElementById('ksExposure').value;
-  const siem = document.getElementById('ksSIEM').value;
-  const logSources = document.getElementById('ksLogSources').value.trim();
-  const notes = document.getElementById('ksNotes').value.trim();
+  const context = document.getElementById('ksEnv').value.trim();
+  if (!name) return alert('Vul een applicatie/systeem naam in');
   
-  if (!name) {
-    showNotification('Vul minimaal de applicatie/systeem naam in!', true);
-    return;
-  }
+  const auth = [];
+  if (document.getElementById('ksSSO').checked) auth.push('SSO/SAML');
+  if (document.getElementById('ksAD').checked) auth.push('LDAP/AD');
+  if (document.getElementById('ksMFA').checked) auth.push('MFA');
+  if (document.getElementById('ksAPI').checked) auth.push('API keys');
+  if (document.getElementById('ksLocal').checked) auth.push('Lokale accounts');
   
-  // Collect auth methods
-  const authMethods = [];
-  if (document.getElementById('ksAuthSSO').checked) authMethods.push('SSO/SAML/OAuth');
-  if (document.getElementById('ksAuthAD').checked) authMethods.push('LDAP/Active Directory');
-  if (document.getElementById('ksAuthLocal').checked) authMethods.push('Lokale accounts');
-  if (document.getElementById('ksAuthAPI').checked) authMethods.push('API keys/tokens');
-  if (document.getElementById('ksAuthMFA').checked) authMethods.push('MFA ingeschakeld');
-  if (document.getElementById('ksAuthCert').checked) authMethods.push('Certificaten/mTLS');
+  let profile = `Systeem: ${name}\n`;
+  if (env) profile += `Omgeving: ${env}\n`;
+  if (crit) profile += `Kriticaliteit: ${crit}\n`;
+  if (data) profile += `Dataclassificatie: ${data}\n`;
+  if (exposure) profile += `Exposure: ${exposure}\n`;
+  if (auth.length) profile += `Authenticatie: ${auth.join(', ')}\n`;
+  if (context) profile += `Context: ${context}\n`;
   
-  // Collect compliance
-  const compliance = [];
-  if (document.getElementById('ksCompBIO').checked) compliance.push('BIO');
-  if (document.getElementById('ksCompNIS2').checked) compliance.push('NIS2');
-  if (document.getElementById('ksCompISO').checked) compliance.push('ISO 27001');
-  if (document.getElementById('ksCompGDPR').checked) compliance.push('AVG/GDPR');
-  if (document.getElementById('ksCompSOC2').checked) compliance.push('SOC 2');
-  if (document.getElementById('ksCompNEN').checked) compliance.push('NEN 7510');
+  const summary = `🚀 SOC Kickstart: ${name}${crit ? ' (' + crit + ')' : ''}`;
   
-  // Collect output sections
-  const wantStride = document.getElementById('ksStride').checked;
-  const wantAttack = document.getElementById('ksAttack').checked;
-  const wantLogs = document.getElementById('ksLogs').checked;
-  const wantDetection = document.getElementById('ksDetection').checked;
-  const wantMonitoring = document.getElementById('ksMonitoring').checked;
-  const wantChecklist = document.getElementById('ksChecklist').checked;
+  await streamToModel(
+    `STAP 1: STRIDE Threat Model + MITRE ATT&CK mapping\n${profile}\nGeef per STRIDE categorie: dreiging, risico (H/M/L), concrete mitigatie, en relevante MITRE ATT&CK Techniques (TID).`,
+    `${summary} — Deel 1/2: Threat Model`
+  );
   
-  // Build structured prompt
-  let prompt = `SOC KICKSTART PACKAGE voor "${name}"\n`;
-  prompt += `${'='.repeat(50)}\n\n`;
-  prompt += `SYSTEEM PROFIEL:\n`;
-  if (desc) prompt += `  Beschrijving: ${desc}\n`;
-  if (env) prompt += `  Omgeving: ${env}\n`;
-  if (crit) prompt += `  Kriticaliteit: ${crit}\n`;
-  if (dataClass) prompt += `  Dataclassificatie: ${dataClass}\n`;
-  if (exposure) prompt += `  Netwerk exposure: ${exposure}\n`;
-  if (authMethods.length > 0) prompt += `  Authenticatie: ${authMethods.join(', ')}\n`;
-  if (compliance.length > 0) prompt += `  Compliance: ${compliance.join(', ')}\n`;
-  if (logSources) prompt += `  Bekende log bronnen: ${logSources}\n`;
-  if (notes) prompt += `  Aanvullend: ${notes}\n`;
-  prompt += `  SIEM platform: ${siem}\n`;
-  
-  prompt += `\nGENEREER DE VOLGENDE ONDERDELEN:\n\n`;
-  let n = 1;
-  
-  if (wantStride) {
-    prompt += `${n++}. STRIDE THREAT MODEL\n`;
-    prompt += `   Per STRIDE categorie: beschrijf de dreiging, risico (H/M/L), en concrete mitigatie.\n`;
-    prompt += `   Houd rekening met de omgeving (${env || 'onbekend'}) en exposure (${exposure || 'onbekend'}).\n\n`;
-  }
-  if (wantAttack) {
-    prompt += `${n++}. MITRE ATT&CK MAPPING\n`;
-    prompt += `   Relevante Tactics en Techniques (TID nummers) voor dit systeem.\n`;
-    prompt += `   Focus op: Initial Access, Persistence, Privilege Escalation, Lateral Movement, Exfiltration.\n\n`;
-  }
-  if (wantLogs) {
-    prompt += `${n++}. BENODIGDE LOG BRONNEN\n`;
-    prompt += `   Per log bron: naam, sourcetype/index, welke events, retentie advies, en waarom deze nodig is.\n`;
-    if (logSources) prompt += `   Bekende bronnen: ${logSources} — vul aan wat mist.\n`;
-    prompt += `\n`;
-  }
-  if (wantDetection) {
-    prompt += `${n++}. DETECTION RULES\n`;
-    prompt += `   Genereer werkende ${siem} queries voor de top 5 dreigingen.\n`;
-    prompt += `   Per rule: naam, query, severity, MITRE mapping, en triage instructies.\n`;
-    prompt += `   Voeg ook relevante Suricata of Zeek rules toe indien van toepassing.\n\n`;
-  }
-  if (wantMonitoring) {
-    prompt += `${n++}. MONITORING & ALERTING\n`;
-    prompt += `   Baseline metrics, threshold alerts, en dashboard panels in ${siem}.\n`;
-    prompt += `   Beschrijf: wat monitoren, drempel, actie bij alert.\n\n`;
-  }
-  if (wantChecklist) {
-    prompt += `${n++}. SECURITY HARDENING CHECKLIST\n`;
-    prompt += `   Concrete actiepunten per categorie: netwerk, authenticatie, logging, patching, backup.\n`;
-    if (compliance.length > 0) prompt += `   Houd rekening met: ${compliance.join(', ')} vereisten.\n`;
-    prompt += `\n`;
-  }
-  
-  const summary = `🚀 SOC Kickstart: ${name}${crit ? ' (' + crit.split(' —')[0] + ')' : ''}`;
-  hideAllForms();
-  document.getElementById('welcome')?.remove();
-  sendFormMessage(prompt, summary);
+  await streamToModel(
+    `STAP 2: Detection Engineering voor "${name}"\n${profile}\nOp basis van het threat model: welke logs zijn nodig (sourcetype, retentie)? Schrijf 3 concrete detection rules als werkende SIEM queries. Geef een security hardening checklist.`,
+    `${summary} — Deel 2/2: Detection & Logging`
+  );
 }
 
-// EVENT LISTENERS
-document.addEventListener('DOMContentLoaded', () => {
-  // Login form
-  const loginForm = document.getElementById('loginForm');
-  if (loginForm) {
-    loginForm.addEventListener('submit', handleLogin);
+// CHAT HISTORY
+let chatMessages = [];
+let currentChatId = null;
+
+function saveChat() {
+  if (chatMessages.length === 0) return;
+  const chats = JSON.parse(localStorage.getItem('jeffrey_chats') || '[]');
+  const firstMsg = chatMessages[0]?.display || 'Nieuw gesprek';
+  const title = firstMsg.substring(0, 50);
+  
+  if (currentChatId) {
+    const idx = chats.findIndex(c => c.id === currentChatId);
+    if (idx >= 0) { chats[idx].messages = chatMessages; chats[idx].title = title; }
+  } else {
+    currentChatId = 'chat_' + Date.now();
+    chats.unshift({ id: currentChatId, title, messages: chatMessages, date: new Date().toLocaleDateString('nl-NL', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'}) });
   }
+  if (chats.length > 20) chats.length = 20;
+  localStorage.setItem('jeffrey_chats', JSON.stringify(chats));
+  renderChatHistory();
+}
+
+function loadChat(id) {
+  const chats = JSON.parse(localStorage.getItem('jeffrey_chats') || '[]');
+  const chat = chats.find(c => c.id === id);
+  if (!chat) return;
   
-  // Main app
-  const input = document.getElementById('inputField');
-  const sendBtn = document.getElementById('sendBtn');
+  currentChatId = id;
+  chatMessages = chat.messages;
+  const ca = document.getElementById('chatArea');
+  ca.querySelectorAll('.message').forEach(m => m.remove());
+  document.getElementById('welcome').style.display = 'none';
+  document.querySelectorAll('.form-container').forEach(f => f.classList.remove('show'));
   
-  if (input) {
-    input.addEventListener('input', function() {
-      autoResize(this);
-    });
-    
-    input.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
-    });
-    
-    // Global keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-      // Ctrl+N or Cmd+N for new chat
-      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
-        e.preventDefault();
-        newChat();
-      }
-    });
-  }
-  
-  if (sendBtn) {
-    sendBtn.addEventListener('click', sendMessage);
-  }
-  
-  console.log('Jeffrey Toolkit v1.0 - Qwen 3.5 27B Q8 ✓');
-});
+  chatMessages.forEach(m => addMessage(m.role, m.role === 'user' ? m.display : m.content));
+  renderChatHistory();
+}
+
+function deleteChat(id, e) {
+  e.stopPropagation();
+  let chats = JSON.parse(localStorage.getItem('jeffrey_chats') || '[]');
+  chats = chats.filter(c => c.id !== id);
+  localStorage.setItem('jeffrey_chats', JSON.stringify(chats));
+  if (currentChatId === id) newChat();
+  renderChatHistory();
+}
+
+function newChat() {
+  currentChatId = null;
+  chatMessages = [];
+  clearChat();
+}
+
+function renderChatHistory() {
+  const chats = JSON.parse(localStorage.getItem('jeffrey_chats') || '[]');
+  const el = document.getElementById('chatHistory');
+  el.innerHTML = chats.map(c => `
+    <div class="chat-history-item ${c.id === currentChatId ? 'active' : ''}" onclick="loadChat('${c.id}')">
+      <div><div style="font-weight:500">${c.title}</div><div class="chat-meta">${c.date}</div></div>
+      <span class="delete-btn" onclick="deleteChat('${c.id}', event)">🗑</span>
+    </div>`).join('');
+}
+
+// Init chat history on load
+document.addEventListener('DOMContentLoaded', () => renderChatHistory());
 </script>
-
-</div>
-<!-- End Main App -->
-
 </body>
 </html>
