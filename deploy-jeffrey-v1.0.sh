@@ -10,7 +10,7 @@ MODEL_DIR="/data/models"
 BINARY_DIR="/opt/llama-server"
 HTPASSWD_FILE="/etc/httpd/.htpasswd"
 APACHE_CONF="/etc/httpd/conf.d/jeffrey.conf"
-MODEL_FILE="Qwen3.5-27B-Q8_0.gguf"
+MODEL_FILE="gemma-4-26B-A4B-it-MXFP4_MOE.gguf"
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -31,7 +31,7 @@ echo "🧹 Oude omgeving opruimen..."
 systemctl stop llama-server 2>/dev/null
 systemctl disable llama-server 2>/dev/null
 rm -rf "$BINARY_DIR"
-find "$BASE_DIR" -maxdepth 1 -type f ! -name 'deploy-jeffrey-v1.0.sh' ! -name 'llama.cpp-master.zip' ! -name "$MODEL_FILE" ! -name 'jeffrey-v1.0-qwen35.html' -delete
+find "$BASE_DIR" -maxdepth 1 -type f ! -name 'deploy-jeffrey-v1.0.sh' ! -name 'llama.cpp-master.zip' ! -name "$MODEL_FILE" ! -name 'jeffrey-v1.0.html' -delete
 mkdir -p "$MODEL_DIR" "$BINARY_DIR"
 
 echo "🏗️ Compileren van llama.cpp uit source..."
@@ -103,7 +103,7 @@ After=network.target
 [Service]
 Type=simple
 User=root
-ExecStart=$BINARY_DIR/llama-server --model $MODEL_DIR/$MODEL_FILE --host 127.0.0.1 --port 8081 --ctx-size 16384 --threads 16 --flash-attn on --chat-template chatml
+ExecStart=$BINARY_DIR/llama-server --model $MODEL_DIR/$MODEL_FILE --host 127.0.0.1 --port 8081 --ctx-size 16384 --threads 16 --flash-attn on --chat-template gemma --temp 1.0 --top-k 64 --top-p 0.95 --min-p 0.0
 StandardOutput=append:/var/log/llama-server.log
 StandardError=append:/var/log/llama-server.log
 Restart=always
@@ -124,8 +124,8 @@ fi
 chown -R apache:apache "$BASE_DIR"
 
 # Deploy HTML
-if [ -f "$SCRIPT_DIR/jeffrey-v1.0-qwen35.html" ]; then
-    cp "$SCRIPT_DIR/jeffrey-v1.0-qwen35.html" "$BASE_DIR/index.html"
+if [ -f "$SCRIPT_DIR/jeffrey-v1.0.html" ]; then
+    cp "$SCRIPT_DIR/jeffrey-v1.0.html" "$BASE_DIR/index.html"
     chown apache:apache "$BASE_DIR/index.html"
     echo "✅ HTML gedeployed"
 else

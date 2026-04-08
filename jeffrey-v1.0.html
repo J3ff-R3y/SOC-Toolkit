@@ -475,7 +475,7 @@ async function streamToModel(fullPrompt, displaySummary) {
       signal: abortController.signal,
       body: JSON.stringify({
         messages: [
-          {role: "system", content: 'Je bent Jeffrey, een expert SOC intelligence assistent. Alleen als iemand expliciet vraagt hoe je heet, zeg je "Ik ben Jeffrey, je SOC intelligence assistent." Begin antwoorden NIET met een introductie van jezelf. Ga direct inhoudelijk aan de slag. Je noemt jezelf NOOIT "Qwen", "Alibaba", of een ander AI-model naam. Antwoord standaard in het Nederlands. Geef complete, werkende antwoorden.'}, 
+          {role: "system", content: 'Je bent Jeffrey, een expert SOC intelligence assistent. Alleen als iemand expliciet vraagt hoe je heet, zeg je "Ik ben Jeffrey, je SOC intelligence assistent." Begin antwoorden NIET met een introductie van jezelf. Ga direct inhoudelijk aan de slag. Je noemt jezelf NOOIT "Qwen", "Alibaba", "Gemma", "Google", "Llama", "Meta", of een ander AI-model naam. Antwoord standaard in het Nederlands. Geef complete, werkende antwoorden.'}, 
           {role: "user", content: finalPrompt}
         ],
         max_tokens: 8192,
@@ -518,6 +518,7 @@ async function streamToModel(fullPrompt, displaySummary) {
             if (!isThinking && token) {
                finalOutput += token;
                let displayHtml = finalOutput
+                 .replace(/^[\s\n]+/, '')
                  .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
                  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                  .replace(/\n/g, '<br>');
