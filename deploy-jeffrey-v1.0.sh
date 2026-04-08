@@ -10,7 +10,7 @@ MODEL_DIR="/data/models"
 BINARY_DIR="/opt/llama-server"
 HTPASSWD_FILE="/etc/httpd/.htpasswd"
 APACHE_CONF="/etc/httpd/conf.d/jeffrey.conf"
-MODEL_FILE="gemma-4-26B-A4B-it-MXFP4_MOE.gguf"
+MODEL_FILE="Qwen3.5-27B-Q8_0.gguf"
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -103,7 +103,7 @@ After=network.target
 [Service]
 Type=simple
 User=root
-ExecStart=$BINARY_DIR/llama-server --model $MODEL_DIR/$MODEL_FILE --host 127.0.0.1 --port 8081 --ctx-size 16384 --threads 16 --flash-attn on --chat-template gemma --temp 1.0 --top-k 64 --top-p 0.95 --min-p 0.0
+ExecStart=$BINARY_DIR/llama-server --model $MODEL_DIR/$MODEL_FILE --host 127.0.0.1 --port 8081 --ctx-size 16384 --threads 16 --flash-attn on --chat-template chatml
 StandardOutput=append:/var/log/llama-server.log
 StandardError=append:/var/log/llama-server.log
 Restart=always
