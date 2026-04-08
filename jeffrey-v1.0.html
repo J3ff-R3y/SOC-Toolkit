@@ -132,6 +132,14 @@ header { padding: 12px 20px; background: var(--bg-secondary); border-bottom: 1px
   <div class="header-actions">
     <div class="timer-badge" id="timerBadge">⏱️ <span id="timerText">00:00</span></div>
     <button class="icon-btn stop-btn" id="stopBtn" title="Stop Genereren">⏹</button>
+    <div style="position:relative;">
+      <button class="icon-btn" onclick="toggleExportMenu(event)" title="Exporteer chat">💾</button>
+      <div id="exportMenu" style="display:none;position:absolute;right:0;top:40px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:1000;min-width:160px;">
+        <div onclick="exportChat('markdown')" style="padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);">📝 Markdown (.md)</div>
+        <div onclick="exportChat('text')" style="padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);">📄 Plain Text (.txt)</div>
+        <div onclick="exportChat('json')" style="padding:10px 14px;cursor:pointer;font-size:13px;">🗂️ JSON (.json)</div>
+      </div>
+    </div>
     <button class="icon-btn" onclick="clearChat()" title="Nieuw gesprek">🗑️</button>
     <button class="icon-btn" onclick="handleLogout()" title="Uitloggen">🚪</button>
   </div>
@@ -433,9 +441,18 @@ document.getElementById('stopBtn').addEventListener('click', () => {
 // CHAT RENDERING
 function getTime() { return new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}); }
 
+// FORMAT MARKDOWN to HTML for display
+function formatMarkdown(text) {
+  return text
+    .replace(/^[\s\n]+/, '')
+    .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br>');
+}
+
 function addMessage(role, text) {
   const ca = document.getElementById('chatArea');
-  const id = 'msg-' + Date.now();
+  const id = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
   const html = `
     <div class="message ${role}">
       <div class="message-avatar">${role==='user'?'U':'J'}</div>
@@ -517,12 +534,7 @@ async function streamToModel(fullPrompt, displaySummary) {
             
             if (!isThinking && token) {
                finalOutput += token;
-               let displayHtml = finalOutput
-                 .replace(/^[\s\n]+/, '')
-                 .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
-                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                 .replace(/\n/g, '<br>');
-               responseBox.innerHTML = displayHtml;
+               responseBox.innerHTML = formatMarkdown(finalOutput);
                document.getElementById('chatArea').scrollTop = document.getElementById('chatArea').scrollHeight;
             }
           } catch(e) {}
@@ -694,7 +706,13 @@ function loadChat(id) {
   document.getElementById('welcome').style.display = 'none';
   document.querySelectorAll('.form-container').forEach(f => f.classList.remove('show'));
   
-  chatMessages.forEach(m => addMessage(m.role, m.role === 'user' ? m.display : m.content));
+  chatMessages.forEach(m => {
+    if (m.role === 'user') {
+      addMessage('user', m.display || m.content);
+    } else {
+      addMessage('assistant', formatMarkdown(m.content));
+    }
+  });
   renderChatHistory();
 }
 
@@ -711,6 +729,89 @@ function newChat() {
   currentChatId = null;
   chatMessages = [];
   clearChat();
+}
+
+// EXPORT CHAT
+function toggleExportMenu(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('exportMenu');
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+// Close export menu when clicking outside
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('exportMenu');
+  if (menu && !e.target.closest('.icon-btn[title="Exporteer chat"]')) {
+    menu.style.display = 'none';
+  }
+});
+
+function exportChat(format) {
+  document.getElementById('exportMenu').style.display = 'none';
+  
+  if (chatMessages.length === 0) {
+    alert('Er is geen gesprek om te exporteren.');
+    return;
+  }
+  
+  const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+  let content, filename, mimeType;
+  
+  if (format === 'markdown') {
+    content = `# Jeffrey Toolkit — Chat Export\n\n`;
+    content += `**Geëxporteerd:** ${new Date().toLocaleString('nl-NL')}\n\n`;
+    content += `---\n\n`;
+    chatMessages.forEach(msg => {
+      if (msg.role === 'user') {
+        content += `## 🧑 Vraag\n\n${msg.display || msg.content}\n\n`;
+      } else {
+        content += `## 🤖 Jeffrey\n\n${msg.content}\n\n---\n\n`;
+      }
+    });
+    filename = `jeffrey-chat-${timestamp}.md`;
+    mimeType = 'text/markdown';
+    
+  } else if (format === 'text') {
+    content = `JEFFREY TOOLKIT — CHAT EXPORT\n`;
+    content += `Geëxporteerd: ${new Date().toLocaleString('nl-NL')}\n`;
+    content += `${'='.repeat(60)}\n\n`;
+    chatMessages.forEach(msg => {
+      if (msg.role === 'user') {
+        content += `[VRAAG]\n${msg.display || msg.content}\n\n`;
+      } else {
+        // Strip markdown for plain text
+        const cleaned = msg.content
+          .replace(/```[\w]*\n?/g, '')
+          .replace(/`([^`]+)`/g, '$1')
+          .replace(/\*\*(.*?)\*\*/g, '$1')
+          .replace(/\*(.*?)\*/g, '$1')
+          .replace(/^#+\s+/gm, '');
+        content += `[JEFFREY]\n${cleaned}\n\n${'-'.repeat(60)}\n\n`;
+      }
+    });
+    filename = `jeffrey-chat-${timestamp}.txt`;
+    mimeType = 'text/plain';
+    
+  } else if (format === 'json') {
+    content = JSON.stringify({
+      exported: new Date().toISOString(),
+      tool: 'Jeffrey Toolkit v1.0',
+      messages: chatMessages
+    }, null, 2);
+    filename = `jeffrey-chat-${timestamp}.json`;
+    mimeType = 'application/json';
+  }
+  
+  // Trigger download
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 function renderChatHistory() {
