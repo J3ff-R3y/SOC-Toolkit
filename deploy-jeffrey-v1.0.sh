@@ -1,7 +1,7 @@
 #!/bin/bash
 # =================================================================
 # Jeffrey Toolkit v1.0 Enterprise Deployment
-# Target OS: RHEL 10 | Model: Qwen 3.5 27B Q8_0
+# Target OS: RHEL 10 | Model: Qwen 3.5 35B-A3B (MoE + Vision)
 # =================================================================
 
 BASE_DIR="/data/toolkit"
@@ -10,7 +10,8 @@ MODEL_DIR="/data/models"
 BINARY_DIR="/opt/llama-server"
 HTPASSWD_FILE="/etc/httpd/.htpasswd"
 APACHE_CONF="/etc/httpd/conf.d/jeffrey.conf"
-MODEL_FILE="Qwen3.5-27B-Q8_0.gguf"
+MODEL_FILE="Qwen3.5-35B-A3B-MXFP4_MOE.gguf"
+MMPROJ_FILE="mmproj-F16.gguf"
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -31,7 +32,7 @@ echo "🧹 Oude omgeving opruimen..."
 systemctl stop llama-server 2>/dev/null
 systemctl disable llama-server 2>/dev/null
 rm -rf "$BINARY_DIR"
-find "$BASE_DIR" -maxdepth 1 -type f ! -name 'deploy-jeffrey-v1.0.sh' ! -name 'llama.cpp-master.zip' ! -name "$MODEL_FILE" ! -name 'jeffrey-v1.0.html' -delete
+find "$BASE_DIR" -maxdepth 1 -type f ! -name 'deploy-jeffrey-v1.0.sh' ! -name 'llama.cpp-master.zip' ! -name "$MODEL_FILE" ! -name "$MMPROJ_FILE" ! -name 'jeffrey-v1.0.html' -delete
 mkdir -p "$MODEL_DIR" "$BINARY_DIR"
 
 echo "🏗️ Compileren van llama.cpp uit source..."
@@ -51,6 +52,13 @@ fi
 
 if [ -f "$BASE_DIR/$MODEL_FILE" ]; then
     mv "$BASE_DIR/$MODEL_FILE" "$MODEL_DIR/$MODEL_FILE"
+fi
+
+if [ -f "$BASE_DIR/$MMPROJ_FILE" ]; then
+    mv "$BASE_DIR/$MMPROJ_FILE" "$MODEL_DIR/$MMPROJ_FILE"
+    echo -e "${GREEN}✓ Vision projector geïnstalleerd${NC}"
+else
+    echo -e "${RED}⚠ $MMPROJ_FILE niet gevonden — vision support wordt uitgeschakeld${NC}"
 fi
 
 echo "🌐 Apache reverse proxy configureren..."
@@ -103,7 +111,7 @@ After=network.target
 [Service]
 Type=simple
 User=root
-ExecStart=$BINARY_DIR/llama-server --model $MODEL_DIR/$MODEL_FILE --host 127.0.0.1 --port 8081 --ctx-size 16384 --threads 16 --flash-attn on --chat-template chatml
+ExecStart=$BINARY_DIR/llama-server --model $MODEL_DIR/$MODEL_FILE --mmproj $MODEL_DIR/$MMPROJ_FILE --host 127.0.0.1 --port 8081 --ctx-size 16384 --threads 16 --flash-attn on --chat-template chatml --parallel 1
 StandardOutput=append:/var/log/llama-server.log
 StandardError=append:/var/log/llama-server.log
 Restart=always

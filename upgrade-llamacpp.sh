@@ -1,13 +1,16 @@
 #!/bin/bash
 # ============================================================================
-# Jeffrey Toolkit — llama.cpp Upgrade voor Gemma 4 support
+# Jeffrey Toolkit — llama.cpp Upgrade Script
 #
 # Wat dit script doet:
 #   1. Stopt llama-server tijdelijk
 #   2. Backup huidige binary
 #   3. Compileert nieuwe llama.cpp uit ZIP in /data/toolkit/
 #   4. Vervangt binary
-#   5. Herstart llama-server (op huidige model — Qwen of Gemma)
+#   5. Herstart llama-server (op huidig model)
+#
+# Gebruik: wanneer llama.cpp een nieuwe versie heeft met bugfixes of
+# ondersteuning voor nieuwe model architecturen.
 #
 # Wat dit script NIET doet:
 #   - Wijzigt model, systemd override, Apache, of HTML
@@ -27,7 +30,7 @@ fail() { echo -e "${RED}[✗]${NC} $1"; exit 1; }
 
 echo ""
 echo "═══════════════════════════════════════════════"
-echo "  llama.cpp Upgrade — voor Gemma 4 support"
+echo "  llama.cpp Upgrade Script"
 echo "═══════════════════════════════════════════════"
 echo ""
 
@@ -85,11 +88,11 @@ EXTRACTED=$(find . -maxdepth 1 -type d -name "llama*" | head -1)
 [[ -n "$EXTRACTED" ]] || fail "Kon uitgepakte directory niet vinden"
 cd "$EXTRACTED"
 
-# Verifieer Gemma 4 support
-if grep -rq "gemma4\|GEMMA4" src/ 2>/dev/null; then
-    log "Gemma 4 support gevonden in source"
+# Verifieer dat het een geldige llama.cpp source is
+if [[ -d src/ ]] && [[ -f CMakeLists.txt ]]; then
+    log "Geldige llama.cpp source gevonden"
 else
-    warn "Gemma 4 referentie niet gevonden — compilatie gaat door, maar mogelijk te oude versie"
+    warn "Onverwachte directory structuur — compilatie gaat door"
 fi
 
 echo "CMake configuratie..."
@@ -167,9 +170,6 @@ echo "  ✅ llama.cpp upgrade voltooid!"
 echo "═══════════════════════════════════════════════"
 echo ""
 echo "  De server draait nu op de nieuwe binary met het huidige model."
-echo ""
-echo "  Volgende stap — Gemma 4 migratie opnieuw uitvoeren:"
-echo "    sudo /data/toolkit/migrate-to-gemma4.sh"
 echo ""
 echo "  De oude binary backup staat in:"
 echo "    ${BINARY_DIR}/llama-server.backup-*"

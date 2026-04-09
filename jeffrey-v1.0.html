@@ -63,6 +63,9 @@ header { padding: 12px 20px; background: var(--bg-secondary); border-bottom: 1px
 .file-upload-input { display: none; }
 .file-upload-btn { width: 44px; height: 44px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-md); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: 0.2s; }
 .file-upload-btn.has-file { background: var(--success); color: white; border-color: var(--success); }
+.file-pill { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:20px; font-size:12px; }
+.file-pill .remove-file { cursor:pointer; color:var(--text-dim); padding:0 2px; font-weight:bold; }
+.file-pill .remove-file:hover { color:var(--error); }
 .input-field { flex: 1; padding: 12px 16px; background: var(--bg-tertiary); border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 15px; font-family: inherit; resize: none; min-height: 44px; max-height: 200px; }
 .send-btn { width: 44px; height: 44px; background: var(--accent); color: white; border: none; border-radius: var(--radius-md); cursor: pointer; font-size: 18px; }
 
@@ -155,6 +158,7 @@ header { padding: 12px 20px; background: var(--bg-secondary); border-bottom: 1px
       <div class="menu-item" onclick="toggleMenu('sigma')"><span>Σ Sigma Rules</span></div>
       <div class="menu-item" onclick="toggleMenu('network')"><span>🌐 Network Detection</span></div>
       <div class="menu-item" onclick="toggleMenu('kickstart')"><span>🚀 SOC Kickstart</span></div>
+      <div class="menu-item" onclick="toggleMenu('forensics')"><span>🔬 Forensische Triage</span></div>
     </div>
     <div class="sidebar-section">
       <div class="section-label">💬 Recent Chats</div>
@@ -168,7 +172,7 @@ header { padding: 12px 20px; background: var(--bg-secondary); border-bottom: 1px
     <div class="chat-area" id="chatArea">
       <div id="welcome" style="text-align:center; margin-top:60px; color:var(--text-secondary);">
         <h2 style="color:var(--text-primary);">Welkom bij Jeffrey</h2>
-        <p>Selecteer een tool in het menu of upload een document als context.</p>
+        <p>Selecteer een tool in het menu, upload een document, of sleep een screenshot voor visuele analyse.</p>
       </div>
       
       <div class="form-container" id="siemForm">
@@ -303,17 +307,62 @@ header { padding: 12px 20px; background: var(--bg-secondary); border-bottom: 1px
         </div>
         <button class="form-btn" onclick="generateKickstartChain()">🚀 Start Kickstart Workflow</button>
       </div>
+
+      <div class="form-container" id="forensicsForm">
+        <h2 class="form-title">🔬 Forensische Triage</h2>
+        <p class="form-subtitle">First-pass analyse van verdachte bestanden — extraheert metadata, strings en file signatures voor SOC triage</p>
+        
+        <div class="form-group">
+          <label class="form-label">Verdacht bestand *</label>
+          <div id="forensicsDropZone" style="border:2px dashed var(--border); border-radius:var(--radius-md); padding:24px; text-align:center; background:var(--bg-tertiary); cursor:pointer;" onclick="document.getElementById('forensicsFile').click()">
+            <div style="font-size:40px; margin-bottom:8px;">📥</div>
+            <div id="forensicsFileName" style="font-size:14px; color:var(--text-secondary);">Klik om bestand te selecteren</div>
+            <div style="font-size:12px; color:var(--text-dim); margin-top:6px;">Ondersteunt: .exe, .dll, .bin, .file, .dat, .scr, .ps1, en alle andere binaries</div>
+            <input type="file" id="forensicsFile" style="display:none;" onchange="handleForensicsFile(event)">
+          </div>
+          <button type="button" id="forensicsRemoveBtn" onclick="clearForensicsFile()" style="display:none; margin-top:8px; padding:6px 12px; background:none; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:12px; color:var(--text-secondary); cursor:pointer;">✕ Verwijder bestand</button>
+        </div>
+
+        <div id="forensicsPreview" style="display:none; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-md); padding:14px; margin-bottom:16px; font-size:13px;">
+          <div style="font-weight:600; margin-bottom:8px;">📊 Geëxtraheerde metadata</div>
+          <div id="forensicsMetadata" style="font-family:monospace; font-size:12px; line-height:1.6;"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Context / Aanleiding</label>
+          <textarea class="form-input" id="forensicsContext" rows="2" placeholder="Bijv. Aangetroffen op endpoint na EDR alert, gevonden in email attachment, gedownload door gebruiker..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Analyse focus</label>
+          <div class="form-checkboxes">
+            <label class="form-checkbox"><input type="checkbox" id="forStrings" checked> Verdachte strings</label>
+            <label class="form-checkbox"><input type="checkbox" id="forIOC" checked> IOC extractie (URLs/IPs/domains)</label>
+            <label class="form-checkbox"><input type="checkbox" id="forBehavior" checked> Gedragsindicatoren</label>
+            <label class="form-checkbox"><input type="checkbox" id="forMITRE"> MITRE ATT&CK mapping</label>
+            <label class="form-checkbox"><input type="checkbox" id="forYara"> YARA rule suggestie</label>
+            <label class="form-checkbox"><input type="checkbox" id="forNext"> Next steps voor analist</label>
+          </div>
+        </div>
+
+        <button class="form-btn" onclick="generateForensics()" id="forensicsBtn" disabled>🔬 Analyseer Bestand</button>
+        
+        <div style="font-size:11px; color:var(--text-dim); margin-top:12px; padding:10px; background:var(--bg-tertiary); border-radius:var(--radius-sm);">
+          ⚠️ <strong>Disclaimer:</strong> Dit is een first-pass triage tool. Het bestand wordt lokaal in de browser geanalyseerd (geen upload naar het model). Gebruik deze output als startpunt voor diepere analyse, niet als definitief oordeel. Voor kritieke incidenten: gebruik altijd een dedicated sandbox of disassembler.
+        </div>
+      </div>
     </div>
 
     <div class="input-container">
       <div class="input-wrapper">
         <div class="file-upload-wrapper">
-          <label for="fileUpload" class="file-upload-btn" id="fileUploadLabel" title="Upload TXT/CSV/JSON context">📎</label>
-          <input type="file" id="fileUpload" class="file-upload-input" accept=".txt,.csv,.json,.md,.log">
+          <label for="fileUpload" class="file-upload-btn" id="fileUploadLabel" title="Upload bestand — tekst (TXT/CSV/JSON/LOG) of afbeelding (PNG/JPG/GIF/WEBP) voor screenshot analyse">📎</label>
+          <input type="file" id="fileUpload" class="file-upload-input" accept=".txt,.csv,.json,.md,.log,.file,.xml,.yaml,.yml,.conf,.png,.jpg,.jpeg,.gif,.webp">
         </div>
         <textarea class="input-field" id="inputField" placeholder="Stel je vraag of drop een alert hier..." rows="1"></textarea>
         <button class="send-btn" id="sendBtn">➤</button>
       </div>
+      <div id="fileList" style="max-width:900px;margin:8px auto 0;display:none;flex-wrap:wrap;gap:6px;"></div>
     </div>
   </main>
 </div>
@@ -397,25 +446,90 @@ function toggleMenu(menu) {
 function clearChat() { 
   document.getElementById('chatArea').querySelectorAll('.message').forEach(m => m.remove());
   uploadedContext = ''; 
+  uploadedImage = null;
   chatMessages = [];
   currentChatId = null;
   document.getElementById('fileUploadLabel').classList.remove('has-file'); 
+  const fileList = document.getElementById('fileList');
+  if (fileList) { fileList.style.display = 'none'; fileList.innerHTML = ''; }
+  document.getElementById('inputField').placeholder = 'Stel je vraag of drop een alert hier...';
   document.getElementById('welcome').style.display = 'block';
   document.querySelectorAll('.form-container').forEach(f => f.classList.remove('show'));
 }
 
-// FILE UPLOAD (LOCAL RAG)
+// FILE UPLOAD — tekst of afbeelding (vision)
+let uploadedImage = null; // {name, dataUrl, mediaType}
+
 document.getElementById('fileUpload').addEventListener('change', function(e) {
   const file = e.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = function(evt) {
-    uploadedContext = `\n\n--- GEÜPLOADE CONTEXT (${file.name}) ---\n${evt.target.result}\n-----------------------------------\n`;
-    document.getElementById('fileUploadLabel').classList.add('has-file');
-    document.getElementById('inputField').placeholder = `Vraag iets over ${file.name}...`;
-  };
-  reader.readAsText(file);
+  if (!file) return;
+  
+  const imageExtensions = /\.(png|jpg|jpeg|gif|webp)$/i;
+  const isImage = imageExtensions.test(file.name);
+  
+  if (isImage) {
+    // Afbeelding → base64 voor vision model
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Afbeelding te groot (max 10 MB). Verklein eerst de resolutie.');
+      e.target.value = '';
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      // Extract base64 en media type uit data URL
+      const dataUrl = evt.target.result;
+      const mediaType = file.type || 'image/png';
+      
+      uploadedImage = { name: file.name, dataUrl, mediaType };
+      uploadedContext = ''; // Image vervangt tekst context
+      
+      document.getElementById('fileUploadLabel').classList.add('has-file');
+      document.getElementById('inputField').placeholder = `Stel een vraag over deze afbeelding...`;
+      
+      const list = document.getElementById('fileList');
+      if (list) {
+        const sizeKB = Math.round(file.size / 1024);
+        list.style.display = 'flex';
+        list.innerHTML = `
+          <span class="file-pill">
+            <img src="${dataUrl}" style="width:24px;height:24px;object-fit:cover;border-radius:3px;vertical-align:middle;margin-right:4px;">
+            🖼️ ${file.name} <span style="color:var(--text-dim)">(${sizeKB} KB)</span>
+            <span class="remove-file" onclick="clearUploadedFile()">✕</span>
+          </span>`;
+      }
+    };
+    reader.readAsDataURL(file);
+  } else {
+    // Tekst bestand → als context
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      uploadedContext = `\n\n--- GEÜPLOADE CONTEXT (${file.name}) ---\n${evt.target.result}\n-----------------------------------\n`;
+      uploadedImage = null;
+      document.getElementById('fileUploadLabel').classList.add('has-file');
+      document.getElementById('inputField').placeholder = `Vraag iets over ${file.name}...`;
+      
+      const list = document.getElementById('fileList');
+      if (list) {
+        const sizeKB = Math.round(file.size / 1024);
+        list.style.display = 'flex';
+        list.innerHTML = `<span class="file-pill">📄 ${file.name} <span style="color:var(--text-dim)">(${sizeKB} KB)</span> <span class="remove-file" onclick="clearUploadedFile()">✕</span></span>`;
+      }
+    };
+    reader.readAsText(file);
+  }
+  e.target.value = '';
 });
+
+function clearUploadedFile() {
+  uploadedContext = '';
+  uploadedImage = null;
+  document.getElementById('fileUploadLabel').classList.remove('has-file');
+  document.getElementById('inputField').placeholder = 'Stel je vraag of drop een alert hier...';
+  const list = document.getElementById('fileList');
+  if (list) { list.style.display = 'none'; list.innerHTML = ''; }
+  document.getElementById('fileUpload').value = '';
+}
 
 // TIMERS
 function startTimer() {
@@ -483,6 +597,25 @@ async function streamToModel(fullPrompt, displaySummary) {
   try {
     const finalPrompt = uploadedContext ? `${fullPrompt}\n\n${uploadedContext}` : fullPrompt;
     
+    // Schat tokens conservatief — logs/code hebben ~2.5 chars/token
+    const estimatedInputTokens = Math.ceil((finalPrompt.length + 800) / 2.5);
+    const safeMaxTokens = Math.max(1024, Math.min(8192, 15000 - estimatedInputTokens));
+    
+    // Bouw user message — multimodal als er een afbeelding is
+    let userMessage;
+    if (uploadedImage) {
+      // Multimodal format: content is array met text + image_url
+      userMessage = {
+        role: "user",
+        content: [
+          { type: "text", text: finalPrompt },
+          { type: "image_url", image_url: { url: uploadedImage.dataUrl } }
+        ]
+      };
+    } else {
+      userMessage = { role: "user", content: finalPrompt };
+    }
+    
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 
@@ -493,17 +626,34 @@ async function streamToModel(fullPrompt, displaySummary) {
       body: JSON.stringify({
         messages: [
           {role: "system", content: 'Je bent Jeffrey, een expert SOC intelligence assistent. Alleen als iemand expliciet vraagt hoe je heet, zeg je "Ik ben Jeffrey, je SOC intelligence assistent." Begin antwoorden NIET met een introductie van jezelf. Ga direct inhoudelijk aan de slag. Je noemt jezelf NOOIT "Qwen", "Alibaba", "Gemma", "Google", "Llama", "Meta", of een ander AI-model naam. Antwoord standaard in het Nederlands. Geef complete, werkende antwoorden.'}, 
-          {role: "user", content: finalPrompt}
+          userMessage
         ],
-        max_tokens: 8192,
+        max_tokens: safeMaxTokens,
         temperature: 0.7,
         stream: true
       })
     });
 
-    // ERROR HANDLING VOOR UNAUTHORIZED OF ANDERE SERVER ERRORS
+    // ERROR HANDLING
     if (!res.ok) {
         if (res.status === 401) { handleLogout(); throw new Error("Sessie verlopen — log opnieuw in."); }
+        if (res.status === 400) {
+          const errText = await res.text();
+          let detail = '';
+          try { detail = JSON.parse(errText).error?.message || errText; } catch { detail = errText; }
+          const ctxMatch = detail.match(/request \((\d+) tokens?\) exceeds.*?(\d+) tokens?/i);
+          if (ctxMatch) {
+            const requested = parseInt(ctxMatch[1]);
+            const available = parseInt(ctxMatch[2]);
+            const tokensOver = requested - available;
+            const estimatedKB = Math.ceil(tokensOver / 500); // ~500 tokens per KB voor logs
+            throw new Error(`Input te groot: het bestand is ${requested.toLocaleString()} tokens, maar maximaal ${available.toLocaleString()} tokens passen. Je moet ongeveer ${estimatedKB} KB aan content verwijderen. Tip: filter het bestand op relevante regels (bijv. alleen error/failed logs) of selecteer een kleiner tijdsvenster.`);
+          }
+          if (detail.toLowerCase().includes('context')) {
+            throw new Error(`Input te groot voor context window. Verklein het bestand of stel een specifiekere vraag.`);
+          }
+          throw new Error(`Server fout: HTTP 400 — ${detail.substring(0, 200)}`);
+        }
         throw new Error(`Server fout: HTTP ${res.status}`);
     }
 
@@ -672,6 +822,360 @@ async function generateKickstartChain() {
   );
 }
 
+// FORENSISCHE TRIAGE
+let forensicsData = null;
+
+function clearForensicsFile() {
+  forensicsData = null;
+  document.getElementById('forensicsFile').value = '';
+  document.getElementById('forensicsFileName').textContent = 'Klik om bestand te selecteren';
+  document.getElementById('forensicsPreview').style.display = 'none';
+  document.getElementById('forensicsBtn').disabled = true;
+  document.getElementById('forensicsRemoveBtn').style.display = 'none';
+}
+
+async function handleForensicsFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  // Limiet: 50 MB om browser niet te crashen
+  if (file.size > 50 * 1024 * 1024) {
+    alert('Bestand te groot (max 50 MB voor browser-side analyse)');
+    return;
+  }
+  
+  document.getElementById('forensicsFileName').textContent = `📄 ${file.name} (${formatBytes(file.size)}) — analyseren...`;
+  document.getElementById('forensicsBtn').disabled = true;
+  document.getElementById('forensicsRemoveBtn').style.display = 'inline-block';
+  
+  try {
+    const buffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    
+    const sha256 = await sha256Hash(buffer);
+    const sha1 = await sha1Hash(buffer);
+    const fileType = detectFileType(bytes);
+    
+    // Strings extractie — limit op eerste 5MB voor performance
+    const scanBytes = bytes.length > 5 * 1024 * 1024 ? bytes.slice(0, 5 * 1024 * 1024) : bytes;
+    const strings = extractStrings(scanBytes, 6); // min 6 chars voor minder ruis
+    
+    const iocs = extractIOCs(strings);
+    const suspiciousKeywords = findSuspiciousKeywords(strings);
+    const entropy = calculateEntropy(scanBytes.slice(0, Math.min(scanBytes.length, 1024 * 100)));
+    const hexPreview = bytesToHex(bytes.slice(0, 128));
+    
+    forensicsData = {
+      name: file.name,
+      size: file.size,
+      sizeFormatted: formatBytes(file.size),
+      sha256, sha1,
+      fileType,
+      entropy: entropy.toFixed(2),
+      totalStrings: strings.length,
+      iocs: iocs.slice(0, 30),
+      suspiciousKeywords,
+      topStrings: strings.slice(0, 25).map(s => s.length > 150 ? s.substring(0, 150) : s),
+      hexPreview,
+      truncated: bytes.length > 5 * 1024 * 1024
+    };
+    
+    const preview = document.getElementById('forensicsPreview');
+    preview.style.display = 'block';
+    document.getElementById('forensicsMetadata').innerHTML = `
+      <div><strong>Bestand:</strong> ${escapeHtml(file.name)}</div>
+      <div><strong>Grootte:</strong> ${forensicsData.sizeFormatted} (${file.size.toLocaleString()} bytes)${forensicsData.truncated ? ' <span style="color:var(--text-dim)">— eerste 5MB geanalyseerd</span>' : ''}</div>
+      <div><strong>SHA256:</strong> ${sha256}</div>
+      <div><strong>SHA1:</strong> ${sha1}</div>
+      <div><strong>File type:</strong> ${escapeHtml(fileType.description)} ${fileType.suspicious ? '⚠️' : ''}</div>
+      <div><strong>Entropy:</strong> ${forensicsData.entropy} ${entropy > 7.0 ? '⚠️ (mogelijk packed/encrypted)' : ''}</div>
+      <div><strong>Strings gevonden:</strong> ${strings.length} (${forensicsData.iocs.length} IOCs, ${suspiciousKeywords.length} verdachte keywords)</div>
+    `;
+    
+    document.getElementById('forensicsFileName').textContent = `📄 ${file.name} (${formatBytes(file.size)}) — klaar`;
+    document.getElementById('forensicsBtn').disabled = false;
+  } catch (err) {
+    alert('Fout bij analyseren: ' + err.message);
+    clearForensicsFile();
+  }
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function detectFileType(bytes) {
+  const sig = Array.from(bytes.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join('');
+  
+  if (sig.startsWith('4d5a')) return { description: 'PE Executable (Windows .exe/.dll)', suspicious: false, type: 'PE' };
+  if (sig.startsWith('7f454c46')) return { description: 'ELF Executable (Linux)', suspicious: false, type: 'ELF' };
+  if (sig.startsWith('cafebabe')) return { description: 'Java Class File', suspicious: false, type: 'JAVA' };
+  if (sig.startsWith('504b0304')) return { description: 'ZIP Archive (kan ook .docx, .jar, .apk zijn)', suspicious: false, type: 'ZIP' };
+  if (sig.startsWith('25504446')) return { description: 'PDF Document', suspicious: false, type: 'PDF' };
+  if (sig.startsWith('d0cf11e0')) return { description: 'Microsoft Office Document (oud formaat)', suspicious: true, type: 'OLE' };
+  if (sig.startsWith('1f8b08')) return { description: 'GZIP Archive', suspicious: false, type: 'GZIP' };
+  if (sig.startsWith('377abcaf')) return { description: '7-Zip Archive', suspicious: false, type: '7Z' };
+  if (sig.startsWith('52617221')) return { description: 'RAR Archive', suspicious: false, type: 'RAR' };
+  if (sig.startsWith('89504e47')) return { description: 'PNG Image', suspicious: false, type: 'PNG' };
+  if (sig.startsWith('ffd8ff')) return { description: 'JPEG Image', suspicious: false, type: 'JPEG' };
+  
+  try {
+    const start = new TextDecoder('ascii', {fatal: false}).decode(bytes.slice(0, 100));
+    if (/^#!/.test(start)) return { description: 'Shell script', suspicious: false, type: 'SHELL' };
+    if (/^\s*<\?php/i.test(start)) return { description: 'PHP script', suspicious: true, type: 'PHP' };
+  } catch {}
+  
+  return { description: `Onbekend (magic: ${sig.substring(0, 8)})`, suspicious: true, type: 'UNKNOWN' };
+}
+
+function extractStrings(bytes, minLength) {
+  const strings = [];
+  let current = '';
+  
+  for (let i = 0; i < bytes.length; i++) {
+    const byte = bytes[i];
+    if (byte >= 0x20 && byte <= 0x7E) {
+      current += String.fromCharCode(byte);
+      if (current.length > 500) { // Cap individuele string lengte
+        strings.push(current);
+        current = '';
+      }
+    } else {
+      if (current.length >= minLength) strings.push(current);
+      current = '';
+    }
+  }
+  if (current.length >= minLength) strings.push(current);
+  
+  return strings.sort((a, b) => b.length - a.length);
+}
+
+// Veilige IOC extractie — geen catastrophic backtracking
+function extractIOCs(strings) {
+  const iocs = [];
+  const seen = new Set();
+  
+  // Korte, veilige regexes
+  const urlRegex = /https?:\/\/[a-z0-9.\-_/?=&%#]{4,200}/gi;
+  const ipRegex = /\b(\d{1,3}\.){3}\d{1,3}\b/g;
+  const emailRegex = /[a-z0-9._%+\-]{1,64}@[a-z0-9.\-]{1,253}\.[a-z]{2,6}/gi;
+  const pathRegex = /[A-Z]:\\[a-zA-Z0-9_\-\\. ]{3,200}/g;
+  const regKeyRegex = /HKEY_[A-Z_]{1,30}\\[a-zA-Z0-9_\\. \-]{1,200}/g;
+  
+  // Limit aantal strings dat we scannen
+  const toScan = strings.slice(0, 5000);
+  
+  for (const s of toScan) {
+    if (s.length > 500) continue; // Skip extreem lange strings
+    
+    const matches = [
+      ...(s.match(urlRegex) || []).map(m => ({type: 'URL', value: m})),
+      ...(s.match(emailRegex) || []).map(m => ({type: 'Email', value: m})),
+      ...(s.match(pathRegex) || []).map(m => ({type: 'Path', value: m})),
+      ...(s.match(regKeyRegex) || []).map(m => ({type: 'Registry', value: m})),
+    ];
+    
+    // IPs apart met filter
+    const ips = s.match(ipRegex) || [];
+    for (const ip of ips) {
+      if (!ip.startsWith('127.') && !ip.startsWith('0.') && !ip.startsWith('255.')) {
+        matches.push({type: 'IP', value: ip});
+      }
+    }
+    
+    for (const m of matches) {
+      const key = `${m.type}:${m.value}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        iocs.push(m);
+        if (iocs.length >= 50) return iocs;
+      }
+    }
+  }
+  return iocs;
+}
+
+function findSuspiciousKeywords(strings) {
+  const patterns = [
+    'CreateRemoteThread', 'VirtualAlloc', 'WriteProcessMemory', 'LoadLibrary', 'GetProcAddress',
+    'WinExec', 'ShellExecute', 'CreateProcess', 'OpenProcess', 'CryptEncrypt',
+    'powershell', 'cmd.exe', 'rundll32', 'regsvr32', 'mshta', 'wscript', 'cscript',
+    'AmsiScanBuffer', 'SetWindowsHookEx', 'GetAsyncKeyState',
+    'InternetOpen', 'URLDownloadToFile',
+    'cmd /c', 'bypass', 'invoke-expression', 'IEX', 'downloadstring',
+    'frombase64string', 'mimikatz', 'meterpreter', 'cobaltstrike',
+    'svchost', 'lsass', 'persistence', 'autorun', 'scheduled task'
+  ];
+  
+  const found = new Set();
+  const allText = strings.slice(0, 2000).join(' ').toLowerCase();
+  for (const p of patterns) {
+    if (allText.includes(p.toLowerCase())) found.add(p);
+  }
+  return Array.from(found);
+}
+
+function calculateEntropy(bytes) {
+  const counts = new Array(256).fill(0);
+  for (let i = 0; i < bytes.length; i++) counts[bytes[i]]++;
+  let entropy = 0;
+  for (let i = 0; i < 256; i++) {
+    if (counts[i] === 0) continue;
+    const p = counts[i] / bytes.length;
+    entropy -= p * Math.log2(p);
+  }
+  return entropy;
+}
+
+async function sha256Hash(buffer) {
+  if (crypto && crypto.subtle && crypto.subtle.digest) {
+    try {
+      const hash = await crypto.subtle.digest('SHA-256', buffer);
+      return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+    } catch (e) {}
+  }
+  return sha256Fallback(new Uint8Array(buffer));
+}
+
+async function sha1Hash(buffer) {
+  if (crypto && crypto.subtle && crypto.subtle.digest) {
+    try {
+      const hash = await crypto.subtle.digest('SHA-1', buffer);
+      return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+    } catch (e) {}
+  }
+  return sha1Fallback(new Uint8Array(buffer));
+}
+
+function sha256Fallback(bytes) {
+  const K = [0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  let H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  const len = bytes.length;
+  const bitLen = len * 8;
+  const padLen = (len % 64 < 56) ? (56 - len % 64) : (120 - len % 64);
+  const padded = new Uint8Array(len + padLen + 8);
+  padded.set(bytes);
+  padded[len] = 0x80;
+  const dv = new DataView(padded.buffer);
+  dv.setUint32(padded.length - 4, bitLen >>> 0, false);
+  dv.setUint32(padded.length - 8, Math.floor(bitLen / 0x100000000), false);
+  const W = new Uint32Array(64);
+  for (let i = 0; i < padded.length; i += 64) {
+    for (let t = 0; t < 16; t++) W[t] = dv.getUint32(i + t * 4, false);
+    for (let t = 16; t < 64; t++) {
+      const s0 = ((W[t-15] >>> 7) | (W[t-15] << 25)) ^ ((W[t-15] >>> 18) | (W[t-15] << 14)) ^ (W[t-15] >>> 3);
+      const s1 = ((W[t-2] >>> 17) | (W[t-2] << 15)) ^ ((W[t-2] >>> 19) | (W[t-2] << 13)) ^ (W[t-2] >>> 10);
+      W[t] = (W[t-16] + s0 + W[t-7] + s1) >>> 0;
+    }
+    let [a,b,c,d,e,f,g,h] = H;
+    for (let t = 0; t < 64; t++) {
+      const S1 = ((e >>> 6) | (e << 26)) ^ ((e >>> 11) | (e << 21)) ^ ((e >>> 25) | (e << 7));
+      const ch = (e & f) ^ (~e & g);
+      const temp1 = (h + S1 + ch + K[t] + W[t]) >>> 0;
+      const S0 = ((a >>> 2) | (a << 30)) ^ ((a >>> 13) | (a << 19)) ^ ((a >>> 22) | (a << 10));
+      const maj = (a & b) ^ (a & c) ^ (b & c);
+      const temp2 = (S0 + maj) >>> 0;
+      h = g; g = f; f = e; e = (d + temp1) >>> 0; d = c; c = b; b = a; a = (temp1 + temp2) >>> 0;
+    }
+    H[0] = (H[0] + a) >>> 0; H[1] = (H[1] + b) >>> 0; H[2] = (H[2] + c) >>> 0; H[3] = (H[3] + d) >>> 0;
+    H[4] = (H[4] + e) >>> 0; H[5] = (H[5] + f) >>> 0; H[6] = (H[6] + g) >>> 0; H[7] = (H[7] + h) >>> 0;
+  }
+  return H.map(h => h.toString(16).padStart(8, '0')).join('');
+}
+
+function sha1Fallback(bytes) {
+  let H = [0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0];
+  const len = bytes.length;
+  const bitLen = len * 8;
+  const padLen = (len % 64 < 56) ? (56 - len % 64) : (120 - len % 64);
+  const padded = new Uint8Array(len + padLen + 8);
+  padded.set(bytes);
+  padded[len] = 0x80;
+  const dv = new DataView(padded.buffer);
+  dv.setUint32(padded.length - 4, bitLen >>> 0, false);
+  dv.setUint32(padded.length - 8, Math.floor(bitLen / 0x100000000), false);
+  const W = new Uint32Array(80);
+  for (let i = 0; i < padded.length; i += 64) {
+    for (let t = 0; t < 16; t++) W[t] = dv.getUint32(i + t * 4, false);
+    for (let t = 16; t < 80; t++) {
+      const v = W[t-3] ^ W[t-8] ^ W[t-14] ^ W[t-16];
+      W[t] = (v << 1) | (v >>> 31);
+    }
+    let [a,b,c,d,e] = H;
+    for (let t = 0; t < 80; t++) {
+      let f, k;
+      if (t < 20) { f = (b & c) | (~b & d); k = 0x5A827999; }
+      else if (t < 40) { f = b ^ c ^ d; k = 0x6ED9EBA1; }
+      else if (t < 60) { f = (b & c) | (b & d) | (c & d); k = 0x8F1BBCDC; }
+      else { f = b ^ c ^ d; k = 0xCA62C1D6; }
+      const temp = (((a << 5) | (a >>> 27)) + f + e + k + W[t]) >>> 0;
+      e = d; d = c; c = ((b << 30) | (b >>> 2)) >>> 0; b = a; a = temp;
+    }
+    H[0] = (H[0] + a) >>> 0; H[1] = (H[1] + b) >>> 0; H[2] = (H[2] + c) >>> 0; H[3] = (H[3] + d) >>> 0; H[4] = (H[4] + e) >>> 0;
+  }
+  return H.map(h => h.toString(16).padStart(8, '0')).join('');
+}
+
+function bytesToHex(bytes) {
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join(' ');
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+}
+
+function generateForensics() {
+  if (!forensicsData) return alert('Selecteer eerst een bestand');
+  
+  const context = document.getElementById('forensicsContext').value.trim();
+  
+  let prompt = `FORENSISCHE TRIAGE — Analyse van verdacht bestand\n\n`;
+  prompt += `BESTAND METADATA:\n`;
+  prompt += `- Naam: ${forensicsData.name}\n`;
+  prompt += `- Grootte: ${forensicsData.sizeFormatted}\n`;
+  prompt += `- SHA256: ${forensicsData.sha256}\n`;
+  prompt += `- SHA1: ${forensicsData.sha1}\n`;
+  prompt += `- Type: ${forensicsData.fileType.description}\n`;
+  prompt += `- Entropy: ${forensicsData.entropy}${forensicsData.entropy > 7.0 ? ' (HOOG - mogelijk packed)' : ''}\n`;
+  prompt += `- Totaal strings: ${forensicsData.totalStrings}\n\n`;
+  
+  if (context) prompt += `CONTEXT:\n${context}\n\n`;
+  
+  if (forensicsData.iocs.length > 0) {
+    prompt += `INDICATORS OF COMPROMISE (${forensicsData.iocs.length}):\n`;
+    const grouped = {};
+    forensicsData.iocs.forEach(ioc => {
+      if (!grouped[ioc.type]) grouped[ioc.type] = [];
+      grouped[ioc.type].push(ioc.value);
+    });
+    Object.keys(grouped).forEach(type => {
+      prompt += `${type}: ${grouped[type].join(', ')}\n`;
+    });
+    prompt += '\n';
+  }
+  
+  if (forensicsData.suspiciousKeywords.length > 0) {
+    prompt += `VERDACHTE API CALLS / KEYWORDS:\n${forensicsData.suspiciousKeywords.join(', ')}\n\n`;
+  }
+  
+  prompt += `TOP STRINGS (${forensicsData.topStrings.length}):\n${forensicsData.topStrings.join('\n')}\n\n`;
+  
+  prompt += `GEVRAAGDE ANALYSE:\nVoer een first-pass forensische triage uit. Wees beknopt en concreet.\n`;
+  if (document.getElementById('forStrings').checked) prompt += `- Verdachte strings analyse\n`;
+  if (document.getElementById('forIOC').checked) prompt += `- IOC relevantie\n`;
+  if (document.getElementById('forBehavior').checked) prompt += `- Waarschijnlijk gedrag van het bestand\n`;
+  if (document.getElementById('forMITRE').checked) prompt += `- MITRE ATT&CK mapping (TIDs)\n`;
+  if (document.getElementById('forYara').checked) prompt += `- Concept YARA rule\n`;
+  if (document.getElementById('forNext').checked) prompt += `- Concrete next steps voor SOC analist\n`;
+  prompt += `\nEindig met een **Risico inschatting**: Laag/Medium/Hoog/Kritiek met onderbouwing.`;
+  
+  const summary = `🔬 Forensische triage: ${forensicsData.name} (${forensicsData.fileType.type})`;
+  streamToModel(prompt, summary);
+}
+
 // CHAT HISTORY
 let chatMessages = [];
 let currentChatId = null;
@@ -826,6 +1330,57 @@ function renderChatHistory() {
 
 // Init chat history on load
 document.addEventListener('DOMContentLoaded', () => renderChatHistory());
+
+// CLIPBOARD PASTE — direct screenshots uit clipboard plakken
+document.addEventListener('paste', (e) => {
+  // Alleen actief als we in de app zijn (niet op login scherm)
+  if (document.getElementById('appContainer').style.display === 'none') return;
+  
+  const items = (e.clipboardData || e.originalEvent.clipboardData)?.items;
+  if (!items) return;
+  
+  for (const item of items) {
+    if (item.type && item.type.startsWith('image/')) {
+      const blob = item.getAsFile();
+      if (!blob) continue;
+      
+      e.preventDefault();
+      
+      if (blob.size > 10 * 1024 * 1024) {
+        alert('Afbeelding te groot (max 10 MB).');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const dataUrl = evt.target.result;
+        const timestamp = new Date().toISOString().slice(11, 19).replace(/:/g, '-');
+        const name = `clipboard-${timestamp}.png`;
+        
+        uploadedImage = { name, dataUrl, mediaType: blob.type || 'image/png' };
+        uploadedContext = '';
+        
+        document.getElementById('fileUploadLabel').classList.add('has-file');
+        document.getElementById('inputField').placeholder = 'Stel een vraag over deze afbeelding...';
+        document.getElementById('inputField').focus();
+        
+        const list = document.getElementById('fileList');
+        if (list) {
+          const sizeKB = Math.round(blob.size / 1024);
+          list.style.display = 'flex';
+          list.innerHTML = `
+            <span class="file-pill">
+              <img src="${dataUrl}" style="width:24px;height:24px;object-fit:cover;border-radius:3px;vertical-align:middle;margin-right:4px;">
+              🖼️ ${name} <span style="color:var(--text-dim)">(${sizeKB} KB)</span>
+              <span class="remove-file" onclick="clearUploadedFile()">✕</span>
+            </span>`;
+        }
+      };
+      reader.readAsDataURL(blob);
+      break;
+    }
+  }
+});
 </script>
 </body>
 </html>
