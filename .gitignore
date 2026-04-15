@@ -1,5 +1,6 @@
-# Model files (te groot voor git)
+# Model files (too large for git)
 *.gguf
+mmproj-*.gguf
 
 # Build artifacts
 llama.cpp-master.zip
@@ -16,3 +17,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Backups
+*.bak
+override.conf.backup-*

@@ -1,26 +1,40 @@
 # Jeffrey Toolkit v1.0
 
-**SOC Intelligence Suite** — AI-powered assistant for Security Operations Centers, running fully offline on-premise.
+**SOC & ISO Intelligence Suite** — AI-powered assistant for Security Operations Centers and Information Security Officers, running fully offline on-premise.
 
 ## What is Jeffrey?
 
-Jeffrey is a self-hosted AI toolkit for SOC analysts, running on llama.cpp with Qwen 3.5 35B-A3B (Mixture-of-Experts + Vision). It generates SIEM queries, SOAR playbooks, detection rules, complete security onboarding packages, and can analyze screenshots — all from a single HTML interface behind Apache Basic Auth.
+Jeffrey is a self-hosted AI toolkit running on llama.cpp with Qwen 3.5 35B-A3B (Mixture-of-Experts + Vision). It provides SOC analysts with query builders, playbooks, detection rules, incident enrichment, and forensics tooling. It provides ISOs with policy generation, risk analysis, advisory notes, and compliance Q&A. All behind Apache Basic Auth in a single HTML interface.
 
 ## Features
 
+### SOC Tools
 - **SIEM Query Builder** — Splunk (SPL), Microsoft Sentinel (KQL), Elastic (EQL/Lucene) with use case dropdowns, time range, MITRE ATT&CK mapping
 - **SOAR Playbooks** — Sentinel Logic Apps and Splunk SOAR with incident type, severity, and automation action selection
 - **Sigma Rules** — Convert Sigma YAML to platform-specific detection with field mapping and false positive analysis
 - **Network Detection** — Suricata IDS/IPS rules and Zeek scripts with threat type and protocol focus
 - **SOC Kickstart** — Complete onboarding package: STRIDE threat model, MITRE ATT&CK mapping, log requirements, detection rules, monitoring queries, security hardening checklist
 - **Forensische Triage** — First-pass analysis of suspicious binaries (strings extraction, IOC detection, magic bytes, entropy, YARA rule suggestions)
+- **Incident Enrichment** — Structured investigation plan where the model determines relevant SIEM platforms and data sources based on alert content
+- **Sentinel Pipeline** — BICEP templates and CI/CD pipelines for Sentinel content deployment with conflict prevention for co-existing MSSP pipelines
+
+### ISO Tools
+- **Beleid Generator** — Generates policy documents in standard Dutch government structure (versiebeheer, verspreiding, verwijzingen, acceptatie, inleiding, maatregelen, mapping, rollen, bijlage)
+- **Risicoanalyse** — Supports risk analyses with criticality levels (Laag/Midden/Hoog/Kritiek), STRIDE modeling, and BIO2/ISO 27005 mapping
+- **Adviesnotitie** — Structured advisory notes with summary, analysis, considerations, recommendation, conditions, and alternatives
+- **Compliance Q&A** — Answers on framework interpretation, practical application, mapping between frameworks, and compliance evidence
+
+**Supported frameworks:** BIO2, ISO 27001/27002/27005, NIS2, AVG/GDPR, NEN 7510, Cyberbeveiligingswet, ABRO, VIR-BI 2025.
+
+### Platform Features
 - **Screenshot Analysis** — Paste or upload screenshots (SIEM alerts, dashboards, network diagrams) for visual analysis
 - **Streaming Output** — Live token-by-token responses with timer and stop button
-- **File Upload (RAG)** — Upload TXT/CSV/JSON/LOG context for analysis
+- **Context-Aware Follow-ups** — Chat history maintained across follow-up questions
+- **File Upload (RAG)** — Upload TXT/CSV/JSON/LOG context for analysis, or images for vision
 - **Chat History** — Persistent conversations stored locally per user
 - **Export** — Download conversations as Markdown, Text, or JSON
+- **Collapsible Sidebar** — Full collapse mode with icon-only view, or collapse individual sections (SOC/ISO/Chats)
 - **Custom Login** — Username/password authentication via Apache Basic Auth
-- **Jeffrey Identity** — System prompt ensures consistent assistant behavior
 
 ## Architecture
 
@@ -125,33 +139,24 @@ sudo systemctl restart llama-server
 | SOAR / Sigma / Network | 30-90 sec |
 | SOC Kickstart package | 2-5 min |
 | Screenshot analysis | 30-90 sec |
-
-## Migration from Qwen 3.5 27B
-
-If you're upgrading from the original Qwen 3.5 27B dense model, use the migration script which handles everything including backup and rollback:
-
-```bash
-sudo /data/toolkit/migrate-to-qwen35-moe.sh
-```
-
-The script:
-- Backs up your current systemd override with timestamp
-- Installs the new model + vision projector
-- Updates the systemd configuration
-- Preserves the old model for easy rollback
-- Verifies the new setup works before declaring success
+| Policy document (ISO) | 1-3 min |
+| Risk analysis (ISO) | 1-2 min |
+| Sentinel Pipeline | 2-5 min |
 
 ## Repository Contents
 
 | File | Purpose |
 |------|---------|
-| `jeffrey-v1.0.html` | Web interface (with vision support) |
+| `jeffrey-v1.0.html` | Web interface (SOC + ISO tools, vision support) |
 | `deploy-jeffrey-v1.0.sh` | Fresh deployment script |
-| `migrate-to-qwen35-moe.sh` | Migration from Qwen 3.5 27B to 35B-A3B |
-| `upgrade-llamacpp.sh` | In-place llama.cpp recompilation |
+| `upgrade-llamacpp.sh` | In-place llama.cpp recompilation for updates |
 | `README.md` | This document |
 | `.gitignore` | Excludes GGUF models, builds, credentials |
 
+## Disclaimers
+
+Jeffrey is a personal/test project. It is not an officially supported production service. Generated content (policies, risk analyses, advisory notes, detection rules) should always be reviewed before use. AI assistance is not a replacement for professional judgment.
+
 ## License
 
-This toolkit is provided as-is for internal SOC use. The Qwen 3.5 model is licensed under Apache 2.0.
+This toolkit is provided as-is for internal SOC/ISO use. The Qwen 3.5 model is licensed under Apache 2.0.
