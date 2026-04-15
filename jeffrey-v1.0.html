@@ -33,9 +33,24 @@ header { padding: 12px 20px; background: var(--bg-secondary); border-bottom: 1px
 
 /* APP LAYOUT & SIDEBAR */
 .app { display: flex; flex: 1; overflow: hidden; }
-.sidebar { width: 280px; background: var(--bg-secondary); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+.sidebar { width: 280px; background: var(--bg-secondary); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; transition: width 0.2s ease; position: relative; }
+.sidebar.collapsed { width: 56px; }
+.sidebar.collapsed .sidebar-content { display: none; }
+.sidebar.collapsed .sidebar-collapsed-icons { display: flex; }
+.sidebar-collapsed-icons { display: none; flex-direction: column; align-items: center; padding: 16px 0; gap: 8px; }
+.sidebar-collapsed-icons .collapsed-icon { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); cursor: pointer; font-size: 18px; color: var(--text-secondary); }
+.sidebar-collapsed-icons .collapsed-icon:hover { background: var(--bg-hover); color: var(--text-primary); }
+.sidebar-toggle { position: absolute; top: 12px; right: 8px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); cursor: pointer; color: var(--text-dim); background: transparent; border: none; font-size: 16px; z-index: 10; transition: background 0.15s; }
+.sidebar-toggle:hover { background: var(--bg-hover); color: var(--text-primary); }
+.sidebar.collapsed .sidebar-toggle { position: static; margin: 12px auto 8px; }
+.sidebar.collapsed .sidebar-collapsed-icons { padding-top: 0; }
 .sidebar-section { padding: 20px; border-bottom: 1px solid var(--border); }
-.section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-dim); margin-bottom: 12px; }
+.section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-dim); margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+.section-label.collapsible { cursor: pointer; user-select: none; }
+.section-label.collapsible:hover { color: var(--text-secondary); }
+.section-label .collapse-arrow { font-size: 10px; transition: transform 0.15s; }
+.section-label.collapsed .collapse-arrow { transform: rotate(-90deg); }
+.section-label.collapsed + .menu-item, .section-label.collapsed ~ .menu-item, .section-label.collapsed ~ .new-chat-btn, .section-label.collapsed ~ .chat-history, .section-label.collapsed ~ button { display: none; }
 .menu-item { padding: 10px 12px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-md); cursor: pointer; transition: 0.2s; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; font-size: 14px; font-weight: 600; }
 .menu-item:hover { background: var(--bg-hover); }
 .menu-item.active { background: var(--accent-dim); border-color: var(--accent); }
@@ -149,22 +164,54 @@ header { padding: 12px 20px; background: var(--bg-secondary); border-bottom: 1px
 </header>
 
 <div class="app">
-  <aside class="sidebar">
-    <div class="sidebar-section">
-      <div class="section-label">🔧 Tools</div>
-      <div class="menu-item active" onclick="toggleMenu('universal')"><span>🌐 Universal Chat</span></div>
-      <div class="menu-item" onclick="toggleMenu('siem')"><span>🔍 SIEM Query Builder</span></div>
-      <div class="menu-item" onclick="toggleMenu('soar')"><span>📋 SOAR Playbooks</span></div>
-      <div class="menu-item" onclick="toggleMenu('sigma')"><span>Σ Sigma Rules</span></div>
-      <div class="menu-item" onclick="toggleMenu('network')"><span>🌐 Network Detection</span></div>
-      <div class="menu-item" onclick="toggleMenu('kickstart')"><span>🚀 SOC Kickstart</span></div>
-      <div class="menu-item" onclick="toggleMenu('forensics')"><span>🔬 Forensische Triage</span></div>
+  <aside class="sidebar" id="sidebar">
+    <button class="sidebar-toggle" onclick="toggleSidebar()" title="Sidebar in/uitklappen" id="sidebarToggleBtn">☰</button>
+    
+    <div class="sidebar-collapsed-icons">
+      <div class="collapsed-icon" onclick="expandAndOpen('universal')" title="Universal Chat">💬</div>
+      <div class="collapsed-icon" onclick="expandAndOpen('siem')" title="SOC Tools">🛡️</div>
+      <div class="collapsed-icon" onclick="expandAndOpen('policy')" title="ISO Tools">📋</div>
+      <div class="collapsed-icon" onclick="expandSidebar()" title="Recent Chats">💬</div>
     </div>
-    <div class="sidebar-section">
-      <div class="section-label">💬 Recent Chats</div>
-      <button class="new-chat-btn" onclick="newChat()">+ Nieuwe Chat</button>
-      <div class="chat-history" id="chatHistory"></div>
-      <button style="width:100%;padding:6px;background:none;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;color:var(--text-dim);cursor:pointer;margin-top:8px;" onclick="if(confirm('Alle chat geschiedenis wissen?')){localStorage.removeItem('jeffrey_chats');renderChatHistory();}">Wis geschiedenis</button>
+    
+    <div class="sidebar-content">
+      <div class="sidebar-section">
+        <div class="section-label">🌐 Universal</div>
+        <div class="menu-item active" onclick="toggleMenu('universal')"><span>💬 Universal Chat</span></div>
+      </div>
+      <div class="sidebar-section">
+        <div class="section-label collapsible" onclick="toggleSection(this)" data-section="soc">
+          <span>🛡️ SOC Tools</span>
+          <span class="collapse-arrow">▼</span>
+        </div>
+        <div class="menu-item" onclick="toggleMenu('siem')"><span>🔍 SIEM Query Builder</span></div>
+        <div class="menu-item" onclick="toggleMenu('soar')"><span>📋 SOAR Playbooks</span></div>
+        <div class="menu-item" onclick="toggleMenu('sigma')"><span>Σ Sigma Rules</span></div>
+        <div class="menu-item" onclick="toggleMenu('network')"><span>🌐 Network Detection</span></div>
+        <div class="menu-item" onclick="toggleMenu('kickstart')"><span>🚀 SOC Kickstart</span></div>
+        <div class="menu-item" onclick="toggleMenu('forensics')"><span>🔬 Forensische Triage</span></div>
+        <div class="menu-item" onclick="toggleMenu('enrichment')"><span>🔎 Incident Enrichment</span></div>
+        <div class="menu-item" onclick="toggleMenu('pipeline')"><span>📦 Sentinel Pipeline</span></div>
+      </div>
+      <div class="sidebar-section">
+        <div class="section-label collapsible" onclick="toggleSection(this)" data-section="iso">
+          <span>📋 ISO Tools</span>
+          <span class="collapse-arrow">▼</span>
+        </div>
+        <div class="menu-item" onclick="toggleMenu('policy')"><span>📄 Beleid Generator</span></div>
+        <div class="menu-item" onclick="toggleMenu('risk')"><span>⚠️ Risicoanalyse</span></div>
+        <div class="menu-item" onclick="toggleMenu('advice')"><span>💡 Adviesnotitie</span></div>
+        <div class="menu-item" onclick="toggleMenu('compliance')"><span>⚖️ Compliance Q&A</span></div>
+      </div>
+      <div class="sidebar-section">
+        <div class="section-label collapsible" onclick="toggleSection(this)" data-section="chats">
+          <span>💬 Recent Chats</span>
+          <span class="collapse-arrow">▼</span>
+        </div>
+        <button class="new-chat-btn" onclick="newChat()">+ Nieuwe Chat</button>
+        <div class="chat-history" id="chatHistory"></div>
+        <button style="width:100%;padding:6px;background:none;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;color:var(--text-dim);cursor:pointer;margin-top:8px;" onclick="if(confirm('Alle chat geschiedenis wissen?')){localStorage.removeItem('jeffrey_chats');renderChatHistory();}">Wis geschiedenis</button>
+      </div>
     </div>
   </aside>
 
@@ -349,6 +396,273 @@ header { padding: 12px 20px; background: var(--bg-secondary); border-bottom: 1px
         
         <div style="font-size:11px; color:var(--text-dim); margin-top:12px; padding:10px; background:var(--bg-tertiary); border-radius:var(--radius-sm);">
           ⚠️ <strong>Disclaimer:</strong> Dit is een first-pass triage tool. Het bestand wordt lokaal in de browser geanalyseerd (geen upload naar het model). Gebruik deze output als startpunt voor diepere analyse, niet als definitief oordeel. Voor kritieke incidenten: gebruik altijd een dedicated sandbox of disassembler.
+        </div>
+      </div>
+
+      <div class="form-container" id="enrichmentForm">
+        <h2 class="form-title">🔎 Incident Enrichment Checklist</h2>
+        <p class="form-subtitle">Gestructureerde onderzoeksaanpak bij een alert of melding</p>
+        
+        <div class="form-group"><label class="form-label">Alert / melding details *</label>
+          <textarea class="form-input" id="enrichAlert" rows="5" placeholder="Plak hier de melding, alert of beschrijving van de externe SOC. Hoe meer details, hoe gerichter de checklist. Bijv: 'Verdachte login vanuit buitenland op account j.jansen, server xyz01, tijdstip 03:45'"></textarea></div>
+        
+        <div class="form-group"><label class="form-label">Type incident (optioneel — laat leeg als onbekend)</label>
+          <div class="form-checkboxes">
+            <label class="form-checkbox"><input type="checkbox" id="enrichPhishing"> Phishing / verdachte email</label>
+            <label class="form-checkbox"><input type="checkbox" id="enrichMalware"> Malware / verdacht bestand</label>
+            <label class="form-checkbox"><input type="checkbox" id="enrichLogin"> Verdachte login / authenticatie</label>
+            <label class="form-checkbox"><input type="checkbox" id="enrichPrivEsc"> Privilege escalation</label>
+            <label class="form-checkbox"><input type="checkbox" id="enrichDataExfil"> Data exfiltratie</label>
+            <label class="form-checkbox"><input type="checkbox" id="enrichLateral"> Lateral movement</label>
+            <label class="form-checkbox"><input type="checkbox" id="enrichC2"> C2 / verdacht netwerkverkeer</label>
+            <label class="form-checkbox"><input type="checkbox" id="enrichInsider"> Insider threat</label>
+            <label class="form-checkbox"><input type="checkbox" id="enrichDDoS"> DDoS / beschikbaarheid</label>
+          </div>
+        </div>
+        
+        <div class="form-group"><label class="form-label">Ervaringsniveau analist</label>
+          <select class="form-input" id="enrichLevel">
+            <option value="junior">Junior (gedetailleerde uitleg per stap)</option>
+            <option value="medior" selected>Medior (korte uitleg + queries)</option>
+            <option value="senior">Senior (alleen actiepunten)</option>
+          </select>
+        </div>
+        
+        <div class="form-group"><label class="form-label">Bekende elementen (optioneel — vul in wat je al weet)</label>
+          <div class="form-grid">
+            <div class="form-group"><input class="form-input" id="enrichHost" placeholder="Hostname / server"></div>
+            <div class="form-group"><input class="form-input" id="enrichUser" placeholder="Username / email"></div>
+            <div class="form-group"><input class="form-input" id="enrichIP" placeholder="IP adres(sen)"></div>
+            <div class="form-group"><input class="form-input" id="enrichTime" placeholder="Tijdstip / periode"></div>
+          </div>
+        </div>
+        
+        <div style="font-size:12px; color:var(--text-secondary); margin-bottom:12px; padding:10px; background:var(--bg-tertiary); border-radius:var(--radius-sm);">
+          💡 <strong>Tip:</strong> Het model bepaalt zelf welke SIEM platforms en onderzoeksbronnen relevant zijn op basis van de alert. Bijv: endpoint/Windows/365 logs → Sentinel/Defender, firewall/F5/Linux logs → Splunk of Elastic. Meerdere bronnen worden voorgesteld waar relevant.
+        </div>
+        
+        <button class="form-btn" onclick="generateEnrichment()">🔎 Genereer Onderzoeksplan</button>
+        
+        <div style="font-size:11px; color:var(--text-dim); margin-top:12px; padding:10px; background:var(--bg-tertiary); border-radius:var(--radius-sm);">
+          ⚠️ <strong>AI ondersteuning:</strong> Dit is een gestructureerde gids voor onderzoek, geen vervanging voor eigen oordeel. Pas de aanpak aan op basis van wat je vindt. Bij kritieke incidenten: volg altijd jullie interne incident response procedure en escaleer conform afspraken.
+        </div>
+      </div>
+
+      <div class="form-container" id="pipelineForm">
+        <h2 class="form-title">📦 Sentinel Pipeline Generator</h2>
+        <p class="form-subtitle">Genereer BICEP templates en pipeline configuratie voor Sentinel content deployment</p>
+        
+        <div class="form-grid">
+          <div class="form-group form-grid-full"><label class="form-label">Applicatie / Systeem naam *</label>
+            <input class="form-input" id="pipeApp" placeholder="bijv. SAP, Veeam, ServiceNow, Custom App"></div>
+          <div class="form-group"><label class="form-label">Naming prefix</label>
+            <input class="form-input" id="pipePrefix" value="int" placeholder="bijv. int, ivo, soc"></div>
+          <div class="form-group"><label class="form-label">Resource Group strategie</label>
+            <select class="form-input" id="pipeRG">
+              <option value="separate">Eigen RG (aanbevolen)</option>
+              <option value="shared">Gedeelde RG met externe partij</option>
+            </select></div>
+          <div class="form-group form-grid-full"><label class="form-label">Aanvullende context</label>
+            <textarea class="form-input" id="pipeContext" rows="2" placeholder="bijv. data bron locatie, log volume verwachtingen, specifieke compliance eisen, integraties..."></textarea></div>
+        </div>
+        
+        <div class="form-group"><label class="form-label">Sentinel resource types (kies wat je nodig hebt)</label>
+          <div class="form-checkboxes">
+            <label class="form-checkbox"><input type="checkbox" id="pipeConnector" checked> Data Connector</label>
+            <label class="form-checkbox"><input type="checkbox" id="pipeAnalytics" checked> Analytics Rules</label>
+            <label class="form-checkbox"><input type="checkbox" id="pipeHunting"> Hunting Queries</label>
+            <label class="form-checkbox"><input type="checkbox" id="pipeWorkbook"> Workbook</label>
+            <label class="form-checkbox"><input type="checkbox" id="pipeAutomation"> Automation Rules</label>
+            <label class="form-checkbox"><input type="checkbox" id="pipeWatchlist"> Watchlist</label>
+            <label class="form-checkbox"><input type="checkbox" id="pipePlaybook"> Playbook (Logic App)</label>
+          </div>
+        </div>
+        
+        <div class="form-group"><label class="form-label">CI/CD platform</label>
+          <select class="form-input" id="pipeCICD">
+            <option>Azure DevOps Pipelines</option>
+            <option>GitHub Actions</option>
+            <option>Beide</option>
+          </select>
+        </div>
+        
+        <div class="form-group"><label class="form-label">Output opties</label>
+          <div class="form-checkboxes">
+            <label class="form-checkbox"><input type="checkbox" id="pipeReadme" checked> README met deployment instructies</label>
+            <label class="form-checkbox"><input type="checkbox" id="pipeConflict" checked> Conflict prevention strategie</label>
+            <label class="form-checkbox"><input type="checkbox" id="pipeParams" checked> Parameter file template</label>
+            <label class="form-checkbox"><input type="checkbox" id="pipeStructure"> Aanbevolen folder structuur</label>
+          </div>
+        </div>
+        
+        <button class="form-btn" onclick="generatePipeline()">📦 Genereer BICEP Pipeline</button>
+        
+        <div style="font-size:11px; color:var(--text-dim); margin-top:12px; padding:10px; background:var(--bg-tertiary); border-radius:var(--radius-sm);">
+          ⚠️ <strong>AI ondersteuning:</strong> De gegenereerde BICEP templates zijn een vertrekpunt en moeten getest worden in een acceptatie omgeving voordat deployment naar productie. Pas naming, scoping en parameter waarden aan voor jullie specifieke situatie. Voor complexe scenario's (cross-tenant, custom RBAC, gevoelige data) is review door een Azure architect aanbevolen.
+        </div>
+      </div>
+
+      <div class="form-container" id="policyForm">
+        <h2 class="form-title">📄 Beleid Generator</h2>
+        <p class="form-subtitle">Genereer beleidsdocumenten volgens de organisatie richtlijn structuur</p>
+        
+        <div class="form-grid">
+          <div class="form-group form-grid-full"><label class="form-label">Onderwerp beleid *</label>
+            <input class="form-input" id="policyTopic" placeholder="bijv. Logische toegangsbeveiliging, Clear Desk, Mobile Device, BYOD, Cryptografie"></div>
+          <div class="form-group"><label class="form-label">Type document</label>
+            <select class="form-input" id="policyType">
+              <option>Richtlijn</option>
+              <option>Beleid</option>
+              <option>Procedure</option>
+              <option>Werkinstructie</option>
+              <option>Standaard</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Doelgroep / Reikwijdte</label>
+            <input class="form-input" id="policyScope" placeholder="bijv. hele organisatie, IT-afdeling, externe leveranciers"></div>
+          <div class="form-group form-grid-full"><label class="form-label">Context en specifieke eisen</label>
+            <textarea class="form-input" id="policyContext" rows="3" placeholder="bijv. Basisbeveiligingsniveau 2, cloud omgeving, verwerkt persoonsgegevens..."></textarea></div>
+        </div>
+        
+        <div class="form-group"><label class="form-label">Primaire compliance frameworks</label>
+          <div class="form-checkboxes">
+            <label class="form-checkbox"><input type="checkbox" id="polBIO2" checked> BIO2</label>
+            <label class="form-checkbox"><input type="checkbox" id="polISO27001" checked> ISO 27001</label>
+            <label class="form-checkbox"><input type="checkbox" id="polISO27002" checked> ISO 27002 (maatregelen)</label>
+            <label class="form-checkbox"><input type="checkbox" id="polNIS2"> NIS2</label>
+            <label class="form-checkbox"><input type="checkbox" id="polAVG"> AVG</label>
+            <label class="form-checkbox"><input type="checkbox" id="polNEN7510"> NEN 7510</label>
+            <label class="form-checkbox"><input type="checkbox" id="polCBW"> Cyberbeveiligingswet</label>
+            <label class="form-checkbox"><input type="checkbox" id="polABRO"> ABRO</label>
+            <label class="form-checkbox"><input type="checkbox" id="polVIRBI"> VIR-BI 2025</label>
+          </div>
+        </div>
+        
+        <button class="form-btn" onclick="generatePolicy()">📄 Genereer Beleidsdocument</button>
+        
+        <div style="font-size:11px; color:var(--text-dim); margin-top:12px; padding:10px; background:var(--bg-tertiary); border-radius:var(--radius-sm);">
+          ⚠️ <strong>AI ondersteuning:</strong> Deze tool is bedoeld als hulpmiddel voor ISO's om sneller een eerste concept op te stellen. Het is geen vervanging voor professioneel oordeel, juridische toetsing, of organisatie-specifieke kennis. Alle gegenereerde documenten moeten worden gereviewd en aangepast voordat ze officieel worden vastgesteld.
+        </div>
+      </div>
+
+      <div class="form-container" id="riskForm">
+        <h2 class="form-title">⚠️ Risicoanalyse Ondersteuning</h2>
+        <p class="form-subtitle">Ondersteuning bij het uitvoeren van informatiebeveiliging risicoanalyses</p>
+        
+        <div class="form-grid">
+          <div class="form-group form-grid-full"><label class="form-label">Asset / Systeem / Proces *</label>
+            <input class="form-input" id="riskAsset" placeholder="bijv. HR Systeem, Klantportaal, Salarisproces"></div>
+          <div class="form-group"><label class="form-label">Type analyse</label>
+            <select class="form-input" id="riskType">
+              <option>Kwalitatief (H/M/L)</option>
+              <option>Semi-kwantitatief (1-5 schaal)</option>
+              <option>Threat modeling (STRIDE)</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Kriticaliteit</label>
+            <select class="form-input" id="riskCriticality">
+              <option value="">— Selecteer —</option>
+              <option>Laag</option>
+              <option>Midden</option>
+              <option>Hoog</option>
+              <option>Kritiek</option>
+            </select></div>
+          <div class="form-group form-grid-full"><label class="form-label">Scope en context</label>
+            <textarea class="form-input" id="riskScope" rows="3" placeholder="Beschrijf het systeem: functie, gebruikers, data, integraties, hosting, gevoeligheid data..."></textarea></div>
+          <div class="form-group form-grid-full"><label class="form-label">Bekende dreigingen of zorgen (optioneel)</label>
+            <textarea class="form-input" id="riskThreats" rows="2" placeholder="bijv. recente incidenten, bekende kwetsbaarheden, zorgen van stakeholders..."></textarea></div>
+        </div>
+        
+        <div class="form-group"><label class="form-label">Gewenste output</label>
+          <div class="form-checkboxes">
+            <label class="form-checkbox"><input type="checkbox" id="riskThreatsList" checked> Dreigingen identificatie</label>
+            <label class="form-checkbox"><input type="checkbox" id="riskMatrix" checked> Impact/kans matrix</label>
+            <label class="form-checkbox"><input type="checkbox" id="riskMitigations" checked> Mitigatie voorstellen</label>
+            <label class="form-checkbox"><input type="checkbox" id="riskResidual"> Restrisico analyse</label>
+            <label class="form-checkbox"><input type="checkbox" id="riskBIO2Mapping"> Mapping naar BIO2 maatregelen</label>
+            <label class="form-checkbox"><input type="checkbox" id="riskISO27005"> ISO 27005 methodiek</label>
+          </div>
+        </div>
+        
+        <button class="form-btn" onclick="generateRiskAnalysis()">⚠️ Start Risicoanalyse</button>
+        
+        <div style="font-size:11px; color:var(--text-dim); margin-top:12px; padding:10px; background:var(--bg-tertiary); border-radius:var(--radius-sm);">
+          ⚠️ <strong>AI ondersteuning:</strong> Deze analyse is een startpunt voor discussie met stakeholders. Een volledige risicoanalyse vereist interviews, asset inventarisatie, en organisatie context die de AI niet heeft. Gebruik de output om sneller tot een gestructureerde analyse te komen, niet als definitief risicoregister.
+        </div>
+      </div>
+
+      <div class="form-container" id="adviceForm">
+        <h2 class="form-title">💡 Adviesnotitie Generator</h2>
+        <p class="form-subtitle">Genereer onderbouwde adviezen op vragen vanuit de organisatie</p>
+        
+        <div class="form-group"><label class="form-label">Vraag of casus *</label>
+          <textarea class="form-input" id="adviceQuestion" rows="4" placeholder="Bijv. 'Mogen medewerkers ChatGPT gebruiken voor werkdoeleinden?' of 'Hoe gaan we om met een verzoek tot dataverwijdering van een ex-medewerker?'"></textarea></div>
+        
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Afkomstig van</label>
+            <input class="form-input" id="adviceFrom" placeholder="bijv. HR, IT, specifieke afdeling"></div>
+          <div class="form-group"><label class="form-label">Urgentie</label>
+            <select class="form-input" id="adviceUrgency">
+              <option>Normaal</option>
+              <option>Verhoogd</option>
+              <option>Urgent</option>
+            </select></div>
+          <div class="form-group form-grid-full"><label class="form-label">Relevante context (optioneel)</label>
+            <textarea class="form-input" id="adviceContext" rows="2" placeholder="bijv. huidige beleidsregels, eerdere adviezen, organisatie context..."></textarea></div>
+        </div>
+        
+        <div class="form-group"><label class="form-label">Toe te passen kaders</label>
+          <div class="form-checkboxes">
+            <label class="form-checkbox"><input type="checkbox" id="advBIO2" checked> BIO2</label>
+            <label class="form-checkbox"><input type="checkbox" id="advAVG" checked> AVG</label>
+            <label class="form-checkbox"><input type="checkbox" id="advISO27002"> ISO 27002</label>
+            <label class="form-checkbox"><input type="checkbox" id="advNIS2"> NIS2</label>
+            <label class="form-checkbox"><input type="checkbox" id="advCBW"> Cyberbeveiligingswet</label>
+            <label class="form-checkbox"><input type="checkbox" id="advVIRBI"> VIR-BI 2025</label>
+          </div>
+        </div>
+        
+        <button class="form-btn" onclick="generateAdvice()">💡 Genereer Adviesnotitie</button>
+        
+        <div style="font-size:11px; color:var(--text-dim); margin-top:12px; padding:10px; background:var(--bg-tertiary); border-radius:var(--radius-sm);">
+          ⚠️ <strong>AI ondersteuning:</strong> Dit advies is een eerste analyse gebaseerd op algemene kennis van de frameworks. Voor definitieve adviezen moet altijd de specifieke organisatie context, interne regels, en juridisch oordeel worden meegenomen. Laat ingrijpende adviezen altijd toetsen door juridische of senior IB collega's.
+        </div>
+      </div>
+
+      <div class="form-container" id="complianceForm">
+        <h2 class="form-title">⚖️ Compliance Q&A</h2>
+        <p class="form-subtitle">Vragen over compliance frameworks, maatregelen en interpretatie</p>
+        
+        <div class="form-group"><label class="form-label">Je vraag *</label>
+          <textarea class="form-input" id="compQuestion" rows="4" placeholder="Bijv. 'Wat houdt BIO2 maatregel 9.2.2 in?', 'Hoe interpreteer ik ISO 27002 5.15?', 'Welke BIO2 maatregelen gelden voor een SaaS systeem?'"></textarea></div>
+        
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Primair framework</label>
+            <select class="form-input" id="compFramework">
+              <option>BIO2</option>
+              <option>ISO 27001</option>
+              <option>ISO 27002</option>
+              <option>ISO 27005</option>
+              <option>NIS2</option>
+              <option>AVG / GDPR</option>
+              <option>NEN 7510</option>
+              <option>Cyberbeveiligingswet</option>
+              <option>ABRO</option>
+              <option>VIR-BI 2025</option>
+              <option>Framework-overstijgend</option>
+            </select></div>
+          <div class="form-group"><label class="form-label">Type vraag</label>
+            <select class="form-input" id="compType">
+              <option>Interpretatie</option>
+              <option>Praktische toepassing</option>
+              <option>Mapping tussen frameworks</option>
+              <option>Aantonen compliance</option>
+              <option>Vergelijking</option>
+            </select></div>
+        </div>
+        
+        <button class="form-btn" onclick="generateCompliance()">⚖️ Beantwoord Vraag</button>
+        
+        <div style="font-size:11px; color:var(--text-dim); margin-top:12px; padding:10px; background:var(--bg-tertiary); border-radius:var(--radius-sm);">
+          ⚠️ <strong>AI ondersteuning:</strong> Antwoorden zijn gebaseerd op algemene kennis van de frameworks. Voor officiële interpretaties raadpleeg altijd de brondocumenten en/of NCSC, CIP, of jurisprudentie. De exacte formulering van maatregelen kan per framework versie verschillen.
         </div>
       </div>
     </div>
@@ -616,6 +930,25 @@ async function streamToModel(fullPrompt, displaySummary) {
       userMessage = { role: "user", content: finalPrompt };
     }
     
+    // Bouw messages array met chat geschiedenis voor context (vervolgvragen)
+    const systemMessage = { role: "system", content: 'Je bent Jeffrey, een expert SOC intelligence assistent. Alleen als iemand expliciet vraagt hoe je heet, zeg je "Ik ben Jeffrey, je SOC intelligence assistent." Begin antwoorden NIET met een introductie van jezelf. Ga direct inhoudelijk aan de slag. Je noemt jezelf NOOIT "Qwen", "Alibaba", "Gemma", "Google", "Llama", "Meta", of een ander AI-model naam. Antwoord standaard in het Nederlands. Geef complete, werkende antwoorden. Wanneer de gebruiker vervolgvragen stelt, bouw voort op de eerdere context in deze conversatie.' };
+    
+    // Pak vorige uitwisselingen (excl. de huidige user message die we net hebben toegevoegd)
+    const previousExchanges = chatMessages.slice(0, -1).map(msg => ({
+      role: msg.role,
+      content: typeof msg.content === 'string' ? msg.content : (msg.display || '[bericht]')
+    }));
+    
+    // Beperk geschiedenis om binnen context window te blijven (laatste 6 uitwisselingen = ~3 turns)
+    const recentHistory = previousExchanges.slice(-6);
+    
+    const messagesArray = [systemMessage, ...recentHistory, userMessage];
+    
+    // File/image is nu verwerkt in het bericht — clear de pill uit de UI
+    if (uploadedImage || uploadedContext) {
+      clearUploadedFile();
+    }
+    
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 
@@ -624,10 +957,7 @@ async function streamToModel(fullPrompt, displaySummary) {
       },
       signal: abortController.signal,
       body: JSON.stringify({
-        messages: [
-          {role: "system", content: 'Je bent Jeffrey, een expert SOC intelligence assistent. Alleen als iemand expliciet vraagt hoe je heet, zeg je "Ik ben Jeffrey, je SOC intelligence assistent." Begin antwoorden NIET met een introductie van jezelf. Ga direct inhoudelijk aan de slag. Je noemt jezelf NOOIT "Qwen", "Alibaba", "Gemma", "Google", "Llama", "Meta", of een ander AI-model naam. Antwoord standaard in het Nederlands. Geef complete, werkende antwoorden.'}, 
-          userMessage
-        ],
+        messages: messagesArray,
         max_tokens: safeMaxTokens,
         temperature: 0.7,
         stream: true
@@ -710,8 +1040,29 @@ async function streamToModel(fullPrompt, displaySummary) {
 
 // TRIGGERS
 document.getElementById('sendBtn').addEventListener('click', () => {
-  const v = document.getElementById('inputField').value;
+  const v = document.getElementById('inputField').value.trim();
   if(v) streamToModel(v, v);
+});
+
+// AUTO-RESIZE textarea bij typen en plakken
+const inputField = document.getElementById('inputField');
+function autoResizeInput() {
+  inputField.style.height = 'auto';
+  inputField.style.height = Math.min(inputField.scrollHeight, 300) + 'px';
+}
+inputField.addEventListener('input', autoResizeInput);
+inputField.addEventListener('paste', () => setTimeout(autoResizeInput, 0));
+
+// ENTER om te sturen, SHIFT+ENTER voor nieuwe regel
+inputField.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    const v = inputField.value.trim();
+    if (v) {
+      streamToModel(v, v);
+      inputField.style.height = 'auto'; // Reset hoogte na versturen
+    }
+  }
 });
 
 function generateSIEM() {
@@ -1176,6 +1527,395 @@ function generateForensics() {
   streamToModel(prompt, summary);
 }
 
+// ================ INCIDENT ENRICHMENT ================
+
+function generateEnrichment() {
+  const alert = document.getElementById('enrichAlert').value.trim();
+  if (!alert) return alert('Plak eerst de alert/melding in');
+  
+  const types = [];
+  if (document.getElementById('enrichPhishing').checked) types.push('Phishing / verdachte email');
+  if (document.getElementById('enrichMalware').checked) types.push('Malware / verdacht bestand');
+  if (document.getElementById('enrichLogin').checked) types.push('Verdachte login');
+  if (document.getElementById('enrichPrivEsc').checked) types.push('Privilege escalation');
+  if (document.getElementById('enrichDataExfil').checked) types.push('Data exfiltratie');
+  if (document.getElementById('enrichLateral').checked) types.push('Lateral movement');
+  if (document.getElementById('enrichC2').checked) types.push('C2 / verdacht netwerkverkeer');
+  if (document.getElementById('enrichInsider').checked) types.push('Insider threat');
+  if (document.getElementById('enrichDDoS').checked) types.push('DDoS');
+  
+  const level = document.getElementById('enrichLevel').value;
+  const host = document.getElementById('enrichHost').value.trim();
+  const user = document.getElementById('enrichUser').value.trim();
+  const ip = document.getElementById('enrichIP').value.trim();
+  const time = document.getElementById('enrichTime').value.trim();
+  
+  let prompt = `Genereer een gestructureerd onderzoeksplan voor de volgende security alert/melding. Dit plan is voor een SOC analist om stap voor stap te doorlopen om te bepalen of het een legitiem incident is of een false positive.\n\n`;
+  prompt += `ALERT / MELDING:\n"""\n${alert}\n"""\n\n`;
+  
+  if (types.length > 0) prompt += `VERMOEDELIJK TYPE INCIDENT: ${types.join(', ')}\n`;
+  else prompt += `TYPE INCIDENT: Onbekend — bepaal zelf op basis van de alert inhoud welk type dit waarschijnlijk is.\n`;
+  
+  const knownElements = [];
+  if (host) knownElements.push(`Hostname: ${host}`);
+  if (user) knownElements.push(`User: ${user}`);
+  if (ip) knownElements.push(`IP: ${ip}`);
+  if (time) knownElements.push(`Tijdstip: ${time}`);
+  if (knownElements.length > 0) prompt += `BEKENDE ELEMENTEN: ${knownElements.join(', ')}\n`;
+  
+  prompt += `ANALIST NIVEAU: ${level === 'junior' ? 'Junior — geef gedetailleerde uitleg per stap, benoem wat je verwacht te vinden, wat rode vlaggen zijn, en leg termen uit' : level === 'senior' ? 'Senior — beknopte actiepunten, geen uitleg van basics' : 'Medior — korte uitleg plus concrete queries'}\n\n`;
+  
+  prompt += `BELANGRIJKE CONTEXT OVER DE OMGEVING:\n`;
+  prompt += `- Endpoint/Windows/Microsoft 365/Azure AD logs: zitten in Microsoft Sentinel (gebruik KQL)\n`;
+  prompt += `- Firewall logs, F5 logs, Linux logs, netwerk apparatuur: zitten in Splunk of Elastic (gebruik SPL of Lucene/EQL)\n`;
+  prompt += `- Voor sommige incidenten zijn meerdere SIEM platforms relevant — benoem ze allebei waar van toepassing\n`;
+  prompt += `- De analist weet niet altijd zelf welk platform het beste is — jij moet dat bepalen op basis van het type logs dat relevant is\n\n`;
+  
+  prompt += `GEVRAAGDE OUTPUT — gestructureerd in deze volgorde:\n\n`;
+  
+  prompt += `## 1. Eerste Triage (binnen 5 minuten)\n`;
+  prompt += `Wat moet de analist meteen beoordelen? Directe vragen om te bepalen of dit urgent is of rustig kan worden opgepakt. Noem concrete indicatoren die direct opvallen in de alert.\n\n`;
+  
+  prompt += `## 2. Waar Zoeken — Aanbevolen Bronnen\n`;
+  prompt += `Analyseer de alert en bepaal WELKE bronnen en platforms relevant zijn voor dit specifieke incident. Denk aan:\n`;
+  prompt += `- TopDesk (changes, incidents, assets, eigenaren)\n`;
+  prompt += `- Azure AD / Entra (accounts, sign-ins, conditional access, role assignments)\n`;
+  prompt += `- Microsoft Sentinel (endpoint/365/AD logs via KQL)\n`;
+  prompt += `- Splunk of Elastic (firewall, F5, Linux, netwerk logs)\n`;
+  prompt += `- Defender / EDR (endpoint process tree, file operations)\n`;
+  prompt += `- CMDB / asset register (wie is eigenaar, welke afdeling)\n`;
+  prompt += `- Organigram (manager, team)\n`;
+  prompt += `- Mail / Exchange logs\n`;
+  prompt += `- Firewall / proxy logs direct\n\n`;
+  prompt += `Voor elke relevante bron: leg uit WAAROM deze relevant is voor deze specifieke alert, en WAT specifiek te zoeken. Noem bronnen die NIET relevant zijn niet. Wees selectief — max 5-6 bronnen met de grootste relevantie.\n\n`;
+  
+  prompt += `## 3. Concrete Queries\n`;
+  prompt += `Geef werkende queries voor de relevante SIEM platforms. Per platform dat je aanbeveelt in sectie 2:\n`;
+  prompt += `- Voor Sentinel: KQL queries met juiste tabellen (SigninLogs, SecurityEvent, DeviceLogonEvents, DeviceProcessEvents, EmailEvents, etc.)\n`;
+  prompt += `- Voor Splunk: SPL queries met realistische indexnamen en field names\n`;
+  prompt += `- Voor Elastic: Lucene of EQL queries\n\n`;
+  prompt += `Geef minimaal drie queries per platform:\n`;
+  prompt += `- Query om vergelijkbare events op dezelfde host/user te vinden\n`;
+  prompt += `- Query om de baseline activiteit te zien (is dit normaal gedrag?)\n`;
+  prompt += `- Query om gerelateerde events in de tijd rond het incident te vinden\n\n`;
+  
+  prompt += `## 4. TopDesk / CMDB Context\n`;
+  prompt += `Concrete zoekacties buiten SIEM, bijvoorbeeld:\n`;
+  prompt += `- "Zoek in TopDesk op hostname '${host || '<hostname>'}' met filter changes afgelopen 7 dagen"\n`;
+  prompt += `- "Check wie eigenaar is van '${host || '<hostname>'}' en welke afdeling"\n`;
+  prompt += `- "Zoek recente incident tickets voor deze gebruiker of systeem"\n\n`;
+  
+  prompt += `## 5. Interpretatie — Wat betekent wat je vindt?\n`;
+  prompt += `Per mogelijk resultaat: wat duidt dit op? Maak een mapping van "als je X vindt → dan betekent dat Y → dus doe Z". Concrete voorbeelden specifiek voor deze alert. Benoem expliciet wat NORMAAL is versus wat een RODE VLAG is.\n\n`;
+  
+  prompt += `## 6. Wanneer Escaleren\n`;
+  prompt += `Duidelijke triggers waarbij je NIET zelf verder moet, maar moet escaleren. Specifiek voor dit type incident.\n\n`;
+  
+  prompt += `## 7. Documentatie Template\n`;
+  prompt += `Wat minimaal vastleggen in het incident ticket voor overdracht/naslag. Concrete velden om in te vullen.\n\n`;
+  
+  prompt += `BELANGRIJK:\n`;
+  prompt += `- Wees CONCREET en ACTIEGERICHT. Geen vage adviezen zoals "onderzoek grondig" maar specifieke stappen.\n`;
+  prompt += `- Kies zelf de juiste bronnen en platforms — de analist weet dit niet altijd.\n`;
+  prompt += `- Als informatie ontbreekt in de alert, benoem welke vragen als eerste beantwoord moeten worden.\n`;
+  prompt += `- Schrijf in het Nederlands, toegankelijk maar professioneel.\n`;
+  
+  const summaryText = types.length > 0 ? types.join(' / ') : 'onderzoek';
+  streamToModel(prompt, `🔎 Incident Enrichment: ${summaryText}${host ? ' (' + host + ')' : ''}`);
+}
+
+// ================ SENTINEL PIPELINE ================
+
+function generatePipeline() {
+  const app = document.getElementById('pipeApp').value.trim();
+  const prefix = document.getElementById('pipePrefix').value.trim() || 'int';
+  const rgStrategy = document.getElementById('pipeRG').value;
+  const context = document.getElementById('pipeContext').value.trim();
+  const cicd = document.getElementById('pipeCICD').value;
+  
+  if (!app) return alert('Vul een applicatie/systeem naam in');
+  
+  const resources = [];
+  if (document.getElementById('pipeConnector').checked) resources.push('Data Connector');
+  if (document.getElementById('pipeAnalytics').checked) resources.push('Analytics Rules (Scheduled)');
+  if (document.getElementById('pipeHunting').checked) resources.push('Hunting Queries');
+  if (document.getElementById('pipeWorkbook').checked) resources.push('Workbook');
+  if (document.getElementById('pipeAutomation').checked) resources.push('Automation Rules');
+  if (document.getElementById('pipeWatchlist').checked) resources.push('Watchlist');
+  if (document.getElementById('pipePlaybook').checked) resources.push('Playbook (Logic App)');
+  
+  if (resources.length === 0) return alert('Selecteer minimaal één resource type');
+  
+  const appSafe = app.toLowerCase().replace(/[^a-z0-9]/g, '');
+  
+  let prompt = `Genereer een complete BICEP pipeline setup voor het deployen van Microsoft Sentinel content voor de applicatie "${app}".\n\n`;
+  prompt += `CONTEXT:\n`;
+  prompt += `- Applicatie: ${app}\n`;
+  prompt += `- Naming prefix: ${prefix}\n`;
+  prompt += `- Resource Group strategie: ${rgStrategy === 'separate' ? 'Eigen Resource Group om conflicten met externe partij te voorkomen' : 'Gedeelde Resource Group met externe partij (let extra op naming)'}\n`;
+  prompt += `- CI/CD platform: ${cicd}\n`;
+  prompt += `- Te deployen resources: ${resources.join(', ')}\n`;
+  if (context) prompt += `- Aanvullende context: ${context}\n`;
+  prompt += `\nBELANGRIJKE ACHTERGROND:\n`;
+  prompt += `Een externe partij pusht ook content naar dezelfde Sentinel productie workspace via hun eigen DevOps pipeline. Onze pipeline moet hiermee co-existeren zonder elkaar te overschrijven.\n\n`;
+  
+  prompt += `LEVER DE VOLGENDE OUTPUT (gebruik markdown code blocks met juiste taal labels):\n\n`;
+  
+  prompt += `## 1. main.bicep\n`;
+  prompt += `Hoofdtemplate met parameters voor workspace name, resource group, location, en applicatie-specifieke waarden. Gebruik modules voor elke resource type.\n\n`;
+  
+  prompt += `## 2. Modules per resource type\n`;
+  prompt += `Voor elke geselecteerde resource een aparte .bicep module:\n`;
+  resources.forEach(r => {
+    prompt += `- modules/${r.toLowerCase().replace(/[^a-z0-9]/g, '-')}.bicep\n`;
+  });
+  prompt += `\nElke module moet:\n`;
+  prompt += `- Naming pattern volgen: \`${prefix}-${appSafe}-<type>-<name>\` om conflicten met externe partij te voorkomen\n`;
+  prompt += `- Tags bevatten: \`{ ManagedBy: 'Internal', Application: '${app}', Environment: 'Production', DeployedVia: 'BICEP-Pipeline' }\`\n`;
+  prompt += `- Idempotent zijn (kan meerdere keren gedraaid worden)\n\n`;
+  
+  if (document.getElementById('pipeParams').checked) {
+    prompt += `## 3. parameters.json\n`;
+    prompt += `Parameter file met voorbeelden voor productie deployment.\n\n`;
+  }
+  
+  if (cicd.includes('Azure DevOps') || cicd === 'Beide') {
+    prompt += `## 4. azure-pipelines.yml\n`;
+    prompt += `Azure DevOps pipeline YAML met:\n`;
+    prompt += `- Trigger op main branch\n`;
+    prompt += `- Stage: validate (BICEP linting + what-if analyse)\n`;
+    prompt += `- Stage: deploy (met manual approval voor productie)\n`;
+    prompt += `- Service connection placeholder voor Azure subscription\n\n`;
+  }
+  
+  if (cicd.includes('GitHub') || cicd === 'Beide') {
+    prompt += `## 5. .github/workflows/deploy-sentinel.yml\n`;
+    prompt += `GitHub Actions workflow met:\n`;
+    prompt += `- Trigger op push naar main\n`;
+    prompt += `- Job: validate (BICEP build + what-if)\n`;
+    prompt += `- Job: deploy (environment protection rules)\n`;
+    prompt += `- OIDC authentication voorbeeld\n\n`;
+  }
+  
+  if (document.getElementById('pipeStructure').checked) {
+    prompt += `## 6. Aanbevolen folder structuur\n`;
+    prompt += `Toon de complete repository structuur met uitleg per folder.\n\n`;
+  }
+  
+  if (document.getElementById('pipeConflict').checked) {
+    prompt += `## 7. Conflict Prevention Strategie\n`;
+    prompt += `Concrete adviezen om naast de externe partij hun pipeline te kunnen draaien:\n`;
+    prompt += `- Naming convention afspraken (welke prefixes/suffixes)\n`;
+    prompt += `- Tags gebruiken voor identificatie en filtering (ManagedBy, DeployedVia)\n`;
+    prompt += `- Resource Group scheiding strategie\n`;
+    prompt += `- What-if analyse altijd voor deployment uitvoeren\n`;
+    prompt += `- Welke afspraken te maken met de externe partij (rule naming, alert prefixes, workbook IDs)\n`;
+    prompt += `- Hoe te detecteren wanneer ze elkaar overschrijven (Azure Activity Log monitoring)\n`;
+    prompt += `- Rollback strategie bij conflicten\n\n`;
+  }
+  
+  if (document.getElementById('pipeReadme').checked) {
+    prompt += `## 8. README.md\n`;
+    prompt += `Complete deployment instructies:\n`;
+    prompt += `- Vereisten (Azure CLI versie, BICEP, permissions)\n`;
+    prompt += `- Initial setup stappen\n`;
+    prompt += `- Hoe te deployen (handmatig en via pipeline)\n`;
+    prompt += `- Hoe te valideren na deployment\n`;
+    prompt += `- Troubleshooting common issues\n`;
+    prompt += `- Hoe nieuwe rules/content toe te voegen\n\n`;
+  }
+  
+  prompt += `BELANGRIJK:\n`;
+  prompt += `- Gebruik moderne BICEP syntax (geen ARM templates)\n`;
+  prompt += `- Resource API versions: gebruik recente stabiele versies (Microsoft.OperationalInsights/workspaces 2023-09-01, Microsoft.SecurityInsights resources 2024-09-01)\n`;
+  prompt += `- Voorbeeld content (zoals een sample analytics rule) moet specifiek zijn voor "${app}" met realistische KQL queries\n`;
+  prompt += `- Plaats commentaar in BICEP files om duidelijk te maken wat aanpasbaar is\n`;
+  prompt += `- Geen gevoelige waarden hardcoded — gebruik parameters met @secure() waar nodig\n`;
+  prompt += `- Resource naming MOET uniek zijn van wat een externe MSSP zou gebruiken\n`;
+  
+  streamToModel(prompt, `📦 Sentinel Pipeline: ${app} (${resources.length} resource types)`);
+}
+
+// ================ ISO TOOLS ================
+
+function getPolicyFrameworks() {
+  const fw = [];
+  if (document.getElementById('polBIO2').checked) fw.push('BIO2 (Baseline Informatiebeveiliging Overheid 2)');
+  if (document.getElementById('polISO27001').checked) fw.push('ISO 27001');
+  if (document.getElementById('polISO27002').checked) fw.push('ISO 27002 (beheersmaatregelen)');
+  if (document.getElementById('polNIS2').checked) fw.push('NIS2');
+  if (document.getElementById('polAVG').checked) fw.push('AVG/GDPR');
+  if (document.getElementById('polNEN7510').checked) fw.push('NEN 7510');
+  if (document.getElementById('polCBW').checked) fw.push('Cyberbeveiligingswet (Cbw)');
+  if (document.getElementById('polABRO').checked) fw.push('ABRO');
+  if (document.getElementById('polVIRBI').checked) fw.push('VIR-BI 2025');
+  return fw;
+}
+
+function generatePolicy() {
+  const topic = document.getElementById('policyTopic').value.trim();
+  const docType = document.getElementById('policyType').value;
+  const scope = document.getElementById('policyScope').value.trim();
+  const context = document.getElementById('policyContext').value.trim();
+  const frameworks = getPolicyFrameworks();
+  
+  if (!topic) return alert('Vul een onderwerp in voor het beleid');
+  if (frameworks.length === 0) return alert('Selecteer minimaal één compliance framework');
+  
+  let prompt = `Genereer een ${docType.toLowerCase()} voor informatiebeveiliging over het onderwerp "${topic}".\n\n`;
+  prompt += `De ${docType.toLowerCase()} moet de volgende gestandaardiseerde structuur hebben (gebruik exact deze hoofdstukindeling):\n\n`;
+  prompt += `# ${docType} ${topic}\n\n`;
+  prompt += `**[Plaats voor documentmetadata: versie, datum, eigenaar, rubricering - laat velden leeg voor invulling]**\n\n`;
+  prompt += `## Versiebeheer\n[Tabel met versie, datum, omschrijving - laat leeg voor invulling]\n\n`;
+  prompt += `## Verspreiding\n[Tabel met versie, datum, verspreiding - laat leeg voor invulling]\n\n`;
+  prompt += `## Verwijzingen\n[Lijst van gebruikte frameworks en documenten]\n\n`;
+  prompt += `## Acceptatie\n[Veld voor acceptatie datum en DMS verwijzing]\n\n`;
+  prompt += `## Inhoudsopgave\n\n`;
+  prompt += `## 1. Inleiding\n### 1.1 Doelstelling\n### 1.2 Reikwijdte\n### 1.3 Verantwoording\n\n`;
+  prompt += `## 2. Maatregelen\n[Genummerde lijst van concrete maatregelen, elk met verwijzing naar relevante beheersmaatregel, bijv. "-> BIO2 9.2.1" of "-> ISO 5.17a"]\n\n`;
+  prompt += `## 3. Relatie van de ${docType.toLowerCase()} met verschillende wet- en regelgeving\n[Tabel met mapping naar gebruikte frameworks]\n\n`;
+  prompt += `## 4. Rollen en verantwoordelijkheden\n[Tabel met rol en verantwoordelijkheid]\n\n`;
+  prompt += `## 5. Bijlage: termen, definities en afkortingen\n\n---\n\n`;
+  
+  prompt += `VUL DE STRUCTUUR IN MET:\n`;
+  prompt += `- Onderwerp: ${topic}\n`;
+  if (scope) prompt += `- Reikwijdte: ${scope}\n`;
+  if (context) prompt += `- Context: ${context}\n`;
+  prompt += `- Frameworks: ${frameworks.join(', ')}\n`;
+  prompt += `- Lengte: middelmatig (ongeveer 8-12 pagina's)\n\n`;
+  
+  prompt += `BELANGRIJKE INSTRUCTIES:\n`;
+  prompt += `- Schrijf in formeel Nederlands, geschikt voor een overheidsorganisatie\n`;
+  prompt += `- Maatregelen moeten concreet, toetsbaar en implementeerbaar zijn\n`;
+  prompt += `- Elke maatregel eindigt met een verwijzing naar de bron (bijv. "-> BIO2 9.2.1" of "-> ISO 27002 5.17a")\n`;
+  prompt += `- Gebruik de juiste terminologie uit de genoemde frameworks\n`;
+  prompt += `- Laat organisatie-specifieke velden (auteur, eigenaar, adres) leeg voor handmatige invulling\n`;
+  prompt += `- Verwijs in hoofdstuk 1.3 Verantwoording naar de relevante BIO2 en ISO 27002 beheersmaatregelen\n`;
+  prompt += `- Vul de definities bijlage met relevante termen uit het onderwerp\n`;
+  
+  streamToModel(prompt, `📄 ${docType}: ${topic}`);
+}
+
+function generateRiskAnalysis() {
+  const asset = document.getElementById('riskAsset').value.trim();
+  const type = document.getElementById('riskType').value;
+  const criticality = document.getElementById('riskCriticality').value;
+  const scope = document.getElementById('riskScope').value.trim();
+  const threats = document.getElementById('riskThreats').value.trim();
+  
+  if (!asset) return alert('Vul een asset/systeem naam in');
+  if (!scope) return alert('Beschrijf de scope en context');
+  
+  let prompt = `Voer een informatiebeveiliging risicoanalyse uit voor: "${asset}"\n\n`;
+  prompt += `ANALYSE DETAILS:\n`;
+  prompt += `- Type analyse: ${type}\n`;
+  if (criticality) prompt += `- Kriticaliteit: ${criticality}\n`;
+  prompt += `- Scope: ${scope}\n`;
+  if (threats) prompt += `- Bekende dreigingen/zorgen: ${threats}\n`;
+  prompt += `\nGEVRAAGDE OUTPUT (structuur het antwoord volgens deze secties):\n\n`;
+  
+  if (document.getElementById('riskThreatsList').checked) {
+    prompt += `## 1. Dreigingen Identificatie\nIdentificeer concrete dreigingen in de categorieën: Vertrouwelijkheid, Integriteit, Beschikbaarheid (CIA). Gebruik STRIDE model indien van toepassing. Geef per dreiging: bron (insider/outsider/technisch), vector, en voorbeeld scenario.\n\n`;
+  }
+  if (document.getElementById('riskMatrix').checked) {
+    prompt += `## 2. Impact/Kans Matrix\nMaak een tabel met per dreiging: kans (Laag/Midden/Hoog), impact op V/I/B, en resulterend risiconiveau. Onderbouw de inschattingen.\n\n`;
+  }
+  if (document.getElementById('riskMitigations').checked) {
+    prompt += `## 3. Mitigatie Voorstellen\nPer geïdentificeerd risico: concrete mitigatie maatregelen, verwachte effectiviteit, prioritering (must-have / should-have / nice-to-have), en indicatie van implementatie inspanning.\n\n`;
+  }
+  if (document.getElementById('riskResidual').checked) {
+    prompt += `## 4. Restrisico Analyse\nNa implementatie van de voorgestelde mitigaties: wat blijft over aan restrisico, welke restrisico's vereisen formele acceptatie, en welke aanvullende monitoring is nodig.\n\n`;
+  }
+  if (document.getElementById('riskBIO2Mapping').checked) {
+    prompt += `## 5. Mapping naar BIO2 Maatregelen\nMap de geïdentificeerde risico's en voorgestelde mitigaties naar specifieke BIO2 beheersmaatregelen (met nummers).\n\n`;
+  }
+  if (document.getElementById('riskISO27005').checked) {
+    prompt += `## 6. ISO 27005 Methodiek\nVolg de ISO 27005 risicomanagement proces structuur: context establishment, risk identification, risk analysis, risk evaluation, risk treatment.\n\n`;
+  }
+  
+  prompt += `\nBELANGRIJK:\n`;
+  prompt += `- Wees concreet en specifiek voor "${asset}", geen generieke lijst\n`;
+  prompt += `- Gebruik Nederlandse terminologie conform BIO2 en NEN 7510\n`;
+  prompt += `- Geef prioritering en onderbouwing, niet alleen lijsten\n`;
+  
+  streamToModel(prompt, `⚠️ Risicoanalyse: ${asset}${criticality ? ' (' + criticality + ')' : ''}`);
+}
+
+function generateAdvice() {
+  const question = document.getElementById('adviceQuestion').value.trim();
+  const from = document.getElementById('adviceFrom').value.trim();
+  const urgency = document.getElementById('adviceUrgency').value;
+  const context = document.getElementById('adviceContext').value.trim();
+  
+  if (!question) return alert('Vul een vraag of casus in');
+  
+  const frameworks = [];
+  if (document.getElementById('advBIO2').checked) frameworks.push('BIO2');
+  if (document.getElementById('advAVG').checked) frameworks.push('AVG');
+  if (document.getElementById('advISO27002').checked) frameworks.push('ISO 27002');
+  if (document.getElementById('advNIS2').checked) frameworks.push('NIS2');
+  if (document.getElementById('advCBW').checked) frameworks.push('Cyberbeveiligingswet');
+  if (document.getElementById('advVIRBI').checked) frameworks.push('VIR-BI 2025');
+  
+  let prompt = `Schrijf een adviesnotitie vanuit de rol van Information Security Officer (ISO) als reactie op de volgende vraag:\n\n`;
+  prompt += `VRAAG:\n"${question}"\n\n`;
+  if (from) prompt += `VRAGENSTELLER: ${from}\n`;
+  prompt += `URGENTIE: ${urgency}\n`;
+  if (context) prompt += `CONTEXT: ${context}\n`;
+  if (frameworks.length > 0) prompt += `TOE TE PASSEN KADERS: ${frameworks.join(', ')}\n`;
+  
+  prompt += `\nSTRUCTUUR VAN HET ADVIES:\n\n`;
+  prompt += `## Samenvatting\nKorte samenvatting van de casus en het advies (2-3 zinnen).\n\n`;
+  prompt += `## Analyse\nAnalyse van de vraag in het licht van informatiebeveiliging, privacy en de genoemde kaders. Welke aspecten zijn relevant?\n\n`;
+  prompt += `## Overwegingen\nWat zijn de risico's? Wat zijn de voordelen? Welke afwegingen spelen een rol? Noem relevante maatregelen uit de kaders.\n\n`;
+  prompt += `## Aanbeveling\nConcreet advies: doen / niet doen / onder voorwaarden. Onderbouw waarom.\n\n`;
+  prompt += `## Voorwaarden en randvoorwaarden\nIndien van toepassing: onder welke voorwaarden kan het wel / wat moet er geregeld zijn.\n\n`;
+  prompt += `## Alternatieven\nZijn er alternatieve aanpakken die ook overwogen zouden moeten worden?\n\n`;
+  
+  prompt += `BELANGRIJK:\n`;
+  prompt += `- Schrijf in formeel maar toegankelijk Nederlands\n`;
+  prompt += `- Wees concreet en actiegericht, geen vage opmerkingen\n`;
+  prompt += `- Verwijs naar specifieke artikelen/maatregelen uit de kaders waar relevant\n`;
+  prompt += `- Blijf binnen de rol van ISO: geef advies, laat uiteindelijke besluit aan de vragensteller\n`;
+  prompt += `- Houd rekening met proportionaliteit en praktische uitvoerbaarheid\n`;
+  
+  streamToModel(prompt, `💡 Advies: ${question.substring(0, 60)}${question.length > 60 ? '...' : ''}`);
+}
+
+function generateCompliance() {
+  const question = document.getElementById('compQuestion').value.trim();
+  const framework = document.getElementById('compFramework').value;
+  const type = document.getElementById('compType').value;
+  
+  if (!question) return alert('Vul een vraag in');
+  
+  let prompt = `Beantwoord de volgende compliance vraag als een ervaren Information Security Officer:\n\n`;
+  prompt += `VRAAG: "${question}"\n\n`;
+  prompt += `PRIMAIR FRAMEWORK: ${framework}\n`;
+  prompt += `TYPE VRAAG: ${type}\n\n`;
+  
+  if (type === 'Interpretatie') {
+    prompt += `Geef een heldere interpretatie van de gevraagde maatregel/artikel. Leg uit: wat betekent het, wat is de bedoeling, wat zijn de belangrijkste onderdelen.\n\n`;
+  } else if (type === 'Praktische toepassing') {
+    prompt += `Leg uit hoe deze maatregel praktisch toe te passen is: concrete stappen, voorbeelden, valkuilen, en hoe aan te tonen dat je eraan voldoet.\n\n`;
+  } else if (type === 'Mapping tussen frameworks') {
+    prompt += `Geef een mapping tussen de genoemde maatregel en vergelijkbare maatregelen in andere frameworks (BIO2, ISO 27002, NEN 7510, etc). Toon overeenkomsten en verschillen.\n\n`;
+  } else if (type === 'Aantonen compliance') {
+    prompt += `Leg uit hoe je kunt aantonen dat je compliant bent: welke bewijsstukken, welke audits, welke indicatoren, welke documentatie is nodig.\n\n`;
+  } else if (type === 'Vergelijking') {
+    prompt += `Maak een gestructureerde vergelijking tussen de betrokken frameworks/maatregelen: overeenkomsten, verschillen, waar elk framework strenger of losser is.\n\n`;
+  }
+  
+  prompt += `BELANGRIJK:\n`;
+  prompt += `- Wees specifiek met nummers en letterlijke tekst waar mogelijk\n`;
+  prompt += `- Geef praktische voorbeelden uit de overheids- of zorgcontext\n`;
+  prompt += `- Als de vraag buiten het framework valt, zeg dat en verwijs naar relevantere bronnen\n`;
+  prompt += `- Schrijf in formeel maar toegankelijk Nederlands\n`;
+  prompt += `- Benoem onzekerheden of interpretatieruimte expliciet\n`;
+  
+  streamToModel(prompt, `⚖️ ${framework}: ${question.substring(0, 50)}${question.length > 50 ? '...' : ''}`);
+}
+
 // CHAT HISTORY
 let chatMessages = [];
 let currentChatId = null;
@@ -1329,7 +2069,64 @@ function renderChatHistory() {
 }
 
 // Init chat history on load
-document.addEventListener('DOMContentLoaded', () => renderChatHistory());
+// SIDEBAR COLLAPSE & SECTION TOGGLE
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  sidebar.classList.toggle('collapsed');
+  localStorage.setItem('sidebar_collapsed', sidebar.classList.contains('collapsed') ? '1' : '0');
+}
+
+function expandSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  sidebar.classList.remove('collapsed');
+  localStorage.setItem('sidebar_collapsed', '0');
+}
+
+function expandAndOpen(menu) {
+  expandSidebar();
+  // Vind de juiste menu-item en simuleer klik
+  setTimeout(() => {
+    const items = document.querySelectorAll('.menu-item');
+    for (const item of items) {
+      if (item.getAttribute('onclick') && item.getAttribute('onclick').includes(`'${menu}'`)) {
+        item.click();
+        break;
+      }
+    }
+  }, 50);
+}
+
+function toggleSection(labelEl) {
+  labelEl.classList.toggle('collapsed');
+  const sectionId = labelEl.getAttribute('data-section');
+  const collapsedSections = JSON.parse(localStorage.getItem('collapsed_sections') || '[]');
+  const isCollapsed = labelEl.classList.contains('collapsed');
+  if (isCollapsed && !collapsedSections.includes(sectionId)) {
+    collapsedSections.push(sectionId);
+  } else if (!isCollapsed) {
+    const idx = collapsedSections.indexOf(sectionId);
+    if (idx >= 0) collapsedSections.splice(idx, 1);
+  }
+  localStorage.setItem('collapsed_sections', JSON.stringify(collapsedSections));
+}
+
+function restoreSidebarState() {
+  // Restore sidebar collapsed state
+  if (localStorage.getItem('sidebar_collapsed') === '1') {
+    document.getElementById('sidebar').classList.add('collapsed');
+  }
+  // Restore section collapsed states
+  const collapsedSections = JSON.parse(localStorage.getItem('collapsed_sections') || '[]');
+  collapsedSections.forEach(sectionId => {
+    const label = document.querySelector(`.section-label[data-section="${sectionId}"]`);
+    if (label) label.classList.add('collapsed');
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderChatHistory();
+  restoreSidebarState();
+});
 
 // CLIPBOARD PASTE — direct screenshots uit clipboard plakken
 document.addEventListener('paste', (e) => {
