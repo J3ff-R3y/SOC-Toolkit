@@ -32,7 +32,7 @@ echo "🧹 Oude omgeving opruimen..."
 systemctl stop llama-server 2>/dev/null
 systemctl disable llama-server 2>/dev/null
 rm -rf "$BINARY_DIR"
-find "$BASE_DIR" -maxdepth 1 -type f ! -name 'deploy-jeffrey-v1.0.sh' ! -name 'llama.cpp-master.zip' ! -name "$MODEL_FILE" ! -name "$MMPROJ_FILE" ! -name 'jeffrey-v1.0.html' -delete
+find "$BASE_DIR" -maxdepth 1 -type f ! -name 'deploy-jeffrey-v1.0.sh' ! -name 'llama.cpp-master.zip' ! -name "$MODEL_FILE" ! -name "$MMPROJ_FILE" ! -name 'jeffrey-v1.0.html' ! -name 'xlsx.full.min.js' -delete
 mkdir -p "$MODEL_DIR" "$BINARY_DIR"
 
 echo "🏗️ Compileren van llama.cpp uit source..."
@@ -138,6 +138,15 @@ if [ -f "$SCRIPT_DIR/jeffrey-v1.0.html" ]; then
     echo "✅ HTML gedeployed"
 else
     echo -e "${RED}⚠ HTML niet gevonden — kopieer handmatig naar $BASE_DIR/index.html${NC}"
+fi
+
+# Deploy Excel library (SheetJS) voor in-browser xlsx parsing
+if [ -f "$SCRIPT_DIR/xlsx.full.min.js" ]; then
+    cp "$SCRIPT_DIR/xlsx.full.min.js" "$BASE_DIR/xlsx.full.min.js"
+    chown apache:apache "$BASE_DIR/xlsx.full.min.js"
+    echo "✅ Excel library gedeployed"
+else
+    echo -e "${RED}⚠ xlsx.full.min.js niet gevonden — Excel upload werkt dan niet${NC}"
 fi
 
 # SELinux

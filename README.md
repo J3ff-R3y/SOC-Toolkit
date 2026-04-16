@@ -30,7 +30,7 @@ Jeffrey is a self-hosted AI toolkit running on llama.cpp with Qwen 3.5 35B-A3B (
 - **Screenshot Analysis** — Paste or upload screenshots (SIEM alerts, dashboards, network diagrams) for visual analysis
 - **Streaming Output** — Live token-by-token responses with timer and stop button
 - **Context-Aware Follow-ups** — Chat history maintained across follow-up questions
-- **File Upload (RAG)** — Upload TXT/CSV/JSON/LOG context for analysis, or images for vision
+- **File Upload** — Upload text (TXT/CSV/JSON/MD/XML/YAML/CONF), Excel (XLSX/XLS), or images (PNG/JPG/GIF/WEBP for vision) as context for analysis
 - **Chat History** — Persistent conversations stored locally per user
 - **Export** — Download conversations as Markdown, Text, or JSON
 - **Collapsible Sidebar** — Full collapse mode with icon-only view, or collapse individual sections (SOC/ISO/Chats)
@@ -73,6 +73,7 @@ scp Qwen3.5-35B-A3B-MXFP4_MOE.gguf user@SERVER:/data/toolkit/
 scp mmproj-F16.gguf user@SERVER:/data/toolkit/
 scp deploy-jeffrey-v1.0.sh user@SERVER:/data/toolkit/
 scp jeffrey-v1.0.html user@SERVER:/data/toolkit/
+scp xlsx.full.min.js user@SERVER:/data/toolkit/
 ```
 
 ### 3. Deploy
@@ -147,7 +148,8 @@ sudo systemctl restart llama-server
 
 | File | Purpose |
 |------|---------|
-| `jeffrey-v1.0.html` | Web interface (SOC + ISO tools, vision support) |
+| `jeffrey-v1.0.html` | Web interface (SOC + ISO tools, vision + Excel support) |
+| `xlsx.full.min.js` | SheetJS library for in-browser Excel parsing (Apache 2.0) |
 | `deploy-jeffrey-v1.0.sh` | Fresh deployment script |
 | `upgrade-llamacpp.sh` | In-place llama.cpp recompilation for updates |
 | `README.md` | This document |

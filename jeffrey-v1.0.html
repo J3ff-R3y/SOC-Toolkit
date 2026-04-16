@@ -124,6 +124,9 @@ header { padding: 12px 20px; background: var(--bg-secondary); border-bottom: 1px
 .form-checkbox input[type="checkbox"] { accent-color:var(--accent); }
 .form-subtitle { font-size:14px; color:var(--text-secondary); margin-bottom:16px; }
 </style>
+
+<!-- SheetJS voor Excel bestanden (lokaal, geen internet vereist) -->
+<script src="xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -670,8 +673,8 @@ header { padding: 12px 20px; background: var(--bg-secondary); border-bottom: 1px
     <div class="input-container">
       <div class="input-wrapper">
         <div class="file-upload-wrapper">
-          <label for="fileUpload" class="file-upload-btn" id="fileUploadLabel" title="Upload bestand — tekst (TXT/CSV/JSON/LOG) of afbeelding (PNG/JPG/GIF/WEBP) voor screenshot analyse">📎</label>
-          <input type="file" id="fileUpload" class="file-upload-input" accept=".txt,.csv,.json,.md,.log,.file,.xml,.yaml,.yml,.conf,.png,.jpg,.jpeg,.gif,.webp">
+          <label for="fileUpload" class="file-upload-btn" id="fileUploadLabel" title="Upload bestand — tekst (TXT/CSV/JSON/MD/XML/YAML/CONF), Excel (XLSX), of afbeelding (PNG/JPG/GIF/WEBP) voor screenshot analyse">📎</label>
+          <input type="file" id="fileUpload" class="file-upload-input" accept=".txt,.csv,.json,.md,.xml,.yaml,.yml,.conf,.xlsx,.xls,.png,.jpg,.jpeg,.gif,.webp">
         </div>
         <textarea class="input-field" id="inputField" placeholder="Stel je vraag of drop een alert hier..." rows="1"></textarea>
         <button class="send-btn" id="sendBtn">➤</button>
@@ -771,15 +774,47 @@ function clearChat() {
   document.querySelectorAll('.form-container').forEach(f => f.classList.remove('show'));
 }
 
-// FILE UPLOAD — tekst of afbeelding (vision)
+// FILE UPLOAD — tekst, afbeelding (vision), of Excel
 let uploadedImage = null; // {name, dataUrl, mediaType}
 
-document.getElementById('fileUpload').addEventListener('change', function(e) {
+// Helper: extract text from Excel using SheetJS
+function extractExcelText(file) {
+  return new Promise((resolve, reject) => {
+    if (typeof XLSX === 'undefined') {
+      reject(new Error('Excel library niet geladen. Controleer of xlsx.full.min.js beschikbaar is.'));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      try {
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        let fullText = '';
+        workbook.SheetNames.forEach(sheetName => {
+          const sheet = workbook.Sheets[sheetName];
+          const csv = XLSX.utils.sheet_to_csv(sheet, { FS: ' | ' });
+          if (csv.trim()) {
+            fullText += `\n--- Tab: ${sheetName} ---\n${csv}\n`;
+          }
+        });
+        resolve(fullText.trim());
+      } catch (err) {
+        reject(err);
+      }
+    };
+    reader.onerror = () => reject(new Error('Kon Excel bestand niet lezen'));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+document.getElementById('fileUpload').addEventListener('change', async function(e) {
   const file = e.target.files[0];
   if (!file) return;
   
   const imageExtensions = /\.(png|jpg|jpeg|gif|webp)$/i;
+  const excelExtensions = /\.(xlsx|xls)$/i;
   const isImage = imageExtensions.test(file.name);
+  const isExcel = excelExtensions.test(file.name);
   
   if (isImage) {
     // Afbeelding → base64 voor vision model
@@ -814,6 +849,41 @@ document.getElementById('fileUpload').addEventListener('change', function(e) {
       }
     };
     reader.readAsDataURL(file);
+  } else if (isExcel) {
+    // Excel → CSV tekst extractie via SheetJS
+    if (file.size > 20 * 1024 * 1024) {
+      alert('Excel te groot (max 20 MB). Exporteer relevante tabs of rijen.');
+      e.target.value = '';
+      return;
+    }
+    
+    const list = document.getElementById('fileList');
+    if (list) {
+      list.style.display = 'flex';
+      list.innerHTML = `<span class="file-pill">📊 ${file.name} <span style="color:var(--text-dim)">(Excel wordt uitgelezen...)</span></span>`;
+    }
+    
+    try {
+      const text = await extractExcelText(file);
+      if (!text || text.length < 20) {
+        alert('Geen leesbare data gevonden in het Excel bestand.');
+        clearUploadedFile();
+        e.target.value = '';
+        return;
+      }
+      uploadedContext = `\n\n--- GEÜPLOADE EXCEL (${file.name}) ---\n${text}\n-----------------------------------\n`;
+      uploadedImage = null;
+      document.getElementById('fileUploadLabel').classList.add('has-file');
+      document.getElementById('inputField').placeholder = `Vraag iets over ${file.name}...`;
+      if (list) {
+        const sizeKB = Math.round(file.size / 1024);
+        const textKB = Math.round(text.length / 1024);
+        list.innerHTML = `<span class="file-pill">📊 ${file.name} <span style="color:var(--text-dim)">(Excel, ${sizeKB} KB → ${textKB} KB tekst)</span> <span class="remove-file" onclick="clearUploadedFile()">✕</span></span>`;
+      }
+    } catch (err) {
+      alert('Excel uitlezen mislukt: ' + err.message);
+      clearUploadedFile();
+    }
   } else {
     // Tekst bestand → als context
     const reader = new FileReader();
