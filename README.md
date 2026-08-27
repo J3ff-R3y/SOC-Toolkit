@@ -4,11 +4,12 @@
 
 ## What is Jeffrey?
 
-Jeffrey is a self-hosted AI toolkit running on llama.cpp with Qwen 3.5 35B-A3B (Mixture-of-Experts + Vision). It provides SOC analysts with query builders, playbooks, detection rules, incident enrichment, and forensics tooling. It provides ISOs with policy generation, risk analysis, advisory notes, and compliance Q&A. All behind Apache Basic Auth in a single HTML interface.
+Jeffrey is a self-hosted AI toolkit running on llama.cpp with Qwen 3.6 35B-A3B (Mixture-of-Experts + Vision). It provides SOC analysts with query builders, playbooks, detection rules, incident enrichment, and forensics tooling. It provides ISOs with policy generation, risk analysis, advisory notes, and compliance Q&A. All behind Apache Basic Auth in a single HTML interface.
 
 ## Features
 
 ### SOC Tools
+
 - **SIEM Query Builder** — Splunk (SPL), Microsoft Sentinel (KQL), Elastic (EQL/Lucene) with use case dropdowns, time range, MITRE ATT&CK mapping
 - **SOAR Playbooks** — Sentinel Logic Apps and Splunk SOAR with incident type, severity, and automation action selection
 - **Sigma Rules** — Convert Sigma YAML to platform-specific detection with field mapping and false positive analysis
@@ -19,6 +20,7 @@ Jeffrey is a self-hosted AI toolkit running on llama.cpp with Qwen 3.5 35B-A3B (
 - **Sentinel Pipeline** — BICEP templates and CI/CD pipelines for Sentinel content deployment with conflict prevention for co-existing MSSP pipelines
 
 ### ISO Tools
+
 - **Beleid Generator** — Generates policy documents in standard Dutch government structure (versiebeheer, verspreiding, verwijzingen, acceptatie, inleiding, maatregelen, mapping, rollen, bijlage)
 - **Risicoanalyse** — Supports risk analyses with criticality levels (Laag/Midden/Hoog/Kritiek), STRIDE modeling, and BIO2/ISO 27005 mapping
 - **Adviesnotitie** — Structured advisory notes with summary, analysis, considerations, recommendation, conditions, and alternatives
@@ -27,133 +29,169 @@ Jeffrey is a self-hosted AI toolkit running on llama.cpp with Qwen 3.5 35B-A3B (
 **Supported frameworks:** BIO2, ISO 27001/27002/27005, NIS2, AVG/GDPR, NEN 7510, Cyberbeveiligingswet, ABRO, VIR-BI 2025.
 
 ### Platform Features
+
+- **Multi-file Upload** — Up to 5 files at once, mixed types: text (TXT/CSV/JSON/MD/XML/YAML/CONF), Excel (XLSX/XLS), **PDF** (client-side text extraction via PDF.js), and up to 3 images together (PNG/JPG/GIF/WEBP for vision)
+- **Paste-to-attachment** — Pasting long text (>500 characters) into the input field automatically becomes an attachment instead of cluttering the input box, same pattern as Claude/ChatGPT
 - **Screenshot Analysis** — Paste or upload screenshots (SIEM alerts, dashboards, network diagrams) for visual analysis
-- **Streaming Output** — Live token-by-token responses with timer and stop button
-- **Context-Aware Follow-ups** — Chat history maintained across follow-up questions
-- **File Upload** — Upload text (TXT/CSV/JSON/MD/XML/YAML/CONF), Excel (XLSX/XLS), or images (PNG/JPG/GIF/WEBP for vision) as context for analysis
-- **Chat History** — Persistent conversations stored locally per user
-- **Export** — Download conversations as Markdown, Text, or JSON
-- **Collapsible Sidebar** — Full collapse mode with icon-only view, or collapse individual sections (SOC/ISO/Chats)
+- **Streaming Output** — Live token-by-token responses with timer and stop button, with scroll behavior that respects manual scrolling during generation
+- **Context-Aware Follow-ups** — In-session chat history maintained across follow-up questions, with a token budget that scales down as the conversation grows (prevents responses being cut off mid-generation in long conversations)
+- **Collapsible Sidebar** — Full collapse mode with icon-only view, or collapse individual sections (SOC/ISO)
 - **Custom Login** — Username/password authentication via Apache Basic Auth
+
+**No persistent chat history.** This toolkit is typically accessed from a stateless Citrix environment, where the browser profile (and anything in `localStorage`) is reset on every session. Persistent chat storage was removed rather than left in a broken state — conversations exist only within the current session, same as the follow-up context above.
 
 ## Architecture
 
 ```
 Browser  →  Apache (:8080)  →  llama.cpp server (:8081)
-            Basic Auth          Qwen 3.5 35B-A3B MoE
+            Basic Auth          Qwen 3.6 35B-A3B MoE
             Reverse Proxy       + Vision projector
             SSE Streaming       CPU inference
 ```
 
 ## Requirements
 
-| Component | Spec |
-|-----------|------|
-| OS | RHEL 10 (or compatible) |
-| RAM | 64 GB minimum |
-| Disk | 100 GB on /data |
-| Network | Offline (no internet required) |
-| GPU | Not required (CPU-only inference) |
+| Component | Spec                              |
+| --------- | ---------------------------------- |
+| OS        | RHEL 10 (or compatible)           |
+| RAM       | 64 GB minimum                     |
+| Disk      | 100 GB on /data                   |
+| Network   | Offline (no internet required)    |
+| GPU       | Not required (CPU-only inference) |
 
 ## Quick Start
 
 ### 1. Download (on a PC with internet)
 
-| File | Source | Size |
-|------|--------|------|
-| `llama.cpp-master.zip` | [GitHub](https://github.com/ggml-org/llama.cpp) → Code → Download ZIP | ~50 MB |
-| `Qwen3.5-35B-A3B-MXFP4_MOE.gguf` | [unsloth/Qwen3.5-35B-A3B-GGUF](https://huggingface.co/unsloth/Qwen3.5-35B-A3B-GGUF) | ~20 GB |
-| `mmproj-F16.gguf` | Same repo (for vision support) | ~900 MB |
+| File                              | Source                                                                                | Size    |
+| ---------------------------------- | -------------------------------------------------------------------------------------- | ------- |
+| `llama.cpp` source                 | [GitHub](https://github.com/ggml-org/llama.cpp) → tagged release → Download ZIP        | ~50 MB  |
+| `Qwen3.6-35B-A3B-MXFP4_MOE.gguf`   | [unsloth/Qwen3.6-35B-A3B-GGUF](https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF)   | ~21 GB  |
+| `mmproj-F16.gguf`                  | Same repo (for vision support) — must match the model version, not interchangeable    | ~900 MB |
+| `pdf.min.mjs` + `pdf.worker.min.mjs` | [PDF.js releases](https://github.com/mozilla/pdf.js/releases)                        | ~1.4 MB |
 
 ### 2. Upload to server
 
-```bash
-scp llama.cpp-master.zip user@SERVER:/data/toolkit/
-scp Qwen3.5-35B-A3B-MXFP4_MOE.gguf user@SERVER:/data/toolkit/
+```
+scp llama.cpp-source.zip user@SERVER:/data/toolkit/
+scp Qwen3.6-35B-A3B-MXFP4_MOE.gguf user@SERVER:/data/toolkit/
 scp mmproj-F16.gguf user@SERVER:/data/toolkit/
 scp deploy-jeffrey-v1.0.sh user@SERVER:/data/toolkit/
 scp jeffrey-v1.0.html user@SERVER:/data/toolkit/
 scp xlsx.full.min.js user@SERVER:/data/toolkit/
+scp pdf.min.mjs pdf.worker.min.mjs user@SERVER:/data/toolkit/
 ```
 
 ### 3. Deploy
 
-```bash
+```
 sudo bash /data/toolkit/deploy-jeffrey-v1.0.sh
 ```
 
 The script handles everything: cleanup of old installations, compiling llama.cpp from source (CMake), model + vision projector setup, Apache reverse proxy with Basic Auth, SELinux, firewall, and systemd service creation.
+
+> **Note:** this script (in `archief/`) was written for the original 16384-context, PDF-less setup. It still works for a fresh install, but after deploying, apply the current production settings manually: increase `--ctx-size` to 32768 and add `--batch-size 1024 --ubatch-size 2048` to the systemd override (see `docs/NASLAG.md`), and copy `pdf.min.mjs` / `pdf.worker.min.mjs` alongside the HTML for PDF support (see Quick Start table above — the script does not copy these).
 
 ## File Structure (after deployment)
 
 ```
 /data/
 ├── toolkit/
-│   ├── index.html                         # Active HTML (served by Apache)
-│   ├── deploy-jeffrey-v1.0.sh              # Deploy script
-│   └── jeffrey-v1.0.html                   # HTML source
+│   ├── index.html                          # Active HTML (served by Apache)
+│   ├── jeffrey-v1.0.html                   # HTML source / staging copy
+│   ├── xlsx.full.min.js                    # Excel parsing (SheetJS)
+│   ├── pdf.min.mjs                         # PDF text extraction (PDF.js)
+│   ├── pdf.worker.min.mjs                  # PDF.js worker
+│   └── deploy-jeffrey-v1.0.sh               # Deploy script
 ├── models/
-│   ├── Qwen3.5-35B-A3B-MXFP4_MOE.gguf    # Main model (~20 GB)
-│   └── mmproj-F16.gguf                    # Vision projector (~900 MB)
+│   ├── Qwen3.6-35B-A3B-MXFP4_MOE.gguf     # Main model (~21 GB)
+│   └── mmproj-F16.gguf                     # Vision projector (~900 MB)
+├── scripts/
+│   ├── update-model.sh                     # Reusable model-update script
+│   └── README.md                           # Update instructions
 /opt/llama-server/
-│   └── llama-server                        # Compiled binary
-/etc/httpd/conf.d/jeffrey.conf              # Apache config
+│   └── llama-server                         # Compiled binary
+/etc/httpd/conf.d/jeffrey.conf               # Apache config
 /etc/systemd/system/llama-server.service
 /etc/systemd/system/llama-server.service.d/override.conf
 ```
 
 ## Management
 
-```bash
+```
 # Services
 systemctl status llama-server
-journalctl -u llama-server -f
+journalctl -u llama-server -f          # note: this service logs to /var/log/llama-server.log, not journald
+tail -f /var/log/llama-server.log      # actual runtime logs, including per-request timing
 
 # Users
-htpasswd /etc/httpd/.htpasswd <username>         # Add
-htpasswd -D /etc/httpd/.htpasswd <username>       # Remove
+htpasswd /etc/httpd/.htpasswd <username>          # Add
+htpasswd -D /etc/httpd/.htpasswd <username>        # Remove
 
 # Restart after config change
 sudo systemctl restart llama-server
 ```
 
+### Updating the model
+
+A reusable, tested update script lives in `/data/scripts/` on the server (configuration block at the top, run with `sudo bash update-model.sh`). See `docs/NASLAG.md` for background and the full procedure.
+
 ## Current Model
 
-| Property | Value |
-|----------|-------|
-| Model | Qwen 3.5 35B-A3B Instruct |
-| Architecture | Mixture-of-Experts (3B active of 35B total) |
-| Quantization | MXFP4_MOE (Unsloth) |
-| Vision | Yes (via mmproj-F16) |
-| Size (main) | ~20 GB |
-| Size (mmproj) | ~900 MB |
-| RAM usage | ~24 GB |
-| Context window | 16384 tokens |
-| License | Apache 2.0 |
+| Property       | Value                                        |
+| -------------- | --------------------------------------------- |
+| Model          | Qwen 3.6 35B-A3B Instruct                    |
+| Architecture   | Mixture-of-Experts (~3B active of 35B total) |
+| Quantization   | MXFP4\_MOE (Unsloth)                         |
+| Vision         | Yes (via mmproj-F16, version-matched)        |
+| Size (main)    | ~21 GB                                       |
+| Size (mmproj)  | ~900 MB                                      |
+| RAM usage      | ~12–16 GB (varies; MoE + mmap keeps this lower than the full weight size) |
+| Context window | 32768 tokens                                 |
+| Batch size     | 1024 (`--batch-size`)                        |
+| Micro-batch    | 2048 (`--ubatch-size`, the flag that actually affects prompt-processing speed on CPU) |
+| License        | Apache 2.0                                   |
+
+Context window was doubled from the original 16384 after confirming (via community reports and this MoE architecture's low KV-cache growth) that the RAM cost of a larger context is minimal — a few hundred MB, not gigabytes.
 
 ## Performance (CPU-only, 64GB RAM)
 
-| Query type | Expected time |
-|------------|---------------|
-| Simple question | 5-15 sec |
-| SIEM query | 15-30 sec |
-| SOAR / Sigma / Network | 30-90 sec |
-| SOC Kickstart package | 2-5 min |
-| Screenshot analysis | 30-90 sec |
-| Policy document (ISO) | 1-3 min |
-| Risk analysis (ISO) | 1-2 min |
-| Sentinel Pipeline | 2-5 min |
+| Query type                          | Expected time |
+| ------------------------------------ | ------------- |
+| Simple question                      | 5-15 sec      |
+| SIEM query                           | 15-30 sec     |
+| SOAR / Sigma / Network               | 30-90 sec     |
+| SOC Kickstart package                | 2-5 min       |
+| Single screenshot analysis           | 30-90 sec     |
+| Multiple images + document together  | Several minutes — most of the time is spent in vision-encoder prompt processing, not answer generation. This is CPU-only cost, not a bug; a GPU would reduce this substantially. |
+| Policy document (ISO)                | 1-3 min       |
+| Risk analysis (ISO)                  | 1-2 min       |
+| Sentinel Pipeline                    | 2-5 min       |
+
+## Known behavior
+
+- **The model can hallucinate on specific facts** — most notably CVE details (wrong vendor/product for a given CVE number). This is inherent to how language models work, not something a configuration change fixes. For anything requiring verified accuracy (CVE details, CVSS scores), treat the model as a starting point and confirm against an authoritative source (e.g. nvd.nist.gov).
+- **No knowledge of events after the model's training cutoff** — recent CVEs or advisories won't be known to the model, and it won't always say so explicitly.
+- **Vision processing is CPU-bound and slow relative to text** — expect multi-minute waits for multiple images combined with documents. See Performance table above.
 
 ## Repository Contents
 
-| File | Purpose |
-|------|---------|
-| `jeffrey-v1.0.html` | Web interface (SOC + ISO tools, vision + Excel support) |
-| `xlsx.full.min.js` | SheetJS library for in-browser Excel parsing (Apache 2.0) |
-| `deploy-jeffrey-v1.0.sh` | Fresh deployment script |
-| `upgrade-llamacpp.sh` | In-place llama.cpp recompilation for updates |
-| `README.md` | This document |
-| `.gitignore` | Excludes GGUF models, builds, credentials |
+```
+├── README.md                    # This document
+├── jeffrey-v1.0.html            # (root copy, also under frontend/)
+frontend/
+├── index.html                   # (server copy, kept for reference — not auto-deployed from here)
+├── jeffrey-v1.0.html            # HTML source
+└── xlsx.full.min.js             # SheetJS library (Apache 2.0)
+docs/
+└── NASLAG.md                    # Background: architecture, file layout, terminology, model-update procedure
+archief/
+├── deploy-jeffrey-v1.0.sh       # Fresh-install deployment script
+└── upgrade-llamacpp.sh          # In-place llama.cpp recompilation for updates
+.gitignore                       # Excludes GGUF models, builds, credentials
+```
+
+Note: `pdf.min.mjs` and `pdf.worker.min.mjs` (PDF.js, ~1.4 MB combined) are required on the server alongside the HTML but are not vendored in this repo — download them fresh per the Quick Start table above to keep the repo lean and always get a current, supported PDF.js build.
 
 ## Disclaimers
 
@@ -161,4 +199,4 @@ Jeffrey is a personal/test project. It is not an officially supported production
 
 ## License
 
-This toolkit is provided as-is for internal SOC/ISO use. The Qwen 3.5 model is licensed under Apache 2.0.
+This toolkit is provided as-is for internal SOC/ISO use. The Qwen 3.6 model is licensed under Apache 2.0.
