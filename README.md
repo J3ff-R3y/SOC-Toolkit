@@ -68,7 +68,7 @@ Browser  →  Apache (:8080)  →  llama.cpp server (:8081)
 | `llama.cpp` source                 | [GitHub](https://github.com/ggml-org/llama.cpp) → tagged release → Download ZIP        | ~50 MB  |
 | `Qwen3.6-35B-A3B-MXFP4_MOE.gguf`   | [unsloth/Qwen3.6-35B-A3B-GGUF](https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF)   | ~21 GB  |
 | `mmproj-F16.gguf`                  | Same repo (for vision support) — must match the model version, not interchangeable    | ~900 MB |
-| `pdf.min.mjs` + `pdf.worker.min.mjs` | [PDF.js releases](https://github.com/mozilla/pdf.js/releases)                        | ~1.4 MB |
+| `pdf.min.mjs` + `pdf.worker.min.mjs`   | Included in `frontend/` (PDF.js 4.0.379) — only re-download from [PDF.js releases](https://github.com/mozilla/pdf.js/releases) if you want a newer build | ~1.4 MB |
 
 ### 2. Upload to server
 
@@ -90,7 +90,7 @@ sudo bash /data/toolkit/deploy-jeffrey-v1.0.sh
 
 The script handles everything: cleanup of old installations, compiling llama.cpp from source (CMake), model + vision projector setup, Apache reverse proxy with Basic Auth, SELinux, firewall, and systemd service creation.
 
-> **Note:** this script (in `archief/`) was written for the original 16384-context, PDF-less setup. It still works for a fresh install, but after deploying, apply the current production settings manually: increase `--ctx-size` to 32768 and add `--batch-size 1024 --ubatch-size 2048` to the systemd override (see `docs/NASLAG.md`), and copy `pdf.min.mjs` / `pdf.worker.min.mjs` alongside the HTML for PDF support (see Quick Start table above — the script does not copy these).
+> **Note:** this script (in `archief/`) was written for the original 16384-context, PDF-less setup. It still works for a fresh install, but after deploying, apply the current production settings manually: increase `--ctx-size` to 32768 and add `--batch-size 1024 --ubatch-size 2048` to the systemd override (see `docs/NASLAG.md`), and copy `pdf.min.mjs` / `pdf.worker.min.mjs` from `frontend/` alongside the HTML for PDF support (the script does not copy these).
 
 ## File Structure (after deployment)
 
@@ -191,7 +191,7 @@ archief/
 .gitignore                       # Excludes GGUF models, builds, credentials
 ```
 
-Note: `pdf.min.mjs` and `pdf.worker.min.mjs` (PDF.js, ~1.4 MB combined) are required on the server alongside the HTML but are not vendored in this repo — download them fresh per the Quick Start table above to keep the repo lean and always get a current, supported PDF.js build.
+Note: `pdf.min.mjs` and `pdf.worker.min.mjs` (PDF.js 4.0.379, ~1.4 MB combined) are included in `frontend/`. This is an older but confirmed-working build; a newer PDF.js release can be substituted if tested against the real browser environment first (headless Node.js testing proved unreliable for verifying newer builds due to missing browser-only APIs).
 
 ## Disclaimers
 
