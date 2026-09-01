@@ -186,6 +186,8 @@ header { padding: 12px 20px; background: var(--bg-secondary); border-bottom: 1px
         <div class="menu-item" onclick="toggleMenu('siem')"><span>🔍 SIEM Query Builder</span></div>
         <div class="menu-item" onclick="toggleMenu('soar')"><span>📋 SOAR Playbooks</span></div>
         <div class="menu-item" onclick="toggleMenu('sigma')"><span>Σ Sigma Rules</span></div>
+        <div class="menu-item" onclick="toggleMenu('trigger')"><span>🎯 Detectie Trigger Tester</span></div>
+        <div class="menu-item" onclick="toggleMenu('lolbas')"><span>📚 Living Off The Land Naslag</span></div>
         <div class="menu-item" onclick="toggleMenu('network')"><span>🌐 Network Detection</span></div>
         <div class="menu-item" onclick="toggleMenu('kickstart')"><span>🚀 SOC Kickstart</span></div>
         <div class="menu-item" onclick="toggleMenu('forensics')"><span>🔬 Forensische Triage</span></div>
@@ -271,6 +273,31 @@ header { padding: 12px 20px; background: var(--bg-secondary); border-bottom: 1px
           </div>
         </div>
         <button class="form-btn" onclick="generateSOAR()">📋 Genereer Playbook</button>
+      </div>
+
+      <div class="form-container" id="triggerForm">
+        <h2 class="form-title">🎯 Detectie Trigger Tester</h2>
+        <p class="form-subtitle">Genereer een testtrigger voor een bestaande SIEM-detectieregel (bijv. aangeleverd door een externe partij), om te controleren of de alert daadwerkelijk afgaat op de testmachine.</p>
+        <div class="form-group"><label class="form-label">Platform</label>
+          <select class="form-input" id="triggerPlatform" onchange="updateTriggerPlaceholder()"><option>Sentinel</option><option>Splunk</option><option>Elastic</option></select></div>
+        <div class="form-group"><label class="form-label">Detectieregel</label>
+          <textarea class="form-input" id="triggerJson" rows="8" placeholder="Plak hier de regel..."></textarea>
+          <p class="form-subtitle" style="margin-top:4px;font-size:12px;" id="triggerFormatHint">Sentinel: JSON-export van de Analytics Rule (bevat een "query"-veld met KQL).</p></div>
+        <div class="form-group"><label class="form-label">Extra context (optioneel)</label>
+          <textarea class="form-input" id="triggerContext" rows="2" placeholder="Bijv. specifieke gebruikersnaam, hostnaam, of beperkingen van de testmachine..."></textarea></div>
+        <p class="form-subtitle" style="margin-top:-4px;">Jeffrey ontleedt de query/logica in de regel, bouwt waar mogelijk een uitvoerbaar trigger-script (PowerShell voor Windows, bash/Python voor Linux — Jeffrey bepaalt zelf welk OS logisch is op basis van de regel), en geeft altijd expliciet aan wanneer automatisch triggeren te risicovol is (bijv. bij malware-achtig gedrag) — in dat geval krijg je een handmatig stappenplan in plaats van een script. Controleer elk script zelf voordat je het draait; dit blijft mensenwerk, geen blind vertrouwen.</p>
+        <p class="form-subtitle" style="margin-top:-4px;"><strong>Vaste output-opbouw:</strong> 1) uitleg van de detectielogica, 2) OS-keuze + onderbouwing, 3) trigger-script óf risico-uitleg + handmatig stappenplan, 4) verificatiestap in het platform zelf.</p>
+        <button class="form-btn" onclick="generateTrigger()">🎯 Genereer Trigger</button>
+      </div>
+
+      <div class="form-container" id="lolbasForm">
+        <h2 class="form-title">📚 Living Off The Land Naslag</h2>
+        <p class="form-subtitle">Doorzoek "Living Off The Land Binaries, Scripts and Libraries" (<a href="https://lolbas-project.github.io/" target="_blank" rel="noopener">lolbas-project.github.io</a>) — puur lokale, exacte lookup, geen AI-interpretatie. Zoek op binary-naam (bijv. "certutil"), commando-onderdeel, of MITRE ID.</p>
+        <div class="form-group">
+          <input class="form-input" id="lolbasSearch" type="text" placeholder="Bijv. certutil, mshta, T1105..." oninput="searchLolbas()" autocomplete="off">
+        </div>
+        <div id="lolbasStatus" class="form-subtitle" style="margin-top:-4px;"></div>
+        <div id="lolbasResults"></div>
       </div>
 
       <div class="form-container" id="sigmaForm">
@@ -753,6 +780,7 @@ function toggleMenu(menu) {
   if(menu !== 'universal') {
     const targetForm = document.getElementById(menu + 'Form');
     if(targetForm) targetForm.classList.add('show');
+    if (menu === 'lolbas') loadLolbasData();
   } else {
     document.getElementById('welcome').style.display = 'block';
   }
@@ -1274,6 +1302,156 @@ function generateSIEM() {
   if (document.getElementById('siemAlert').checked) prompt += `Geef alert/threshold configuratie.\n`;
   
   streamToModel(prompt, `🔍 ${p}: ${uc || txt} (${t})`);
+}
+
+function generateTrigger() {
+  const platform = document.getElementById('triggerPlatform').value;
+  const json = document.getElementById('triggerJson').value.trim();
+  const context = document.getElementById('triggerContext').value.trim();
+
+  if (!json) return alert('Plak eerst de detectieregel in het veld, of upload een bestand.');
+
+  const platformFieldHint = {
+    'Sentinel': "het 'query'-veld (KQL)",
+    'Splunk': "het 'search'-veld (SPL)",
+    'Elastic': "het 'query'-veld in het [rule]-blok van de TOML (meestal EQL of KQL)",
+  }[platform];
+
+  let prompt = `DETECTIE TRIGGER TESTER\n`;
+  prompt += `Platform: ${platform}\n`;
+  prompt += `\nHieronder staat een detectieregel zoals geëxporteerd uit ${platform} (mogelijk aangeleverd door een externe partij). `;
+  prompt += `Deze regel is al actief/geconfigureerd in ${platform} zelf -- de vraag is NIET om de regel te maken of te converteren, `;
+  prompt += `maar om te helpen VERIFIËREN of de bijbehorende alert daadwerkelijk afgaat wanneer het gedrag dat de regel detecteert zich voordoet op een geïsoleerde testmachine.\n\n`;
+  prompt += `Detectieregel:\n${json}\n`;
+  if (context) prompt += `\nExtra context: ${context}\n`;
+  prompt += `\nGeef het antwoord in EXACT deze structuur, met deze koppen:\n\n`;
+  prompt += `## 1. Detectielogica\nOntleed de query/logica (${platformFieldHint}) en leg in gewone taal uit welk gedrag dit probeert te detecteren. Als de regel een bekende "Living Off The Land"-binary betreft (bijv. certutil.exe, mshta.exe, bitsadmin.exe, rundll32.exe) noem dat expliciet en benoem kort de bekende misbruiktechniek. Let op: geef dit vanuit algemene kennis, niet als exacte/actuele referentie -- voor precieze, actuele LOLBAS-commando's en bijbehorende Sigma/Elastic/Splunk-detectielinks is het "Living Off The Land Naslag"-tabblad de betrouwbare bron (puur lokale lookup, geen AI-interpretatie).\n\n`;
+  prompt += `## 2. Doelsysteem\nBepaal zelf, op basis van de regel-inhoud, of dit Windows- of Linux-gedrag betreft (of allebei relevant is), en onderbouw die keuze kort. Ga hierbij NIET uit van een vooraf gekozen OS -- leid dit af uit de regel zelf (bijv. procesnamen, paden, logsource-type).\n\n`;
+  prompt += `## 3. Trigger\nBeoordeel of het gedrag VEILIG is om na te bootsen op een geïsoleerde testmachine (bijv. een paar mislukte logins, een bekend proces met een specifieke command-line flag, verkeer naar een ongebruikelijke poort binnen het testnetwerk).\n`;
+  prompt += `- ALS veilig te automatiseren: geef een concreet, direct uitvoerbaar trigger-script -- PowerShell bij Windows, bash of Python bij Linux (gebruik het terminal/shell-commando dat bij dat OS hoort) -- met duidelijke commentaarregels per stap.\n`;
+  prompt += `- ALS risicovol (bijv. simuleert malware-gedrag, vereist destructieve/write-acties, raakt productie-achtige systemen): geef GEEN uitvoerbaar script. Leg expliciet uit WAAROM dit risicovol is, en geef in plaats daarvan een handmatig stappenplan dat een analist zelf, met eigen beoordeling per stap, kan volgen.\n\n`;
+  prompt += `## 4. Verificatie in ${platform}\nWat de analist na het triggeren moet checken (welk dashboard/incident-overzicht, verwachte tijd tot de alert verschijnt), en wat het betekent als de alert NIET afgaat -- kapotte regel-logica versus verkeerd getriggerd gedrag.\n`;
+
+  streamToModel(prompt, `🎯 Trigger test: ${platform}`);
+}
+
+function updateTriggerPlaceholder() {
+  const platform = document.getElementById('triggerPlatform').value;
+  const hints = {
+    'Sentinel': {
+      placeholder: '{\n  "displayName": "...",\n  "query": "SigninLogs | where ...",\n  "severity": "Medium",\n  "triggerOperator": "GreaterThan",\n  "triggerThreshold": 0\n}',
+      hint: 'Sentinel: JSON-export van de Analytics Rule (bevat een "query"-veld met KQL).',
+    },
+    'Splunk': {
+      placeholder: '[Verdachte PowerShell EncodedCommand]\nsearch = index=windows EventCode=4688 CommandLine="*-EncodedCommand*"\ncron_schedule = */5 * * * *\nalert.severity = 3',
+      hint: 'Splunk: de savedsearch/correlation search met het "search"-veld in SPL.',
+    },
+    'Elastic': {
+      placeholder: '[metadata]\ncreation_date = "2026/01/01"\n\n[rule]\nname = "Suspicious PowerShell EncodedCommand"\nquery = \'\'\'\nprocess.name : "powershell.exe" and process.args : "*-EncodedCommand*"\n\'\'\'\nseverity = "medium"',
+      hint: 'Elastic: de TOML-regel met het "query"-veld in het [rule]-blok (EQL of KQL).',
+    },
+  };
+  const cfg = hints[platform];
+  document.getElementById('triggerJson').placeholder = cfg.placeholder;
+  document.getElementById('triggerFormatHint').textContent = cfg.hint;
+}
+
+// LOLBAS NASLAG — puur client-side lookup, geen AI-interpretatie.
+// Data wordt lazy geladen (pas bij eerste gebruik van dit tabblad) vanuit
+// een los JSON-bestand naast de HTML, zelfde patroon als xlsx.full.min.js
+// en pdf.min.mjs. Bron: https://lolbas-project.github.io/api/lolbas.json
+let lolbasData = null;
+let lolbasLoading = false;
+
+async function loadLolbasData() {
+  if (lolbasData || lolbasLoading) return;
+  lolbasLoading = true;
+  const statusEl = document.getElementById('lolbasStatus');
+  statusEl.textContent = 'LOLBAS-data laden...';
+  try {
+    const res = await fetch('lolbas.json');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    lolbasData = await res.json();
+    statusEl.textContent = `${lolbasData.length} binaries geladen. Typ om te zoeken.`;
+  } catch (err) {
+    lolbasData = [];
+    statusEl.textContent = 'Kon lolbas.json niet laden. Controleer of dit bestand naast index.html staat op de server (zie README).';
+    console.error('LOLBAS laden mislukt:', err);
+  } finally {
+    lolbasLoading = false;
+  }
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function searchLolbas() {
+  const query = document.getElementById('lolbasSearch').value.trim().toLowerCase();
+  const resultsEl = document.getElementById('lolbasResults');
+  const statusEl = document.getElementById('lolbasStatus');
+
+  if (!lolbasData) {
+    resultsEl.innerHTML = '';
+    return;
+  }
+
+  if (!query) {
+    resultsEl.innerHTML = '';
+    statusEl.textContent = `${lolbasData.length} binaries geladen. Typ om te zoeken.`;
+    return;
+  }
+
+  const matches = lolbasData.filter(entry => {
+    if (entry.Name.toLowerCase().includes(query)) return true;
+    if (entry.Description && entry.Description.toLowerCase().includes(query)) return true;
+    if (entry.Commands && entry.Commands.some(c =>
+      (c.Command && c.Command.toLowerCase().includes(query)) ||
+      (c.MitreID && c.MitreID.toLowerCase().includes(query)) ||
+      (c.Category && c.Category.toLowerCase().includes(query))
+    )) return true;
+    return false;
+  }).slice(0, 25); // begrens weergave, voorkomt een enorme DOM bij brede zoekopdrachten
+
+  statusEl.textContent = `${matches.length} resultaat${matches.length === 1 ? '' : 'en'}${matches.length === 25 ? ' (eerste 25 getoond, verfijn je zoekopdracht)' : ''}`;
+
+  if (matches.length === 0) {
+    resultsEl.innerHTML = '<p class="form-subtitle">Geen resultaten.</p>';
+    return;
+  }
+
+  resultsEl.innerHTML = matches.map(entry => {
+    const commandsHtml = (entry.Commands || []).map(c => `
+      <div style="margin:6px 0;padding:8px;background:var(--bg-secondary,#1a1a1a);border-radius:6px;">
+        <code style="font-size:12px;word-break:break-all;">${escapeHtml(c.Command || '')}</code>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">${escapeHtml(c.Usecase || c.Description || '')} — <strong>${escapeHtml(c.Category || '')}</strong>${c.MitreID ? ` · ${escapeHtml(c.MitreID)}` : ''}</div>
+      </div>`).join('');
+
+    const detectionLinks = (entry.Detection || []).map(d => {
+      const [type, value] = Object.entries(d)[0] || [];
+      if (!value || typeof value !== 'string') return '';
+      const isUrl = /^https?:\/\//i.test(value);
+      if (isUrl) {
+        return `<a href="${escapeHtml(value)}" target="_blank" rel="noopener" style="margin-right:10px;font-size:12px;display:inline-block;margin-bottom:4px;">${escapeHtml(type)} regel ↗</a>`;
+      }
+      // Tekst-only detectie-info (bijv. IOC-omschrijvingen) is geen link --
+      // eerder werd dit per ongeluk als href gebruikt, wat op de lokale
+      // server een "Not Found" gaf omdat de tekst als relatief pad werd
+      // opgevat. Toon het in plaats daarvan als platte, leesbare tekst.
+      return `<div style="font-size:12px;color:var(--text-dim);margin-bottom:4px;"><strong>${escapeHtml(type)}:</strong> ${escapeHtml(value)}</div>`;
+    }).join('');
+
+    return `
+      <div class="form-container show" style="margin-bottom:12px;padding:14px;">
+        <h3 style="margin:0 0 4px 0;">${escapeHtml(entry.Name)}</h3>
+        <p class="form-subtitle" style="margin:0 0 8px 0;">${escapeHtml(entry.Description || '')}</p>
+        ${commandsHtml}
+        ${detectionLinks ? `<div style="margin-top:8px;">${detectionLinks}</div>` : ''}
+        <a href="${escapeHtml(entry.url || '#')}" target="_blank" rel="noopener" style="font-size:12px;">Volledige entry op lolbas-project.github.io ↗</a>
+      </div>`;
+  }).join('');
 }
 
 function generateSOAR() {
@@ -2261,6 +2439,7 @@ function restoreSidebarState() {
 
 document.addEventListener('DOMContentLoaded', () => {
   restoreSidebarState();
+  updateTriggerPlaceholder();
 });
 
 // CLIPBOARD PASTE — direct screenshots uit clipboard plakken

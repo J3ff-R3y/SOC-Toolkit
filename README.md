@@ -18,6 +18,8 @@ Jeffrey is a self-hosted AI toolkit running on llama.cpp with Qwen 3.6 35B-A3B (
 - **Forensische Triage** — First-pass analysis of suspicious binaries (strings extraction, IOC detection, magic bytes, entropy, YARA rule suggestions)
 - **Incident Enrichment** — Structured investigation plan where the model determines relevant SIEM platforms and data sources based on alert content
 - **Sentinel Pipeline** — BICEP templates and CI/CD pipelines for Sentinel content deployment with conflict prevention for co-existing MSSP pipelines
+- **Detectie Trigger Tester** — Paste a detection rule as delivered by a SIEM/vendor (Sentinel JSON, Splunk SPL, or Elastic TOML) and get a plan to verify the alert actually fires: rule logic explained, target OS inferred from the rule content, a ready-to-run PowerShell/bash trigger script where safe to automate, or an explicit risk explanation plus a manual step-by-step plan where it isn't — always followed by what to check in the SIEM afterwards
+- **Living Off The Land Naslag** — Local, offline-searchable reference of the [LOLBAS project](https://lolbas-project.github.io/) (living-off-the-land binaries/scripts): search by binary name, command fragment, or MITRE ID and get direct links to matching Sigma/Elastic/Splunk detection rules. Pure client-side lookup against a bundled JSON snapshot — no AI interpretation, no hallucination risk
 
 ### ISO Tools
 
@@ -69,6 +71,7 @@ Browser  →  Apache (:8080)  →  llama.cpp server (:8081)
 | `Qwen3.6-35B-A3B-MXFP4_MOE.gguf`   | [unsloth/Qwen3.6-35B-A3B-GGUF](https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF)   | ~21 GB  |
 | `mmproj-F16.gguf`                  | Same repo (for vision support) — must match the model version, not interchangeable    | ~900 MB |
 | `pdf.min.mjs` + `pdf.worker.min.mjs`   | Included in `frontend/` (PDF.js 4.0.379) — only re-download from [PDF.js releases](https://github.com/mozilla/pdf.js/releases) if you want a newer build | ~1.4 MB |
+| `lolbas.json`                      | Included in `frontend/` (snapshot for the Living Off The Land Naslag tab) — re-download from [lolbas-project.github.io/api/lolbas.json](https://lolbas-project.github.io/api/lolbas.json) for a fresher snapshot | ~430 KB |
 
 ### 2. Upload to server
 
@@ -80,6 +83,7 @@ scp deploy-jeffrey-v1.0.sh user@SERVER:/data/toolkit/
 scp jeffrey-v1.0.html user@SERVER:/data/toolkit/
 scp xlsx.full.min.js user@SERVER:/data/toolkit/
 scp pdf.min.mjs pdf.worker.min.mjs user@SERVER:/data/toolkit/
+scp lolbas.json user@SERVER:/data/toolkit/
 ```
 
 ### 3. Deploy
@@ -90,7 +94,7 @@ sudo bash /data/toolkit/deploy-jeffrey-v1.0.sh
 
 The script handles everything: cleanup of old installations, compiling llama.cpp from source (CMake), model + vision projector setup, Apache reverse proxy with Basic Auth, SELinux, firewall, and systemd service creation.
 
-> **Note:** this script (in `archief/`) was written for the original 16384-context, PDF-less setup. It still works for a fresh install, but after deploying, apply the current production settings manually: increase `--ctx-size` to 32768 and add `--batch-size 1024 --ubatch-size 2048` to the systemd override (see `docs/NASLAG.md`), and copy `pdf.min.mjs` / `pdf.worker.min.mjs` from `frontend/` alongside the HTML for PDF support (the script does not copy these).
+> **Note:** this script (in `archief/`) was written for the original 16384-context, PDF-less setup. It still works for a fresh install, but after deploying, apply the current production settings manually: increase `--ctx-size` to 32768 and add `--batch-size 1024 --ubatch-size 2048` to the systemd override (see `docs/NASLAG.md`), and copy `pdf.min.mjs` / `pdf.worker.min.mjs` / `lolbas.json` from `frontend/` alongside the HTML for PDF support and the Living Off The Land Naslag tab (the script does not copy these).
 
 ## File Structure (after deployment)
 
@@ -102,6 +106,7 @@ The script handles everything: cleanup of old installations, compiling llama.cpp
 │   ├── xlsx.full.min.js                    # Excel parsing (SheetJS)
 │   ├── pdf.min.mjs                         # PDF text extraction (PDF.js)
 │   ├── pdf.worker.min.mjs                  # PDF.js worker
+│   ├── lolbas.json                         # LOLBAS data snapshot (Living Off The Land Naslag tab)
 │   └── deploy-jeffrey-v1.0.sh               # Deploy script
 ├── models/
 │   ├── Qwen3.6-35B-A3B-MXFP4_MOE.gguf     # Main model (~21 GB)
@@ -182,7 +187,10 @@ Context window was doubled from the original 16384 after confirming (via communi
 frontend/
 ├── index.html                   # (server copy, kept for reference — not auto-deployed from here)
 ├── jeffrey-v1.0.html            # HTML source
-└── xlsx.full.min.js             # SheetJS library (Apache 2.0)
+├── xlsx.full.min.js             # SheetJS library (Apache 2.0)
+├── pdf.min.mjs                  # PDF.js 4.0.379 (Apache 2.0)
+├── pdf.worker.min.mjs           # PDF.js worker
+└── lolbas.json                  # LOLBAS project data snapshot (used by the Living Off The Land Naslag tab)
 docs/
 └── NASLAG.md                    # Background: architecture, file layout, terminology, model-update procedure
 archief/
@@ -192,6 +200,8 @@ archief/
 ```
 
 Note: `pdf.min.mjs` and `pdf.worker.min.mjs` (PDF.js 4.0.379, ~1.4 MB combined) are included in `frontend/`. This is an older but confirmed-working build; a newer PDF.js release can be substituted if tested against the real browser environment first (headless Node.js testing proved unreliable for verifying newer builds due to missing browser-only APIs).
+
+Note: `lolbas.json` (~430 KB, 242 entries) is a snapshot of the [LOLBAS project](https://lolbas-project.github.io/) data, used entirely client-side by the Living Off The Land Naslag tab — no backend, no AI interpretation. It's a reference snapshot rather than a live feed; re-download periodically from the source above if you want the latest entries.
 
 ## Disclaimers
 
