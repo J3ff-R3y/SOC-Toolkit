@@ -179,3 +179,38 @@ je hier iets van aanneemt.
 - Rollback naar een eerdere modelversie vereist opnieuw downloaden —
   oude modelbestanden worden na een geslaagde update opgeruimd, niet
   onbeperkt bewaard.
+
+## 8. Overwogen, bewust uitgesteld: Qwen3.8
+
+September 2026 verscheen Qwen3.8 (opvolger van 3.6) op Unsloth/Hugging
+Face, met een 27B-variant die op het eerste gezicht aantrekkelijk
+leek voor deze server. Bewust **niet** doorgevoerd, om de volgende
+redenen -- controleer deze aannames opnieuw voordat je alsnog
+overstapt, want ze kunnen inmiddels achterhaald zijn:
+
+- **Geen MoE meer.** Qwen3.6-35B-A3B heeft maar ~3B *actieve*
+  parameters per token (Mixture-of-Experts), wat de huidige lage
+  RAM-behoefte en redelijke CPU-snelheid verklaart. Qwen3.8-27B lijkt
+  een dense model (de officiële RAM-tabel schaalt met het volledige
+  gewicht, niet met een actieve deelverzameling) -- dat kan op CPU
+  trager zijn per gegenereerd token, ondanks het kleinere totale
+  aantal parameters.
+- **Alleen GPU-benchmarks bekend bij release.** De officiële
+  Unsloth-documentatie voor Qwen3.8 bevatte bij het verschijnen
+  uitsluitend prestatiecijfers op GPU's (B200, RTX 5080) -- geen
+  enkele CPU-only meting, in tegenstelling tot wat er destijds al over
+  Qwen3.6 op CPU bekend was.
+- **Zeer vers model.** Op het moment van deze afweging was Qwen3.8
+  nog maar enkele dagen oud. Bij de eerdere overstap van Qwen 3.5 naar
+  3.6 bleek een net-uitgekomen model al eens een
+  llama.cpp-compatibiliteitsprobleem te geven (zie
+  `archief/upgrade-llamacpp.sh`) -- bij een paar dagen oud model is
+  dat risico groter, en de "hybrid thinking"-modus van Qwen3.8 kan
+  mogelijk een ander/nieuwer chat-template vereisen dat nog niet
+  stabiel ondersteund wordt.
+
+**Beslissing:** wachten tot het model een paar weken tot maanden
+stabiel is en er community-gerapporteerde CPU-only benchmarks
+beschikbaar zijn, voordat dit serieus wordt overwogen. Test bij een
+eventuele herevaluatie eerst op de aparte testserver (sscc-soc-l01t),
+niet direct op deze productieserver.
