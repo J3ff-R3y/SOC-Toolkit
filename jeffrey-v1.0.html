@@ -65,7 +65,7 @@ header { padding: 12px 20px; background: var(--bg-secondary); border-bottom: 1px
 .message-content-wrapper { flex: 1; display: flex; flex-direction: column; gap: 4px; }
 .message-timestamp { font-size: 11px; color: var(--text-dim); margin-left: 4px; }
 .message-content { padding: 16px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); line-height: 1.6; font-size: 14px; }
-.message.user .message-content { background: var(--accent-dim); border-color: var(--accent-light); }
+.message.user .message-content { background: var(--accent-dim); border-color: var(--accent-light); white-space: pre-wrap; overflow-wrap: anywhere; }
 .message-content pre { background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 6px; overflow-x: auto; margin: 10px 0; font-family: monospace; font-size: 13px; }
 .message-content code { font-family: monospace; background: rgba(0,0,0,0.05); padding: 2px 4px; border-radius: 4px; }
 .message-content pre code { background: transparent; padding: 0; }
@@ -169,7 +169,7 @@ header { padding: 12px 20px; background: var(--bg-secondary); border-bottom: 1px
     
     <div class="sidebar-collapsed-icons">
       <div class="collapsed-icon" onclick="expandAndOpen('universal')" title="Universal Chat">💬</div>
-      <div class="collapsed-icon" onclick="expandAndOpen('siem')" title="SOC Tools">🛡️</div>
+      <div class="collapsed-icon" onclick="expandAndOpen('soar')" title="SOC Tools">🛡️</div>
       <div class="collapsed-icon" onclick="expandAndOpen('policy')" title="ISO Tools">📋</div>
     </div>
     
@@ -183,16 +183,12 @@ header { padding: 12px 20px; background: var(--bg-secondary); border-bottom: 1px
           <span>🛡️ SOC Tools</span>
           <span class="collapse-arrow">▼</span>
         </div>
-        <div class="menu-item" onclick="toggleMenu('siem')"><span>🔍 SIEM Query Builder</span></div>
         <div class="menu-item" onclick="toggleMenu('soar')"><span>📋 SOAR Playbooks</span></div>
         <div class="menu-item" onclick="toggleMenu('sigma')"><span>Σ Sigma Rules</span></div>
         <div class="menu-item" onclick="toggleMenu('trigger')"><span>🎯 Detectie Trigger Tester</span></div>
         <div class="menu-item" onclick="toggleMenu('lolbas')"><span>📚 Living Off The Land Naslag</span></div>
         <div class="menu-item" onclick="toggleMenu('network')"><span>🌐 Network Detection</span></div>
-        <div class="menu-item" onclick="toggleMenu('kickstart')"><span>🚀 SOC Kickstart</span></div>
         <div class="menu-item" onclick="toggleMenu('forensics')"><span>🔬 Forensische Triage</span></div>
-        <div class="menu-item" onclick="toggleMenu('enrichment')"><span>🔎 Incident Enrichment</span></div>
-        <div class="menu-item" onclick="toggleMenu('pipeline')"><span>📦 Sentinel Pipeline</span></div>
       </div>
       <div class="sidebar-section">
         <div class="section-label collapsible" onclick="toggleSection(this)" data-section="iso">
@@ -217,36 +213,6 @@ header { padding: 12px 20px; background: var(--bg-secondary); border-bottom: 1px
         <p>Selecteer een tool in het menu, upload een document, of sleep een screenshot voor visuele analyse.</p>
       </div>
       
-      <div class="form-container" id="siemForm">
-        <h2 class="form-title">🔍 SIEM Query Builder</h2>
-        <p class="form-subtitle">Genereer werkende, kopieerbare detection queries</p>
-        <div class="form-grid">
-          <div class="form-group"><label class="form-label">Platform</label>
-            <select class="form-input" id="siemPlatform"><option>Splunk</option><option>Microsoft Sentinel</option><option>Elastic</option></select></div>
-          <div class="form-group"><label class="form-label">Use Case</label>
-            <select class="form-input" id="siemUseCase">
-              <option value="">— Vrije vraag —</option>
-              <option>Failed / Brute Force Logins</option><option>Impossible Travel</option><option>Privilege Escalation</option>
-              <option>Persistence (service/task)</option><option>Suspicious PowerShell</option><option>Lateral Movement</option>
-              <option>Data Exfiltratie</option><option>Account Changes</option><option>DNS Anomalieën</option><option>Malware IOC's</option>
-            </select></div>
-          <div class="form-group"><label class="form-label">Tijdrange</label>
-            <select class="form-input" id="siemTime"><option>1 uur</option><option selected>4 uur</option><option>24 uur</option><option>7 dagen</option></select></div>
-          <div class="form-group"><label class="form-label">Data bron / Index</label>
-            <input class="form-input" id="siemSource" placeholder="bijv. wineventlog, syslog, firewall"></div>
-          <div class="form-group form-grid-full"><label class="form-label">Specifieke vraag</label>
-            <textarea class="form-input" id="siemText" rows="2" placeholder="Bijv. Toon alleen externe IP's, filter op specifieke gebruiker..."></textarea></div>
-        </div>
-        <div class="form-group"><label class="form-label">Output opties</label>
-          <div class="form-checkboxes">
-            <label class="form-checkbox"><input type="checkbox" id="siemExplain" checked> Uitleg per onderdeel</label>
-            <label class="form-checkbox"><input type="checkbox" id="siemMitre"> MITRE ATT&CK mapping</label>
-            <label class="form-checkbox"><input type="checkbox" id="siemAlert"> Alert configuratie</label>
-          </div>
-        </div>
-        <button class="form-btn" onclick="generateSIEM()">🔍 Genereer Query</button>
-      </div>
-
       <div class="form-container" id="soarForm">
         <h2 class="form-title">📋 SOAR Playbook Builder</h2>
         <p class="form-subtitle">Genereer automation playbooks voor incident response</p>
@@ -346,35 +312,6 @@ header { padding: 12px 20px; background: var(--bg-secondary); border-bottom: 1px
         <button class="form-btn" onclick="generateNetwork()">🌐 Genereer Rules</button>
       </div>
 
-      <div class="form-container" id="kickstartForm">
-        <h2 class="form-title">🚀 SOC Kickstart</h2>
-        <p class="form-subtitle">Complete security onboarding — threat model → detection rules (chained workflow)</p>
-        <div class="form-grid">
-          <div class="form-group form-grid-full"><label class="form-label">Applicatie / Systeem Naam *</label>
-            <input class="form-input" id="ksName" placeholder="bijv. Customer Portal, SAP ECC, HR Systeem"></div>
-          <div class="form-group"><label class="form-label">Omgeving</label>
-            <select class="form-input" id="ksEnvType"><option value="">— Selecteer —</option><option>On-Premise</option><option>Cloud (Azure)</option><option>Cloud (AWS)</option><option>Hybrid</option><option>SaaS</option></select></div>
-          <div class="form-group"><label class="form-label">Kriticaliteit</label>
-            <select class="form-input" id="ksCrit"><option value="">— Selecteer —</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></div>
-          <div class="form-group"><label class="form-label">Dataclassificatie</label>
-            <select class="form-input" id="ksData"><option value="">— Selecteer —</option><option>Publiek</option><option>Intern</option><option>Vertrouwelijk (PII)</option><option>Geheim</option></select></div>
-          <div class="form-group"><label class="form-label">Exposure</label>
-            <select class="form-input" id="ksExposure"><option value="">— Selecteer —</option><option>Internet-facing</option><option>DMZ</option><option>Intern netwerk</option><option>Air-gapped</option></select></div>
-          <div class="form-group form-grid-full"><label class="form-label">Aanvullende context</label>
-            <textarea class="form-input" id="ksEnv" rows="2" placeholder="Authenticatie, integraties, bekende kwetsbaarheden, compliance (BIO/NIS2/ISO27001)..."></textarea></div>
-        </div>
-        <div class="form-group"><label class="form-label">Authenticatie</label>
-          <div class="form-checkboxes">
-            <label class="form-checkbox"><input type="checkbox" id="ksSSO"> SSO/SAML</label>
-            <label class="form-checkbox"><input type="checkbox" id="ksAD"> LDAP/AD</label>
-            <label class="form-checkbox"><input type="checkbox" id="ksMFA"> MFA</label>
-            <label class="form-checkbox"><input type="checkbox" id="ksAPI"> API keys</label>
-            <label class="form-checkbox"><input type="checkbox" id="ksLocal"> Lokale accounts</label>
-          </div>
-        </div>
-        <button class="form-btn" onclick="generateKickstartChain()">🚀 Start Kickstart Workflow</button>
-      </div>
-
       <div class="form-container" id="forensicsForm">
         <h2 class="form-title">🔬 Forensische Triage</h2>
         <p class="form-subtitle">First-pass analyse van verdachte bestanden — extraheert metadata, strings en file signatures voor SOC triage</p>
@@ -416,109 +353,6 @@ header { padding: 12px 20px; background: var(--bg-secondary); border-bottom: 1px
         
         <div style="font-size:11px; color:var(--text-dim); margin-top:12px; padding:10px; background:var(--bg-tertiary); border-radius:var(--radius-sm);">
           ⚠️ <strong>Disclaimer:</strong> Dit is een first-pass triage tool. Het bestand wordt lokaal in de browser geanalyseerd (geen upload naar het model). Gebruik deze output als startpunt voor diepere analyse, niet als definitief oordeel. Voor kritieke incidenten: gebruik altijd een dedicated sandbox of disassembler.
-        </div>
-      </div>
-
-      <div class="form-container" id="enrichmentForm">
-        <h2 class="form-title">🔎 Incident Enrichment Checklist</h2>
-        <p class="form-subtitle">Gestructureerde onderzoeksaanpak bij een alert of melding</p>
-        
-        <div class="form-group"><label class="form-label">Alert / melding details *</label>
-          <textarea class="form-input" id="enrichAlert" rows="5" placeholder="Plak hier de melding, alert of beschrijving van de externe SOC. Hoe meer details, hoe gerichter de checklist. Bijv: 'Verdachte login vanuit buitenland op account j.jansen, server xyz01, tijdstip 03:45'"></textarea></div>
-        
-        <div class="form-group"><label class="form-label">Type incident (optioneel — laat leeg als onbekend)</label>
-          <div class="form-checkboxes">
-            <label class="form-checkbox"><input type="checkbox" id="enrichPhishing"> Phishing / verdachte email</label>
-            <label class="form-checkbox"><input type="checkbox" id="enrichMalware"> Malware / verdacht bestand</label>
-            <label class="form-checkbox"><input type="checkbox" id="enrichLogin"> Verdachte login / authenticatie</label>
-            <label class="form-checkbox"><input type="checkbox" id="enrichPrivEsc"> Privilege escalation</label>
-            <label class="form-checkbox"><input type="checkbox" id="enrichDataExfil"> Data exfiltratie</label>
-            <label class="form-checkbox"><input type="checkbox" id="enrichLateral"> Lateral movement</label>
-            <label class="form-checkbox"><input type="checkbox" id="enrichC2"> C2 / verdacht netwerkverkeer</label>
-            <label class="form-checkbox"><input type="checkbox" id="enrichInsider"> Insider threat</label>
-            <label class="form-checkbox"><input type="checkbox" id="enrichDDoS"> DDoS / beschikbaarheid</label>
-          </div>
-        </div>
-        
-        <div class="form-group"><label class="form-label">Ervaringsniveau analist</label>
-          <select class="form-input" id="enrichLevel">
-            <option value="junior">Junior (gedetailleerde uitleg per stap)</option>
-            <option value="medior" selected>Medior (korte uitleg + queries)</option>
-            <option value="senior">Senior (alleen actiepunten)</option>
-          </select>
-        </div>
-        
-        <div class="form-group"><label class="form-label">Bekende elementen (optioneel — vul in wat je al weet)</label>
-          <div class="form-grid">
-            <div class="form-group"><input class="form-input" id="enrichHost" placeholder="Hostname / server"></div>
-            <div class="form-group"><input class="form-input" id="enrichUser" placeholder="Username / email"></div>
-            <div class="form-group"><input class="form-input" id="enrichIP" placeholder="IP adres(sen)"></div>
-            <div class="form-group"><input class="form-input" id="enrichTime" placeholder="Tijdstip / periode"></div>
-          </div>
-        </div>
-        
-        <div style="font-size:12px; color:var(--text-secondary); margin-bottom:12px; padding:10px; background:var(--bg-tertiary); border-radius:var(--radius-sm);">
-          💡 <strong>Tip:</strong> Het model bepaalt zelf welke SIEM platforms en onderzoeksbronnen relevant zijn op basis van de alert. Bijv: endpoint/Windows/365 logs → Sentinel/Defender, firewall/F5/Linux logs → Splunk of Elastic. Meerdere bronnen worden voorgesteld waar relevant.
-        </div>
-        
-        <button class="form-btn" onclick="generateEnrichment()">🔎 Genereer Onderzoeksplan</button>
-        
-        <div style="font-size:11px; color:var(--text-dim); margin-top:12px; padding:10px; background:var(--bg-tertiary); border-radius:var(--radius-sm);">
-          ⚠️ <strong>AI ondersteuning:</strong> Dit is een gestructureerde gids voor onderzoek, geen vervanging voor eigen oordeel. Pas de aanpak aan op basis van wat je vindt. Bij kritieke incidenten: volg altijd jullie interne incident response procedure en escaleer conform afspraken.
-        </div>
-      </div>
-
-      <div class="form-container" id="pipelineForm">
-        <h2 class="form-title">📦 Sentinel Pipeline Generator</h2>
-        <p class="form-subtitle">Genereer BICEP templates en pipeline configuratie voor Sentinel content deployment</p>
-        
-        <div class="form-grid">
-          <div class="form-group form-grid-full"><label class="form-label">Applicatie / Systeem naam *</label>
-            <input class="form-input" id="pipeApp" placeholder="bijv. SAP, Veeam, ServiceNow, Custom App"></div>
-          <div class="form-group"><label class="form-label">Naming prefix</label>
-            <input class="form-input" id="pipePrefix" value="int" placeholder="bijv. int, ivo, soc"></div>
-          <div class="form-group"><label class="form-label">Resource Group strategie</label>
-            <select class="form-input" id="pipeRG">
-              <option value="separate">Eigen RG (aanbevolen)</option>
-              <option value="shared">Gedeelde RG met externe partij</option>
-            </select></div>
-          <div class="form-group form-grid-full"><label class="form-label">Aanvullende context</label>
-            <textarea class="form-input" id="pipeContext" rows="2" placeholder="bijv. data bron locatie, log volume verwachtingen, specifieke compliance eisen, integraties..."></textarea></div>
-        </div>
-        
-        <div class="form-group"><label class="form-label">Sentinel resource types (kies wat je nodig hebt)</label>
-          <div class="form-checkboxes">
-            <label class="form-checkbox"><input type="checkbox" id="pipeConnector" checked> Data Connector</label>
-            <label class="form-checkbox"><input type="checkbox" id="pipeAnalytics" checked> Analytics Rules</label>
-            <label class="form-checkbox"><input type="checkbox" id="pipeHunting"> Hunting Queries</label>
-            <label class="form-checkbox"><input type="checkbox" id="pipeWorkbook"> Workbook</label>
-            <label class="form-checkbox"><input type="checkbox" id="pipeAutomation"> Automation Rules</label>
-            <label class="form-checkbox"><input type="checkbox" id="pipeWatchlist"> Watchlist</label>
-            <label class="form-checkbox"><input type="checkbox" id="pipePlaybook"> Playbook (Logic App)</label>
-          </div>
-        </div>
-        
-        <div class="form-group"><label class="form-label">CI/CD platform</label>
-          <select class="form-input" id="pipeCICD">
-            <option>Azure DevOps Pipelines</option>
-            <option>GitHub Actions</option>
-            <option>Beide</option>
-          </select>
-        </div>
-        
-        <div class="form-group"><label class="form-label">Output opties</label>
-          <div class="form-checkboxes">
-            <label class="form-checkbox"><input type="checkbox" id="pipeReadme" checked> README met deployment instructies</label>
-            <label class="form-checkbox"><input type="checkbox" id="pipeConflict" checked> Conflict prevention strategie</label>
-            <label class="form-checkbox"><input type="checkbox" id="pipeParams" checked> Parameter file template</label>
-            <label class="form-checkbox"><input type="checkbox" id="pipeStructure"> Aanbevolen folder structuur</label>
-          </div>
-        </div>
-        
-        <button class="form-btn" onclick="generatePipeline()">📦 Genereer BICEP Pipeline</button>
-        
-        <div style="font-size:11px; color:var(--text-dim); margin-top:12px; padding:10px; background:var(--bg-tertiary); border-radius:var(--radius-sm);">
-          ⚠️ <strong>AI ondersteuning:</strong> De gegenereerde BICEP templates zijn een vertrekpunt en moeten getest worden in een acceptatie omgeving voordat deployment naar productie. Pas naming, scoping en parameter waarden aan voor jullie specifieke situatie. Voor complexe scenario's (cross-tenant, custom RBAC, gevoelige data) is review door een Azure architect aanbevolen.
         </div>
       </div>
 
@@ -1078,11 +912,12 @@ async function streamToModel(fullPrompt, displaySummary) {
   document.getElementById('inputField').value = '';
   
   chatMessages.push({ role: 'user', content: fullPrompt, display: displaySummary });
-  addMessage('user', displaySummary);
+  addMessage('user', escapeHtml(displaySummary));
   const responseId = addMessage('assistant', '<div class="thinking-box">🤔 Jeffrey analyseert de vraag...</div>');
   const responseBox = document.getElementById(responseId);
   
   abortController = new AbortController();
+  const requestStart = Date.now();
   startTimer();
 
   try {
@@ -1225,6 +1060,19 @@ async function streamToModel(fullPrompt, displaySummary) {
   } finally {
     stopTimer();
     abortController = null;
+    // De tijdstempel boven een antwoord toont het moment waarop het antwoord
+    // KLAAR was (niet wanneer de vraag verstuurd is), met daarachter de
+    // verwerkingsduur. Zo is per vraag te zien hoe lang het model erover deed
+    // -- vooral nuttig bij afbeeldingen/documenten, waar dat sterk varieert.
+    const tsEl = responseBox.parentElement.querySelector('.message-timestamp');
+    if (tsEl) {
+      const elapsedSec = Math.round((Date.now() - requestStart) / 1000);
+      const mm = String(Math.floor(elapsedSec / 60)).padStart(2, '0');
+      const ss = String(elapsedSec % 60).padStart(2, '0');
+      const klaarOm = getTime();
+      tsEl.textContent = `${klaarOm} \u00b7 ${mm}:${ss}`;
+      tsEl.title = `Antwoord voltooid om ${klaarOm}, verwerkingstijd ${mm}:${ss} (mm:ss)`;
+    }
   }
 }
 
@@ -1284,25 +1132,6 @@ inputField.addEventListener('keydown', (e) => {
     }
   }
 });
-
-function generateSIEM() {
-  const p = document.getElementById('siemPlatform').value;
-  const uc = document.getElementById('siemUseCase').value;
-  const t = document.getElementById('siemTime').value;
-  const src = document.getElementById('siemSource').value.trim();
-  const txt = document.getElementById('siemText').value.trim();
-  if (!uc && !txt) return alert('Selecteer een use case of vul een vraag in');
-  
-  let prompt = `${p} QUERY\nUse case: ${uc || txt}\nTijdrange: ${t}\n`;
-  if (src) prompt += `Data bron: ${src}\n`;
-  if (txt && uc) prompt += `Specifiek: ${txt}\n`;
-  prompt += `Genereer een werkende, kopieerbare ${p} query.\n`;
-  if (document.getElementById('siemExplain').checked) prompt += `Voeg uitleg toe per onderdeel.\n`;
-  if (document.getElementById('siemMitre').checked) prompt += `Voeg MITRE ATT&CK mapping toe.\n`;
-  if (document.getElementById('siemAlert').checked) prompt += `Geef alert/threshold configuratie.\n`;
-  
-  streamToModel(prompt, `🔍 ${p}: ${uc || txt} (${t})`);
-}
 
 function generateTrigger() {
   const platform = document.getElementById('triggerPlatform').value;
@@ -1380,12 +1209,6 @@ async function loadLolbasData() {
   } finally {
     lolbasLoading = false;
   }
-}
-
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
 }
 
 function searchLolbas() {
@@ -1504,43 +1327,6 @@ function generateNetwork() {
   if (document.getElementById('netFP').checked) prompt += `Beschrijf false positive mitigatie.\n`;
   
   streamToModel(prompt, `🌐 ${engine}: ${threat || txt}`);
-}
-
-async function generateKickstartChain() {
-  const name = document.getElementById('ksName').value.trim();
-  const env = document.getElementById('ksEnvType').value;
-  const crit = document.getElementById('ksCrit').value;
-  const data = document.getElementById('ksData').value;
-  const exposure = document.getElementById('ksExposure').value;
-  const context = document.getElementById('ksEnv').value.trim();
-  if (!name) return alert('Vul een applicatie/systeem naam in');
-  
-  const auth = [];
-  if (document.getElementById('ksSSO').checked) auth.push('SSO/SAML');
-  if (document.getElementById('ksAD').checked) auth.push('LDAP/AD');
-  if (document.getElementById('ksMFA').checked) auth.push('MFA');
-  if (document.getElementById('ksAPI').checked) auth.push('API keys');
-  if (document.getElementById('ksLocal').checked) auth.push('Lokale accounts');
-  
-  let profile = `Systeem: ${name}\n`;
-  if (env) profile += `Omgeving: ${env}\n`;
-  if (crit) profile += `Kriticaliteit: ${crit}\n`;
-  if (data) profile += `Dataclassificatie: ${data}\n`;
-  if (exposure) profile += `Exposure: ${exposure}\n`;
-  if (auth.length) profile += `Authenticatie: ${auth.join(', ')}\n`;
-  if (context) profile += `Context: ${context}\n`;
-  
-  const summary = `🚀 SOC Kickstart: ${name}${crit ? ' (' + crit + ')' : ''}`;
-  
-  await streamToModel(
-    `STAP 1: STRIDE Threat Model + MITRE ATT&CK mapping\n${profile}\nGeef per STRIDE categorie: dreiging, risico (H/M/L), concrete mitigatie, en relevante MITRE ATT&CK Techniques (TID).`,
-    `${summary} — Deel 1/2: Threat Model`
-  );
-  
-  await streamToModel(
-    `STAP 2: Detection Engineering voor "${name}"\n${profile}\nOp basis van het threat model: welke logs zijn nodig (sourcetype, retentie)? Schrijf 3 concrete detection rules als werkende SIEM queries. Geef een security hardening checklist.`,
-    `${summary} — Deel 2/2: Detection & Logging`
-  );
 }
 
 // FORENSISCHE TRIAGE
@@ -1895,215 +1681,6 @@ function generateForensics() {
   
   const summary = `🔬 Forensische triage: ${forensicsData.name} (${forensicsData.fileType.type})`;
   streamToModel(prompt, summary);
-}
-
-// ================ INCIDENT ENRICHMENT ================
-
-function generateEnrichment() {
-  const alert = document.getElementById('enrichAlert').value.trim();
-  if (!alert) return alert('Plak eerst de alert/melding in');
-  
-  const types = [];
-  if (document.getElementById('enrichPhishing').checked) types.push('Phishing / verdachte email');
-  if (document.getElementById('enrichMalware').checked) types.push('Malware / verdacht bestand');
-  if (document.getElementById('enrichLogin').checked) types.push('Verdachte login');
-  if (document.getElementById('enrichPrivEsc').checked) types.push('Privilege escalation');
-  if (document.getElementById('enrichDataExfil').checked) types.push('Data exfiltratie');
-  if (document.getElementById('enrichLateral').checked) types.push('Lateral movement');
-  if (document.getElementById('enrichC2').checked) types.push('C2 / verdacht netwerkverkeer');
-  if (document.getElementById('enrichInsider').checked) types.push('Insider threat');
-  if (document.getElementById('enrichDDoS').checked) types.push('DDoS');
-  
-  const level = document.getElementById('enrichLevel').value;
-  const host = document.getElementById('enrichHost').value.trim();
-  const user = document.getElementById('enrichUser').value.trim();
-  const ip = document.getElementById('enrichIP').value.trim();
-  const time = document.getElementById('enrichTime').value.trim();
-  
-  let prompt = `Genereer een gestructureerd onderzoeksplan voor de volgende security alert/melding. Dit plan is voor een SOC analist om stap voor stap te doorlopen om te bepalen of het een legitiem incident is of een false positive.\n\n`;
-  prompt += `ALERT / MELDING:\n"""\n${alert}\n"""\n\n`;
-  
-  if (types.length > 0) prompt += `VERMOEDELIJK TYPE INCIDENT: ${types.join(', ')}\n`;
-  else prompt += `TYPE INCIDENT: Onbekend — bepaal zelf op basis van de alert inhoud welk type dit waarschijnlijk is.\n`;
-  
-  const knownElements = [];
-  if (host) knownElements.push(`Hostname: ${host}`);
-  if (user) knownElements.push(`User: ${user}`);
-  if (ip) knownElements.push(`IP: ${ip}`);
-  if (time) knownElements.push(`Tijdstip: ${time}`);
-  if (knownElements.length > 0) prompt += `BEKENDE ELEMENTEN: ${knownElements.join(', ')}\n`;
-  
-  prompt += `ANALIST NIVEAU: ${level === 'junior' ? 'Junior — geef gedetailleerde uitleg per stap, benoem wat je verwacht te vinden, wat rode vlaggen zijn, en leg termen uit' : level === 'senior' ? 'Senior — beknopte actiepunten, geen uitleg van basics' : 'Medior — korte uitleg plus concrete queries'}\n\n`;
-  
-  prompt += `BELANGRIJKE CONTEXT OVER DE OMGEVING:\n`;
-  prompt += `- Endpoint/Windows/Microsoft 365/Azure AD logs: zitten in Microsoft Sentinel (gebruik KQL)\n`;
-  prompt += `- Firewall logs, F5 logs, Linux logs, netwerk apparatuur: zitten in Splunk of Elastic (gebruik SPL of Lucene/EQL)\n`;
-  prompt += `- Voor sommige incidenten zijn meerdere SIEM platforms relevant — benoem ze allebei waar van toepassing\n`;
-  prompt += `- De analist weet niet altijd zelf welk platform het beste is — jij moet dat bepalen op basis van het type logs dat relevant is\n\n`;
-  
-  prompt += `GEVRAAGDE OUTPUT — gestructureerd in deze volgorde:\n\n`;
-  
-  prompt += `## 1. Eerste Triage (binnen 5 minuten)\n`;
-  prompt += `Wat moet de analist meteen beoordelen? Directe vragen om te bepalen of dit urgent is of rustig kan worden opgepakt. Noem concrete indicatoren die direct opvallen in de alert.\n\n`;
-  
-  prompt += `## 2. Waar Zoeken — Aanbevolen Bronnen\n`;
-  prompt += `Analyseer de alert en bepaal WELKE bronnen en platforms relevant zijn voor dit specifieke incident. Denk aan:\n`;
-  prompt += `- TopDesk (changes, incidents, assets, eigenaren)\n`;
-  prompt += `- Azure AD / Entra (accounts, sign-ins, conditional access, role assignments)\n`;
-  prompt += `- Microsoft Sentinel (endpoint/365/AD logs via KQL)\n`;
-  prompt += `- Splunk of Elastic (firewall, F5, Linux, netwerk logs)\n`;
-  prompt += `- Defender / EDR (endpoint process tree, file operations)\n`;
-  prompt += `- CMDB / asset register (wie is eigenaar, welke afdeling)\n`;
-  prompt += `- Organigram (manager, team)\n`;
-  prompt += `- Mail / Exchange logs\n`;
-  prompt += `- Firewall / proxy logs direct\n\n`;
-  prompt += `Voor elke relevante bron: leg uit WAAROM deze relevant is voor deze specifieke alert, en WAT specifiek te zoeken. Noem bronnen die NIET relevant zijn niet. Wees selectief — max 5-6 bronnen met de grootste relevantie.\n\n`;
-  
-  prompt += `## 3. Concrete Queries\n`;
-  prompt += `Geef werkende queries voor de relevante SIEM platforms. Per platform dat je aanbeveelt in sectie 2:\n`;
-  prompt += `- Voor Sentinel: KQL queries met juiste tabellen (SigninLogs, SecurityEvent, DeviceLogonEvents, DeviceProcessEvents, EmailEvents, etc.)\n`;
-  prompt += `- Voor Splunk: SPL queries met realistische indexnamen en field names\n`;
-  prompt += `- Voor Elastic: Lucene of EQL queries\n\n`;
-  prompt += `Geef minimaal drie queries per platform:\n`;
-  prompt += `- Query om vergelijkbare events op dezelfde host/user te vinden\n`;
-  prompt += `- Query om de baseline activiteit te zien (is dit normaal gedrag?)\n`;
-  prompt += `- Query om gerelateerde events in de tijd rond het incident te vinden\n\n`;
-  
-  prompt += `## 4. TopDesk / CMDB Context\n`;
-  prompt += `Concrete zoekacties buiten SIEM, bijvoorbeeld:\n`;
-  prompt += `- "Zoek in TopDesk op hostname '${host || '<hostname>'}' met filter changes afgelopen 7 dagen"\n`;
-  prompt += `- "Check wie eigenaar is van '${host || '<hostname>'}' en welke afdeling"\n`;
-  prompt += `- "Zoek recente incident tickets voor deze gebruiker of systeem"\n\n`;
-  
-  prompt += `## 5. Interpretatie — Wat betekent wat je vindt?\n`;
-  prompt += `Per mogelijk resultaat: wat duidt dit op? Maak een mapping van "als je X vindt → dan betekent dat Y → dus doe Z". Concrete voorbeelden specifiek voor deze alert. Benoem expliciet wat NORMAAL is versus wat een RODE VLAG is.\n\n`;
-  
-  prompt += `## 6. Wanneer Escaleren\n`;
-  prompt += `Duidelijke triggers waarbij je NIET zelf verder moet, maar moet escaleren. Specifiek voor dit type incident.\n\n`;
-  
-  prompt += `## 7. Documentatie Template\n`;
-  prompt += `Wat minimaal vastleggen in het incident ticket voor overdracht/naslag. Concrete velden om in te vullen.\n\n`;
-  
-  prompt += `BELANGRIJK:\n`;
-  prompt += `- Wees CONCREET en ACTIEGERICHT. Geen vage adviezen zoals "onderzoek grondig" maar specifieke stappen.\n`;
-  prompt += `- Kies zelf de juiste bronnen en platforms — de analist weet dit niet altijd.\n`;
-  prompt += `- Als informatie ontbreekt in de alert, benoem welke vragen als eerste beantwoord moeten worden.\n`;
-  prompt += `- Schrijf in het Nederlands, toegankelijk maar professioneel.\n`;
-  
-  const summaryText = types.length > 0 ? types.join(' / ') : 'onderzoek';
-  streamToModel(prompt, `🔎 Incident Enrichment: ${summaryText}${host ? ' (' + host + ')' : ''}`);
-}
-
-// ================ SENTINEL PIPELINE ================
-
-function generatePipeline() {
-  const app = document.getElementById('pipeApp').value.trim();
-  const prefix = document.getElementById('pipePrefix').value.trim() || 'int';
-  const rgStrategy = document.getElementById('pipeRG').value;
-  const context = document.getElementById('pipeContext').value.trim();
-  const cicd = document.getElementById('pipeCICD').value;
-  
-  if (!app) return alert('Vul een applicatie/systeem naam in');
-  
-  const resources = [];
-  if (document.getElementById('pipeConnector').checked) resources.push('Data Connector');
-  if (document.getElementById('pipeAnalytics').checked) resources.push('Analytics Rules (Scheduled)');
-  if (document.getElementById('pipeHunting').checked) resources.push('Hunting Queries');
-  if (document.getElementById('pipeWorkbook').checked) resources.push('Workbook');
-  if (document.getElementById('pipeAutomation').checked) resources.push('Automation Rules');
-  if (document.getElementById('pipeWatchlist').checked) resources.push('Watchlist');
-  if (document.getElementById('pipePlaybook').checked) resources.push('Playbook (Logic App)');
-  
-  if (resources.length === 0) return alert('Selecteer minimaal één resource type');
-  
-  const appSafe = app.toLowerCase().replace(/[^a-z0-9]/g, '');
-  
-  let prompt = `Genereer een complete BICEP pipeline setup voor het deployen van Microsoft Sentinel content voor de applicatie "${app}".\n\n`;
-  prompt += `CONTEXT:\n`;
-  prompt += `- Applicatie: ${app}\n`;
-  prompt += `- Naming prefix: ${prefix}\n`;
-  prompt += `- Resource Group strategie: ${rgStrategy === 'separate' ? 'Eigen Resource Group om conflicten met externe partij te voorkomen' : 'Gedeelde Resource Group met externe partij (let extra op naming)'}\n`;
-  prompt += `- CI/CD platform: ${cicd}\n`;
-  prompt += `- Te deployen resources: ${resources.join(', ')}\n`;
-  if (context) prompt += `- Aanvullende context: ${context}\n`;
-  prompt += `\nBELANGRIJKE ACHTERGROND:\n`;
-  prompt += `Een externe partij pusht ook content naar dezelfde Sentinel productie workspace via hun eigen DevOps pipeline. Onze pipeline moet hiermee co-existeren zonder elkaar te overschrijven.\n\n`;
-  
-  prompt += `LEVER DE VOLGENDE OUTPUT (gebruik markdown code blocks met juiste taal labels):\n\n`;
-  
-  prompt += `## 1. main.bicep\n`;
-  prompt += `Hoofdtemplate met parameters voor workspace name, resource group, location, en applicatie-specifieke waarden. Gebruik modules voor elke resource type.\n\n`;
-  
-  prompt += `## 2. Modules per resource type\n`;
-  prompt += `Voor elke geselecteerde resource een aparte .bicep module:\n`;
-  resources.forEach(r => {
-    prompt += `- modules/${r.toLowerCase().replace(/[^a-z0-9]/g, '-')}.bicep\n`;
-  });
-  prompt += `\nElke module moet:\n`;
-  prompt += `- Naming pattern volgen: \`${prefix}-${appSafe}-<type>-<name>\` om conflicten met externe partij te voorkomen\n`;
-  prompt += `- Tags bevatten: \`{ ManagedBy: 'Internal', Application: '${app}', Environment: 'Production', DeployedVia: 'BICEP-Pipeline' }\`\n`;
-  prompt += `- Idempotent zijn (kan meerdere keren gedraaid worden)\n\n`;
-  
-  if (document.getElementById('pipeParams').checked) {
-    prompt += `## 3. parameters.json\n`;
-    prompt += `Parameter file met voorbeelden voor productie deployment.\n\n`;
-  }
-  
-  if (cicd.includes('Azure DevOps') || cicd === 'Beide') {
-    prompt += `## 4. azure-pipelines.yml\n`;
-    prompt += `Azure DevOps pipeline YAML met:\n`;
-    prompt += `- Trigger op main branch\n`;
-    prompt += `- Stage: validate (BICEP linting + what-if analyse)\n`;
-    prompt += `- Stage: deploy (met manual approval voor productie)\n`;
-    prompt += `- Service connection placeholder voor Azure subscription\n\n`;
-  }
-  
-  if (cicd.includes('GitHub') || cicd === 'Beide') {
-    prompt += `## 5. .github/workflows/deploy-sentinel.yml\n`;
-    prompt += `GitHub Actions workflow met:\n`;
-    prompt += `- Trigger op push naar main\n`;
-    prompt += `- Job: validate (BICEP build + what-if)\n`;
-    prompt += `- Job: deploy (environment protection rules)\n`;
-    prompt += `- OIDC authentication voorbeeld\n\n`;
-  }
-  
-  if (document.getElementById('pipeStructure').checked) {
-    prompt += `## 6. Aanbevolen folder structuur\n`;
-    prompt += `Toon de complete repository structuur met uitleg per folder.\n\n`;
-  }
-  
-  if (document.getElementById('pipeConflict').checked) {
-    prompt += `## 7. Conflict Prevention Strategie\n`;
-    prompt += `Concrete adviezen om naast de externe partij hun pipeline te kunnen draaien:\n`;
-    prompt += `- Naming convention afspraken (welke prefixes/suffixes)\n`;
-    prompt += `- Tags gebruiken voor identificatie en filtering (ManagedBy, DeployedVia)\n`;
-    prompt += `- Resource Group scheiding strategie\n`;
-    prompt += `- What-if analyse altijd voor deployment uitvoeren\n`;
-    prompt += `- Welke afspraken te maken met de externe partij (rule naming, alert prefixes, workbook IDs)\n`;
-    prompt += `- Hoe te detecteren wanneer ze elkaar overschrijven (Azure Activity Log monitoring)\n`;
-    prompt += `- Rollback strategie bij conflicten\n\n`;
-  }
-  
-  if (document.getElementById('pipeReadme').checked) {
-    prompt += `## 8. README.md\n`;
-    prompt += `Complete deployment instructies:\n`;
-    prompt += `- Vereisten (Azure CLI versie, BICEP, permissions)\n`;
-    prompt += `- Initial setup stappen\n`;
-    prompt += `- Hoe te deployen (handmatig en via pipeline)\n`;
-    prompt += `- Hoe te valideren na deployment\n`;
-    prompt += `- Troubleshooting common issues\n`;
-    prompt += `- Hoe nieuwe rules/content toe te voegen\n\n`;
-  }
-  
-  prompt += `BELANGRIJK:\n`;
-  prompt += `- Gebruik moderne BICEP syntax (geen ARM templates)\n`;
-  prompt += `- Resource API versions: gebruik recente stabiele versies (Microsoft.OperationalInsights/workspaces 2023-09-01, Microsoft.SecurityInsights resources 2024-09-01)\n`;
-  prompt += `- Voorbeeld content (zoals een sample analytics rule) moet specifiek zijn voor "${app}" met realistische KQL queries\n`;
-  prompt += `- Plaats commentaar in BICEP files om duidelijk te maken wat aanpasbaar is\n`;
-  prompt += `- Geen gevoelige waarden hardcoded — gebruik parameters met @secure() waar nodig\n`;
-  prompt += `- Resource naming MOET uniek zijn van wat een externe MSSP zou gebruiken\n`;
-  
-  streamToModel(prompt, `📦 Sentinel Pipeline: ${app} (${resources.length} resource types)`);
 }
 
 // ================ ISO TOOLS ================

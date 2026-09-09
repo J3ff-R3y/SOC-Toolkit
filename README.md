@@ -4,20 +4,16 @@
 
 ## What is Jeffrey?
 
-Jeffrey is a self-hosted AI toolkit running on llama.cpp with Qwen 3.6 35B-A3B (Mixture-of-Experts + Vision). It provides SOC analysts with query builders, playbooks, detection rules, incident enrichment, and forensics tooling. It provides ISOs with policy generation, risk analysis, advisory notes, and compliance Q&A. All behind Apache Basic Auth in a single HTML interface.
+Jeffrey is a self-hosted AI toolkit running on llama.cpp with Qwen 3.6 35B-A3B (Mixture-of-Experts + Vision). It provides SOC analysts with playbooks, detection rules, network/forensics tooling, a detection trigger tester, and a living-off-the-land binaries reference. It provides ISOs with policy generation, risk analysis, advisory notes, and compliance Q&A. All behind Apache Basic Auth in a single HTML interface.
 
 ## Features
 
 ### SOC Tools
 
-- **SIEM Query Builder** — Splunk (SPL), Microsoft Sentinel (KQL), Elastic (EQL/Lucene) with use case dropdowns, time range, MITRE ATT&CK mapping
 - **SOAR Playbooks** — Sentinel Logic Apps and Splunk SOAR with incident type, severity, and automation action selection
 - **Sigma Rules** — Convert Sigma YAML to platform-specific detection with field mapping and false positive analysis
 - **Network Detection** — Suricata IDS/IPS rules and Zeek scripts with threat type and protocol focus
-- **SOC Kickstart** — Complete onboarding package: STRIDE threat model, MITRE ATT&CK mapping, log requirements, detection rules, monitoring queries, security hardening checklist
 - **Forensische Triage** — First-pass analysis of suspicious binaries (strings extraction, IOC detection, magic bytes, entropy, YARA rule suggestions)
-- **Incident Enrichment** — Structured investigation plan where the model determines relevant SIEM platforms and data sources based on alert content
-- **Sentinel Pipeline** — BICEP templates and CI/CD pipelines for Sentinel content deployment with conflict prevention for co-existing MSSP pipelines
 - **Detectie Trigger Tester** — Paste a detection rule as delivered by a SIEM/vendor (Sentinel JSON, Splunk SPL, or Elastic TOML) and get a plan to verify the alert actually fires: rule logic explained, target OS inferred from the rule content, a ready-to-run PowerShell/bash trigger script where safe to automate, or an explicit risk explanation plus a manual step-by-step plan where it isn't — always followed by what to check in the SIEM afterwards
 - **Living Off The Land Naslag** — Local, offline-searchable reference of the [LOLBAS project](https://lolbas-project.github.io/) (living-off-the-land binaries/scripts): search by binary name, command fragment, or MITRE ID and get direct links to matching Sigma/Elastic/Splunk detection rules. Pure client-side lookup against a bundled JSON snapshot — no AI interpretation, no hallucination risk
 
@@ -166,12 +162,10 @@ Context window was doubled from the original 16384 after confirming (via communi
 | Simple question                      | 5-15 sec      |
 | SIEM query                           | 15-30 sec     |
 | SOAR / Sigma / Network               | 30-90 sec     |
-| SOC Kickstart package                | 2-5 min       |
 | Single screenshot analysis           | 30-90 sec     |
 | Multiple images + document together  | Several minutes — most of the time is spent in vision-encoder prompt processing, not answer generation. This is CPU-only cost, not a bug; a GPU would reduce this substantially. |
 | Policy document (ISO)                | 1-3 min       |
 | Risk analysis (ISO)                  | 1-2 min       |
-| Sentinel Pipeline                    | 2-5 min       |
 
 ## Known behavior
 
