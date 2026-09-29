@@ -1,23 +1,16 @@
-# Model files (too large for git)
-*.gguf
-mmproj-*.gguf
-
-# Build artifacts
-llama.cpp-master.zip
-llama.cpp-master/
-build/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Credentials
-.htpasswd
-*.backup.*
-
-# Logs
+__pycache__/
+*.py[cod]
 *.log
-
-# Backups
-*.bak
-override.conf.backup-*
+*.sqlite3
+*.db
+*.gguf
+*.bin
+*.tar.gz
+*.tgz
+.env
+*.pem
+*.key
+users.htpasswd
+evidence/
+reports/
+uploads/

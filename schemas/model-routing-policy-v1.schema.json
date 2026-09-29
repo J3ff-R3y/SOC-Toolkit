@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:jeffrey:model-routing-policy:v1",
+  "title": "Jeffrey model routing policy v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "policy_version",
+    "routing_mode",
+    "multi_model_routing_enabled",
+    "approved_model",
+    "fallback_model",
+    "decision_basis",
+    "runtime_effect"
+  ],
+  "properties": {
+    "policy_version": {
+      "const": "model-routing-policy-v1"
+    },
+    "routing_mode": {
+      "const": "single_model"
+    },
+    "multi_model_routing_enabled": {
+      "const": false
+    },
+    "approved_model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "benchmark_status",
+        "quality_status"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "benchmark_status": {
+          "const": "benchmark_pass"
+        },
+        "quality_status": {
+          "const": "quality_pass"
+        }
+      }
+    },
+    "fallback_model": {
+      "type": "null"
+    },
+    "decision_basis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "approved_tested_model_count",
+        "multi_model_required_for_enablement",
+        "unbenchmarked_models_are_not_routable",
+        "reason"
+      ],
+      "properties": {
+        "approved_tested_model_count": {
+          "const": 1
+        },
+        "multi_model_required_for_enablement": {
+          "const": 2
+        },
+        "unbenchmarked_models_are_not_routable": {
+          "const": true
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "runtime_effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_switch",
+        "service_restart",
+        "gateway_behavior_changed",
+        "apache_changed",
+        "firewall_changed"
+      ],
+      "properties": {
+        "model_switch": {
+          "const": false
+        },
+        "service_restart": {
+          "const": false
+        },
+        "gateway_behavior_changed": {
+          "const": false
+        },
+        "apache_changed": {
+          "const": false
+        },
+        "firewall_changed": {
+          "const": false
+        }
+      }
+    }
+  }
+}

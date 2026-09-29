@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:jeffrey:yara-output:v1",
+  "title": "Jeffrey YARA structured output v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_type",
+    "schema_version",
+    "content"
+  ],
+  "properties": {
+    "artifact_type": {
+      "const": "yara"
+    },
+    "schema_version": {
+      "const": "1"
+    },
+    "content": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 131072
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    }
+  }
+}

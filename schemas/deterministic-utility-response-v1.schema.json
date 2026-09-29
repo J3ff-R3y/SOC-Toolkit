@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:jeffrey:deterministic-utility-response:v1",
+  "title": "Jeffrey deterministic utility response v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "valid",
+    "schema_version",
+    "operation",
+    "result",
+    "meta"
+  ],
+  "properties": {
+    "valid": {
+      "const": true
+    },
+    "schema_version": {
+      "const": "1"
+    },
+    "operation": {
+      "type": "string",
+      "enum": [
+        "normalize_ioc",
+        "hex_encode",
+        "hex_decode",
+        "base64_encode",
+        "base64_decode"
+      ]
+    },
+    "result": {},
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "deterministic",
+        "network_access",
+        "filesystem_access",
+        "shell_execution"
+      ],
+      "properties": {
+        "deterministic": {
+          "const": true
+        },
+        "network_access": {
+          "const": false
+        },
+        "filesystem_access": {
+          "const": false
+        },
+        "shell_execution": {
+          "const": false
+        }
+      }
+    }
+  }
+}

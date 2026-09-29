@@ -1,0 +1,32 @@
+[Unit]
+Description=Jeffrey local gateway
+After=network.target llama-server.service
+Requires=llama-server.service
+
+[Service]
+Type=simple
+User=jeffrey-gateway
+Group=jeffrey-gateway
+WorkingDirectory=/opt/jeffrey-gateway
+ExecStart=/usr/bin/python3 /opt/jeffrey-gateway/jeffrey_gateway.py --config /etc/jeffrey-gateway/gateway.json
+Restart=on-failure
+RestartSec=2
+UMask=0027
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictAddressFamilies=AF_INET AF_UNIX
+IPAddressDeny=any
+IPAddressAllow=localhost
+
+[Install]
+WantedBy=multi-user.target

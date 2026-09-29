@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jeffrey-toolkit.local/schema/sigma-output-v1.json",
+  "title": "Jeffrey Sigma structured output v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_type",
+    "schema_version",
+    "content"
+  ],
+  "properties": {
+    "artifact_type": {
+      "const": "sigma"
+    },
+    "schema_version": {
+      "const": "1"
+    },
+    "content": {
+      "type": "string",
+      "minLength": 20,
+      "description": "Complete Sigma rule in YAML text. It is parsed and validated independently after JSON Schema validation."
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 2000
+    }
+  }
+}

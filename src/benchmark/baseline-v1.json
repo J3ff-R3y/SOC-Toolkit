@@ -1,0 +1,82 @@
+{
+  "corpus_version": "baseline-v1",
+  "description": "Synthetic fixed prompts for reproducible Jeffrey model benchmarking.",
+  "defaults": {
+    "temperature": 0,
+    "timeout_seconds": 300
+  },
+  "workloads": [
+    {
+      "id": "short_chat",
+      "kind": "stream_chat",
+      "route": "/api/chat",
+      "max_tokens": 64,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Antwoord exact met: benchmark-ok"
+        }
+      ]
+    },
+    {
+      "id": "soc_reasoning",
+      "kind": "stream_chat",
+      "route": "/api/chat",
+      "max_tokens": 512,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Je bent SOC-analist. Een Windows host toont achtereenvolgens Event ID 4688 voor powershell.exe met -enc, daarna een uitgaande verbinding naar een nieuw extern IP en vervolgens een nieuw scheduled task. Geef maximaal vier korte bullets met: waarschijnlijk aanvalspad, twee belangrijkste vervolgstappen, en \u00e9\u00e9n false-positive mogelijkheid. Geen inleiding."
+        }
+      ]
+    },
+    {
+      "id": "sigma_generation",
+      "kind": "structured",
+      "route": "/api/structured/sigma",
+      "max_tokens": 2048,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Maak \u00e9\u00e9n Sigma regel voor Windows Security Event ID 4688 met Image dat eindigt op \\\\powershell.exe en CommandLine dat -enc bevat. Gebruik status test, level medium, product windows, service security, selection en condition selection. Voeg geen ongevraagde optionele metadata toe."
+        }
+      ]
+    },
+    {
+      "id": "yara_generation",
+      "kind": "structured",
+      "route": "/api/structured/yara",
+      "max_tokens": 1024,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Maak \u00e9\u00e9n eenvoudige YARA rule die de ASCII teksten powershell.exe en -enc detecteert en vereist dat beide aanwezig zijn. Gebruik geen imports of includes."
+        }
+      ]
+    },
+    {
+      "id": "suricata_generation",
+      "kind": "structured",
+      "route": "/api/structured/suricata",
+      "max_tokens": 1024,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Maak \u00e9\u00e9n Suricata alert tcp regel van $HOME_NET any naar $EXTERNAL_NET any met content powershell.exe en content -enc, msg \"Jeffrey previous validation benchmark\", sid 1000700 en rev 1."
+        }
+      ]
+    },
+    {
+      "id": "zeek_generation",
+      "kind": "structured",
+      "route": "/api/structured/zeek",
+      "max_tokens": 1024,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Maak \u00e9\u00e9n zeer eenvoudig Zeek script met module JeffreyBenchmark en event zeek_init() dat alleen Jeffrey previous validation benchmark print. Gebruik geen @load, redef, export of externe commando's."
+        }
+      ]
+    }
+  ]
+}

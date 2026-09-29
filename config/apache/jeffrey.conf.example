@@ -1,0 +1,30 @@
+# Jeffrey Toolkit Apache reverse-proxy example
+# Place inside the relevant VirtualHost or server config.
+
+ProxyPreserveHost On
+
+ProxyPass        /api/login http://127.0.0.1:8082/auth/login
+ProxyPassReverse /api/login http://127.0.0.1:8082/auth/login
+ProxyPass        /api/logout http://127.0.0.1:8082/auth/logout
+ProxyPassReverse /api/logout http://127.0.0.1:8082/auth/logout
+
+ProxyPass        /api/chat http://127.0.0.1:8082/v1/chat/completions flushpackets=on timeout=900
+ProxyPassReverse /api/chat http://127.0.0.1:8082/v1/chat/completions
+
+ProxyPass        /api/structured/sigma http://127.0.0.1:8082/v1/structured/sigma timeout=900
+ProxyPassReverse /api/structured/sigma http://127.0.0.1:8082/v1/structured/sigma
+ProxyPass        /api/structured/yara http://127.0.0.1:8082/v1/structured/yara timeout=900
+ProxyPassReverse /api/structured/yara http://127.0.0.1:8082/v1/structured/yara
+ProxyPass        /api/structured/suricata http://127.0.0.1:8082/v1/structured/suricata timeout=900
+ProxyPassReverse /api/structured/suricata http://127.0.0.1:8082/v1/structured/suricata
+ProxyPass        /api/structured/zeek http://127.0.0.1:8082/v1/structured/zeek timeout=900
+ProxyPassReverse /api/structured/zeek http://127.0.0.1:8082/v1/structured/zeek
+
+ProxyPass        /api/utils/deterministic http://127.0.0.1:8082/v1/utils/deterministic
+ProxyPassReverse /api/utils/deterministic http://127.0.0.1:8082/v1/utils/deterministic
+
+ProxyPass        /api/rag/ http://127.0.0.1:8083/v1/rag/ connectiontimeout=5 timeout=900 flushpackets=on
+ProxyPassReverse /api/rag/ http://127.0.0.1:8083/v1/rag/
+
+ProxyPass        /health http://127.0.0.1:8082/health
+ProxyPassReverse /health http://127.0.0.1:8082/health

@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:jeffrey:deterministic-utility-request:v1",
+  "title": "Jeffrey deterministic utility request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "operation",
+    "value"
+  ],
+  "properties": {
+    "operation": {
+      "type": "string",
+      "enum": [
+        "normalize_ioc",
+        "hex_encode",
+        "hex_decode",
+        "base64_encode",
+        "base64_decode"
+      ]
+    },
+    "value": {
+      "type": "string",
+      "maxLength": 131072
+    }
+  }
+}

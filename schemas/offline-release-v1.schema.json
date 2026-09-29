@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:jeffrey:offline-release:v1",
+  "title": "Jeffrey offline imported release metadata v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "release_schema_version",
+    "bundle_id",
+    "bundle_sha256",
+    "manifest_sha256",
+    "source",
+    "payload_count",
+    "total_payload_bytes",
+    "state",
+    "activated",
+    "importer_version"
+  ],
+  "properties": {
+    "release_schema_version": {
+      "const": "1"
+    },
+    "bundle_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "bundle_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "manifest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source": {
+      "type": "object"
+    },
+    "payload_count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10000
+    },
+    "total_payload_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "state": {
+      "const": "staged_not_active"
+    },
+    "activated": {
+      "const": false
+    },
+    "importer_version": {
+      "const": "offline-importer-v1"
+    },
+    "signature": {
+      "type": "object"
+    }
+  }
+}

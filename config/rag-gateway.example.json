@@ -1,0 +1,17 @@
+{
+  "auth_check_path": "/v1/utils/deterministic",
+  "auth_response_limit_bytes": 1048576,
+  "auth_timeout_seconds": 10,
+  "chat_path": "/v1/chat/completions",
+  "chat_timeout_seconds": 900,
+  "config_version": "rag-gateway-config-v1",
+  "listen_host": "127.0.0.1",
+  "listen_port": 8083,
+  "max_request_bytes": 33554432,
+  "max_upload_request_bytes": 25165824,
+  "max_upstream_response_bytes": 8388608,
+  "rag_retrieve_path": "/opt/jeffrey-rag/bin/rag_retrieve.py",
+  "rag_store_path": "/opt/jeffrey-rag/bin/rag_store.py",
+  "upstream_host": "127.0.0.1",
+  "upstream_port": 8082
+}
