@@ -1,0 +1,28 @@
+{
+  "allowed_extensions": [
+    ".txt",
+    ".md",
+    ".json",
+    ".csv",
+    ".yaml",
+    ".yml"
+  ],
+  "chunk_overlap_chars": 200,
+  "chunk_target_chars": 1600,
+  "config_version": "rag-config-v1",
+  "data_root": "/var/lib/jeffrey-rag",
+  "documents_root": "/var/lib/jeffrey-rag/documents",
+  "index_path": "/var/lib/jeffrey-rag/index/knowledge.sqlite3",
+  "max_chunks_per_document": 10000,
+  "max_document_bytes": 16777216,
+  "max_documents": 2000,
+  "max_extracted_chars": 12582912,
+  "max_total_bytes": 5368709120,
+  "retrieval_candidate_multiplier": 8,
+  "retrieval_default_top_k": 4,
+  "retrieval_max_context_chars": 7000,
+  "retrieval_max_query_chars": 4096,
+  "retrieval_max_top_k": 8,
+  "retrieval_min_term_coverage": 0.25,
+  "state_root": "/var/lib/jeffrey-rag/state"
+}

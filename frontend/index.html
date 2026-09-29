@@ -552,42 +552,50 @@ const MAX_UPLOADED_FILES = 5;
 // afbeeldingen + een document werkte daarna bevestigd, dus 3 is de
 // volgende, nog steeds voorzichtige stap.
 const MAX_UPLOADED_IMAGES = 3;
-let authCredentials = '';
+let authToken = '';
 
 // AUTH
 function handleLogin() {
   const user = document.getElementById('loginUser').value.trim();
   const pass = document.getElementById('loginPass').value;
   if (!user || !pass) return;
-  
-  authCredentials = btoa(user + ':' + pass);
-  
-  // Test credentials against the API
-  fetch('/api/chat', {
+
+  fetch('/api/login', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Basic ' + authCredentials
-    },
-    body: JSON.stringify({ messages: [{role:"user", content:"test"}], max_tokens: 1 })
-  }).then(res => {
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: user, password: pass })
+  }).then(async res => {
     if (res.ok) {
+      const data = await res.json();
+      if (!data.session_token) throw new Error('Geen sessietoken ontvangen');
+      authToken = data.session_token;
+      document.getElementById('loginPass').value = '';
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('appContainer').style.display = 'flex';
       document.getElementById('loginError').style.display = 'none';
     } else {
-      authCredentials = '';
+      authToken = '';
+      document.getElementById('loginError').textContent = 'Ongeldige gebruikersnaam of wachtwoord';
       document.getElementById('loginError').style.display = 'block';
     }
   }).catch(() => {
-    authCredentials = '';
+    authToken = '';
     document.getElementById('loginError').textContent = 'Server niet bereikbaar';
     document.getElementById('loginError').style.display = 'block';
   });
 }
 
 function handleLogout() {
-  authCredentials = '';
+  const token = authToken;
+  authToken = '';
+
+  if (token) {
+    fetch('/api/logout', {
+      method: 'POST',
+      headers: { 'X-Jeffrey-Session': token }
+    }).catch(() => {});
+  }
+
   document.getElementById('appContainer').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('loginUser').value = '';
@@ -920,6 +928,31 @@ async function streamToModel(fullPrompt, displaySummary) {
   const requestStart = Date.now();
   startTimer();
 
+  // Wacht-melding: llama-server draait met --parallel 1, dus als een collega
+  // net een vraag heeft ingediend, wacht deze vraag stil in de wachtrij totdat
+  // die klaar is -- zonder dat de gebruiker dat verschil ziet ("analyseert de
+  // vraag" bleef eerder onveranderd staan, of het nu wachtte OF actief bezig
+  // was). Drempel bewust op 90s gezet (i.p.v. een eerdere, te vroege 8s):
+  // een normale, niet-wachtende vraag duurt in de praktijk vaak al rond de
+  // minuut, dus een kortere drempel liet de melding bij vrijwel elke vraag
+  // verschijnen -- dat maakte 'm juist minder informatief. 90s ligt ruim
+  // boven die normale duur, zodat de melding alleen verschijnt bij iets
+  // daadwerkelijk afwijkends. We kunnen niet met zekerheid zien OF er
+  // daadwerkelijk iemand anders wacht (llama-server's wachtrij is hier niet
+  // zichtbaar gemaakt), dus noemen we beide mogelijke redenen eerlijk in
+  // plaats van er één te verzinnen.
+  const heeftAfbeeldingen = uploadedFiles.some(f => f.kind === 'image');
+  let wachtMeldingGetoond = false;
+  const wachtMeldingTimer = setTimeout(() => {
+    if (responseBox.querySelector('.thinking-box')) {
+      wachtMeldingGetoond = true;
+      const reden = heeftAfbeeldingen
+        ? 'Afbeeldingen kosten veel verwerkingstijd (kan enkele minuten duren) en/of een collega gebruikt Jeffrey op dit moment.'
+        : 'Mogelijk gebruikt een collega Jeffrey op dit moment (er kan maar één vraag tegelijk verwerkt worden), of deze vraag vereist meer verwerking dan gebruikelijk.';
+      responseBox.innerHTML = `<div class="thinking-box">🤔 Dit duurt langer dan gebruikelijk... ${reden} Even geduld, dit lost vanzelf op.</div>`;
+    }
+  }, 90000);
+
   try {
     const textFiles = uploadedFiles.filter(f => f.kind !== 'image');
     const imageFiles = uploadedFiles.filter(f => f.kind === 'image');
@@ -978,7 +1011,7 @@ async function streamToModel(fullPrompt, displaySummary) {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
-        'Authorization': 'Basic ' + authCredentials
+        'X-Jeffrey-Session': authToken
       },
       signal: abortController.signal,
       body: JSON.stringify({
@@ -1038,6 +1071,7 @@ async function streamToModel(fullPrompt, displaySummary) {
             }
             
             if (!isThinking && token) {
+               if (finalOutput === '') clearTimeout(wachtMeldingTimer);
                finalOutput += token;
                responseBox.innerHTML = formatMarkdown(finalOutput);
                autoScrollIfNearBottom();
@@ -1047,6 +1081,20 @@ async function streamToModel(fullPrompt, displaySummary) {
       }
     }
     
+    // Randgeval: de generatie kan stoppen (max_tokens bereikt) terwijl het
+    // model nog middenin de <think>-fase zat. Dan komt </think> nooit
+    // binnen, blijft isThinking op true staan, en is finalOutput leeg --
+    // zonder dat er een fout is opgetreden. Zonder deze check blijft het
+    // antwoordvak dan stil leeg, wat verwarrend is (geen foutmelding, geen
+    // "afgebroken door gebruiker", gewoon niets). Met name waarschijnlijk
+    // bij lange gesprekken, waar het tokenbudget richting de veiligheidsvloer
+    // zakt (zie de budget-berekening hierboven) en het model een langere
+    // denkfase nodig heeft dan er nog ruimte over is.
+    if (isThinking && !finalOutput) {
+      responseBox.innerHTML = '<span style="color:var(--warning,#b45309)">Het antwoord bleef leeg: het model was nog aan het redeneren (denkfase) toen de generatie stopte, waardoor er geen zichtbare tekst is geproduceerd. Dit gebeurt vaker naarmate een gesprek langer wordt (minder beschikbare ruimte per antwoord). Probeer de vraag opnieuw te stellen, eventueel iets korter/gerichter, of start een nieuwe chat voor meer ruimte.</span>';
+      finalOutput = '[Leeg antwoord: generatie stopte tijdens de denkfase, voordat er zichtbare tekst was]';
+    }
+
     // Bericht toevoegen aan de huidige sessie (voor vervolgvragen) — geen
     // opslag tussen sessies, zie toelichting bij chatMessages hierboven.
     chatMessages.push({ role: 'assistant', content: finalOutput });
@@ -1058,6 +1106,7 @@ async function streamToModel(fullPrompt, displaySummary) {
       responseBox.innerHTML = `<span style="color:var(--error)">Er is een fout opgetreden: ${err.message}. Controleer de llama-server logs.</span>`;
     }
   } finally {
+    clearTimeout(wachtMeldingTimer);
     stopTimer();
     abortController = null;
     // De tijdstempel boven een antwoord toont het moment waarop het antwoord
@@ -2051,5 +2100,6 @@ document.addEventListener('paste', (e) => {
   }
 });
 </script>
+  <script src="rag-ui.js?v=1"></script>
 </body>
 </html>

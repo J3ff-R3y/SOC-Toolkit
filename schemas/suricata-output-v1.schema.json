@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:jeffrey:suricata-output:v1",
+  "title": "Jeffrey Suricata structured output v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_type",
+    "schema_version",
+    "content"
+  ],
+  "properties": {
+    "artifact_type": {
+      "const": "suricata"
+    },
+    "schema_version": {
+      "const": "1"
+    },
+    "content": {
+      "type": "string",
+      "minLength": 30,
+      "maxLength": 131072
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    }
+  }
+}

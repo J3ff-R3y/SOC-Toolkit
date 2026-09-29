@@ -1,0 +1,31 @@
+{
+  "policy_version": "offline-update-policy-v1",
+  "server_internet_policy": "internet_free",
+  "candidate_data_root": "/var/lib/jeffrey-updates",
+  "candidate_paths": {
+    "incoming": "/var/lib/jeffrey-updates/incoming",
+    "staging": "/var/lib/jeffrey-updates/staging",
+    "releases": "/var/lib/jeffrey-updates/releases"
+  },
+  "current_signature_policy": "sha256_required_signature_not_yet_enforced",
+  "available_signature_verifiers": [
+    "gpgv",
+    "gpg",
+    "openssl"
+  ],
+  "approved_keyring": null,
+  "limits": {
+    "max_archive_bytes": 549755813888,
+    "max_manifest_bytes": 1048576,
+    "max_members": 10050,
+    "max_payload_files": 10000,
+    "max_payload_file_bytes": 274877906944,
+    "max_total_payload_bytes": 549755813888
+  },
+  "platform_invariants": {
+    "managed_linux_ssh_service_required": true,
+    "jeffrey_server_must_not_fetch_internet_updates": true,
+    "no_bundle_shell_commands": true,
+    "bundle_verification_does_not_activate": true
+  }
+}

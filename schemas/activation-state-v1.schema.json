@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:jeffrey:activation-state:v1",
+  "title": "Jeffrey offline activation slot state v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "activation_state_version",
+    "slot",
+    "active_bundle_id",
+    "source_type",
+    "generation",
+    "changed_at_epoch",
+    "manager_version",
+    "consumer_reload"
+  ],
+  "properties": {
+    "activation_state_version": {
+      "const": "1"
+    },
+    "slot": {
+      "type": "string",
+      "enum": [
+        "knowledge",
+        "lolbas",
+        "mitre_attack",
+        "cve_kev"
+      ]
+    },
+    "active_bundle_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "previous_bundle_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "knowledge",
+        "lolbas",
+        "mitre_attack",
+        "cve_kev"
+      ]
+    },
+    "generation": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "changed_at_epoch": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "manager_version": {
+      "const": "activation-manager-v1"
+    },
+    "consumer_reload": {
+      "const": "none"
+    }
+  }
+}

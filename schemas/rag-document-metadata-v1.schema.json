@@ -1,0 +1,84 @@
+{
+  "$id": "urn:jeffrey:rag-document-metadata:v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "active": {
+      "type": "boolean"
+    },
+    "chunk_count": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "created_at": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "document_id": {
+      "pattern": "^[0-9a-f]{32}$",
+      "type": "string"
+    },
+    "extension": {
+      "enum": [
+        ".txt",
+        ".md",
+        ".json",
+        ".csv",
+        ".yaml",
+        ".yml"
+      ]
+    },
+    "extracted_chars": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "filename": {
+      "maxLength": 255,
+      "minLength": 1,
+      "type": "string"
+    },
+    "media_type": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "parser": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1"
+    },
+    "sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "size_bytes": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "store_version": {
+      "const": "rag-store-v1"
+    },
+    "updated_at": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "store_version",
+    "document_id",
+    "filename",
+    "extension",
+    "media_type",
+    "parser",
+    "sha256",
+    "size_bytes",
+    "extracted_chars",
+    "chunk_count",
+    "created_at",
+    "active"
+  ],
+  "title": "Jeffrey RAG document metadata v1",
+  "type": "object"
+}

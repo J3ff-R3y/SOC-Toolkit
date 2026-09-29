@@ -1,0 +1,307 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:jeffrey:forensics-static-report:v1",
+  "title": "Jeffrey deterministic static-forensics report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_type",
+    "schema_version",
+    "backend_version",
+    "source_name",
+    "size_bytes",
+    "hashes",
+    "file_type",
+    "strings_sample",
+    "analysis"
+  ],
+  "properties": {
+    "artifact_type": {
+      "const": "forensics_static"
+    },
+    "schema_version": {
+      "const": "1"
+    },
+    "backend_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "source_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "size_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "hashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sha256",
+        "sha1",
+        "md5"
+      ],
+      "properties": {
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "sha1": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "md5": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{32}$"
+        }
+      }
+    },
+    "file_type": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "description",
+        "mime"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "elf",
+            "pe",
+            "zip",
+            "pdf",
+            "text",
+            "unknown"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "mime": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "strings_sample": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "string",
+        "maxLength": 300
+      }
+    },
+    "elf": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "class",
+        "endian",
+        "type",
+        "machine",
+        "entry_point",
+        "program_headers",
+        "section_headers",
+        "needed_libraries",
+        "undefined_symbols"
+      ],
+      "properties": {
+        "class": {
+          "enum": [
+            "ELF32",
+            "ELF64",
+            "unknown"
+          ]
+        },
+        "endian": {
+          "enum": [
+            "little",
+            "big",
+            "unknown"
+          ]
+        },
+        "type": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "machine": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "entry_point": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "program_headers": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "section_headers": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "needed_libraries": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "undefined_symbols": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "type": "string",
+            "maxLength": 500
+          }
+        }
+      }
+    },
+    "pe": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "machine",
+        "sections",
+        "timestamp",
+        "characteristics",
+        "optional_magic",
+        "entry_point",
+        "image_base",
+        "subsystem",
+        "dll_characteristics",
+        "imported_dlls"
+      ],
+      "properties": {
+        "machine": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sections": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "timestamp": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "characteristics": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "optional_magic": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "entry_point": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "image_base": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "subsystem": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "dll_characteristics": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "imported_dlls": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "type": "string",
+            "maxLength": 500
+          }
+        }
+      }
+    },
+    "zip": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "entry_count",
+        "entries_sample",
+        "path_traversal_entries"
+      ],
+      "properties": {
+        "entry_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "entries_sample": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "path_traversal_entries": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "type": "string",
+            "maxLength": 500
+          }
+        }
+      }
+    },
+    "analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "static_only",
+        "executed",
+        "snapshot_used",
+        "external_tools",
+        "warnings"
+      ],
+      "properties": {
+        "static_only": {
+          "const": true
+        },
+        "executed": {
+          "const": false
+        },
+        "snapshot_used": {
+          "const": true
+        },
+        "external_tools": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "type": "string",
+            "maxLength": 1000
+          }
+        }
+      }
+    }
+  }
+}

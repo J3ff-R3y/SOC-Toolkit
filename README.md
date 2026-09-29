@@ -1,256 +1,83 @@
 # Jeffrey Toolkit
 
-**SOC & ISO Intelligence Suite** — self-hosted AI assistant for Security Operations Centers and Information Security Officers. The toolkit is designed to run locally/on-premise and can be deployed in air-gapped environments. The reference deployment in this repository currently uses llama.cpp + Qwen 3.6 35B-A3B, but the architecture is intentionally model-agnostic so other GGUF-compatible models and hardware profiles can be used.
+Jeffrey Toolkit is an offline-first SOC and information-security assistant built around a local `llama.cpp` runtime. It combines chat, structured detection engineering, deterministic utilities, static forensics, persistent local document retrieval, offline update controls, and reproducible model benchmarking behind localhost-only backend services.
 
-## What is Jeffrey?
+The repository describes the project as one integrated platform. Historical implementation phases and environment-specific evidence are intentionally not part of the public layout.
 
-Jeffrey is a self-hosted AI toolkit running on llama.cpp with Qwen 3.6 35B-A3B (Mixture-of-Experts + Vision). It provides SOC analysts with playbooks, detection rules, network/forensics tooling, a detection trigger tester, and a living-off-the-land binaries reference. It provides ISOs with policy generation, risk analysis, advisory notes, and compliance Q&A. The reference deployment places Apache in front of the local model server, but the deployment architecture is intentionally configurable.
+## Capabilities
 
-## Features
-
-### SOC Tools
-
-- **SOAR Playbooks** — Sentinel Logic Apps and Splunk SOAR with incident type, severity, and automation action selection
-- **Sigma Rules** — Convert Sigma YAML to platform-specific detection with field mapping and false positive analysis
-- **Network Detection** — Suricata IDS/IPS rules and Zeek scripts with threat type and protocol focus
-- **Forensische Triage** — First-pass analysis of suspicious binaries (strings extraction, IOC detection, magic bytes, entropy, YARA rule suggestions)
-- **Detectie Trigger Tester** — Paste a detection rule as delivered by a SIEM/vendor (Sentinel JSON, Splunk SPL, or Elastic TOML) and get a plan to verify the alert actually fires: rule logic explained, target OS inferred from the rule content, a ready-to-run PowerShell/bash trigger script where safe to automate, or an explicit risk explanation plus a manual step-by-step plan where it isn't — always followed by what to check in the SIEM afterwards
-- **Living Off The Land Naslag** — Local, offline-searchable reference of the [LOLBAS project](https://lolbas-project.github.io/) (living-off-the-land binaries/scripts): search by binary name, command fragment, or MITRE ID and get direct links to matching Sigma/Elastic/Splunk detection rules. Pure client-side lookup against a bundled JSON snapshot — no AI interpretation, no hallucination risk
-
-### ISO Tools
-
-- **Beleid Generator** — Generates policy documents in standard Dutch government structure (versiebeheer, verspreiding, verwijzingen, acceptatie, inleiding, maatregelen, mapping, rollen, bijlage)
-- **Risicoanalyse** — Supports risk analyses with criticality levels (Laag/Midden/Hoog/Kritiek), STRIDE modeling, and BIO2/ISO 27005 mapping
-- **Adviesnotitie** — Structured advisory notes with summary, analysis, considerations, recommendation, conditions, and alternatives
-- **Compliance Q&A** — Answers on framework interpretation, practical application, mapping between frameworks, and compliance evidence
-
-**Supported frameworks:** BIO2, ISO 27001/27002/27005, NIS2, AVG/GDPR, NEN 7510, Cyberbeveiligingswet, ABRO, VIR-BI 2025.
-
-### Platform Features
-
-- **Multi-file Upload** — Up to 5 files at once, mixed types: text (TXT/CSV/JSON/MD/XML/YAML/CONF), Excel (XLSX/XLS), **PDF** (client-side text extraction via PDF.js), and up to 3 images together (PNG/JPG/GIF/WEBP for vision)
-- **Paste-to-attachment** — Pasting long text (>500 characters) into the input field automatically becomes an attachment instead of cluttering the input box, same pattern as Claude/ChatGPT
-- **Screenshot Analysis** — Paste or upload screenshots (SIEM alerts, dashboards, network diagrams) for visual analysis
-- **Streaming Output** — Live token-by-token responses with timer and stop button, with scroll behavior that respects manual scrolling during generation
-- **Context-Aware Follow-ups** — In-session chat history maintained across follow-up questions, with a token budget that scales down as the conversation grows (prevents responses being cut off mid-generation in long conversations)
-- **Collapsible Sidebar** — Full collapse mode with icon-only view, or collapse individual sections (SOC/ISO)
-- **Custom Login** — Username/password authentication via Apache Basic Auth
-
-**No persistent chat history.** This toolkit is typically accessed from a stateless Citrix environment, where the browser profile (and anything in `localStorage`) is reset on every session. Persistent chat storage was removed rather than left in a broken state — conversations exist only within the current session, same as the follow-up context above.
+- Local OpenAI-compatible chat through a hardened gateway
+- Session-protected browser/API access
+- Structured Sigma, YARA, Suricata and Zeek generation with deterministic validation
+- Deterministic IOC/text encoding utilities that do not call the model
+- Static-only file triage helpers
+- Persistent offline RAG using SQLite FTS5
+- Knowledge modes: Off, Automatic, Selected documents
+- Persistent knowledge domains: `soc`, `iso`, `shared`
+- Automatic tool-aware retrieval:
+  - SOC tools -> `soc + shared`
+  - ISO tools -> `iso + shared`
+  - normal chat -> `soc + iso + shared`
+- Source attribution for retrieved chunks
+- Offline update verification/import/activation with rollback-oriented versioned releases
+- Reproducible benchmark corpus and quality evaluation tooling
+- Explicit single-model-by-default operating policy
 
 ## Architecture
 
-The basic deployment pattern is:
-
-```
-Client browser
-     │
-     ▼
-Web server / reverse proxy
-     │
-     ▼
-llama.cpp server (localhost recommended)
-     │
-     ▼
-GGUF model (+ optional vision projector)
-```
-
-Apache + Basic Auth is the reference implementation. Other reverse proxies and authentication mechanisms can be substituted as long as the model server remains protected from direct client access.
-
-The client environment may have internet access; the model server does not need internet access for normal operation. Any update/download workflow is deployment-specific.
-
-## Requirements
-
-There is no single mandatory hardware profile. Choose a model and llama.cpp build that fit the target host.
-
-| Component | Reference deployment |
-| --------- | -------------------- |
-| OS        | RHEL 10 (or compatible) |
-| RAM       | 64 GB |
-| Disk      | 100 GB on /data |
-| Network   | Model server can be isolated/offline |
-| GPU       | Not required for the reference CPU-only setup |
-
-For other deployments, adjust model, context size, threading, quantization, vision support and storage to the available hardware.
-
-## Quick Start
-
-This repository contains the frontend, reference configuration and operational documentation. The files under `archief/` are historical/reference deployment scripts and should not be treated as universal production installers.
-
-Before deployment, review:
-
-- [docs/NASLAG.md](docs/NASLAG.md) — architecture and operations
-- [docs/SECURITY-HARDENING.md](docs/SECURITY-HARDENING.md) — generic hardening guidance
-- [docs/ROADMAP.md](docs/ROADMAP.md) — phased improvement roadmap
-- [config/jeffrey.env.example](config/jeffrey.env.example) — deployment variables
-- [config/systemd-hardening.example.conf](config/systemd-hardening.example.conf) — example systemd hardening
-
-### 1. Download model/runtime assets outside the target network
-
-| File                              | Source                                                                                | Size    |
-| ---------------------------------- | -------------------------------------------------------------------------------------- | ------- |
-| `llama.cpp` source                 | [GitHub](https://github.com/ggml-org/llama.cpp) → tagged release → Download ZIP        | ~50 MB  |
-| `Qwen3.6-35B-A3B-MXFP4_MOE.gguf`   | [unsloth/Qwen3.6-35B-A3B-GGUF](https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF)   | ~21 GB  |
-| `mmproj-F16.gguf`                  | Same repo (for vision support) — must match the model version, not interchangeable    | ~900 MB |
-| `pdf.min.mjs` + `pdf.worker.min.mjs`   | Included in `frontend/` (PDF.js 4.0.379) — only re-download from [PDF.js releases](https://github.com/mozilla/pdf.js/releases) if you want a newer build | ~1.4 MB |
-| `lolbas.json`                      | Included in `frontend/` (snapshot for the Living Off The Land Naslag tab) — re-download from [lolbas-project.github.io/api/lolbas.json](https://lolbas-project.github.io/api/lolbas.json) for a fresher snapshot | ~430 KB |
-
-### 2. Upload to server
-
-```
-scp llama.cpp-source.zip user@SERVER:/data/toolkit/
-scp Qwen3.6-35B-A3B-MXFP4_MOE.gguf user@SERVER:/data/toolkit/
-scp mmproj-F16.gguf user@SERVER:/data/toolkit/
-scp deploy-jeffrey-v1.0.sh user@SERVER:/data/toolkit/
-scp jeffrey-v1.0.html user@SERVER:/data/toolkit/
-scp xlsx.full.min.js user@SERVER:/data/toolkit/
-scp pdf.min.mjs pdf.worker.min.mjs user@SERVER:/data/toolkit/
-scp lolbas.json user@SERVER:/data/toolkit/
+```text
+Browser / VDI
+      |
+      v
+Apache / reverse proxy
+      |
+      +-- /api/chat, structured APIs, deterministic utility
+      |        |
+      |        v
+      |   Jeffrey Gateway :8082 (localhost)
+      |        |
+      |        v
+      |   llama-server :8081 (localhost)
+      |
+      `-- /api/rag/*
+               |
+               v
+          RAG Gateway :8083 (localhost)
+               |
+               +-- SQLite FTS5 knowledge store
+               +-- document files
+               +-- domain-aware retrieval
+               `-- Jeffrey Gateway :8082 -> llama-server
 ```
 
-### 3. Deploy
+Only the reverse proxy should be externally reachable. The model server and both Python gateways are designed to remain loopback-only.
 
-```
-sudo bash /data/toolkit/deploy-jeffrey-v1.0.sh
-```
+## Repository layout
 
-For a new deployment, use the documented configuration as the source of truth and adapt the installation steps to the target OS/network/security requirements. Do not assume the reference paths, ports, model or hardware are universal.
-
-> **Reference note:** the script in `archief/` is retained for historical/reference purposes and predates several later changes. It still works for a fresh install, but after deploying, apply the current production settings manually: increase `--ctx-size` to 32768 and add `--batch-size 1024 --ubatch-size 2048` to the systemd override (see `docs/NASLAG.md`), and copy `pdf.min.mjs` / `pdf.worker.min.mjs` / `lolbas.json` from `frontend/` alongside the HTML for PDF support and the Living Off The Land Naslag tab (the script does not copy these).
-
-## File Structure (after deployment)
-
-```
-/data/
-├── toolkit/
-│   ├── index.html                          # Active HTML (served by Apache)
-│   ├── jeffrey-v1.0.html                   # HTML source / staging copy
-│   ├── xlsx.full.min.js                    # Excel parsing (SheetJS)
-│   ├── pdf.min.mjs                         # PDF text extraction (PDF.js)
-│   ├── pdf.worker.min.mjs                  # PDF.js worker
-│   ├── lolbas.json                         # LOLBAS data snapshot (Living Off The Land Naslag tab)
-│   └── deploy-jeffrey-v1.0.sh               # Deploy script
-├── models/
-│   ├── Qwen3.6-35B-A3B-MXFP4_MOE.gguf     # Main model (~21 GB)
-│   └── mmproj-F16.gguf                     # Vision projector (~900 MB)
-├── scripts/
-│   ├── update-model.sh                     # Reusable model-update script
-│   └── README.md                           # Update instructions
-/opt/llama-server/
-│   └── llama-server                         # Compiled binary
-/etc/httpd/conf.d/jeffrey.conf               # Apache config
-/etc/systemd/system/llama-server.service
-/etc/systemd/system/llama-server.service.d/override.conf
+```text
+frontend/            browser UI and local static assets
+src/gateway/         core gateway, auth, structured tools, validators, utilities
+src/rag/             persistent store, retriever and RAG sidecar
+src/update/          offline bundle verification/import/activation
+src/benchmark/       benchmark runner, corpus and quality analysis
+schemas/             JSON schemas for structured outputs and control planes
+config/              sanitized example configs and service definitions
+docs/                architecture, installation, operations and security docs
+scripts/             local validation helpers
 ```
 
-## Management
+## Important security boundaries
 
-```
-# Services
-systemctl status llama-server
-journalctl -u llama-server -f          # note: this service logs to /var/log/llama-server.log, not journald
-tail -f /var/log/llama-server.log      # actual runtime logs, including per-request timing
+- Backend ports bind to loopback.
+- Retrieved document text is untrusted reference context, never executable instruction.
+- Chat history is not persisted as long-term user memory by the RAG layer.
+- Selected-document mode is an explicit hard document-ID filter.
+- Offline bundles are verified before import and cannot supply arbitrary shell commands.
+- Static forensics is intentionally non-executing.
+- Baseline YARA/Suricata/Zeek validators are conservative checks, not claims of full engine/compiler equivalence.
 
-# Users
-htpasswd /etc/httpd/.htpasswd <username>          # Add
-htpasswd -D /etc/httpd/.htpasswd <username>        # Remove
+See [Architecture](docs/ARCHITECTURE.md), [Installation](docs/INSTALLATION.md), [Security](docs/SECURITY.md), and [RAG](docs/RAG.md).
 
-# Restart after config change
-sudo systemctl restart llama-server
-```
+## Scope
 
-### Updating the model
-
-A reusable, tested update script lives in `/data/scripts/` on the server (configuration block at the top, run with `sudo bash update-model.sh`). See `docs/NASLAG.md` for background and the full procedure.
-
-## Reference Model
-
-| Property       | Value                                        |
-| -------------- | --------------------------------------------- |
-| Model          | Qwen 3.6 35B-A3B Instruct                    |
-| Architecture   | Mixture-of-Experts (~3B active of 35B total) |
-| Quantization   | MXFP4\_MOE (Unsloth)                         |
-| Vision         | Yes (via mmproj-F16, version-matched)        |
-| Size (main)    | ~21 GB                                       |
-| Size (mmproj)  | ~900 MB                                      |
-| RAM usage      | ~12–16 GB (varies; MoE + mmap keeps this lower than the full weight size) |
-| Context window | 32768 tokens                                 |
-| Batch size     | 1024 (`--batch-size`)                        |
-| Micro-batch    | 2048 (`--ubatch-size`, the flag that actually affects prompt-processing speed on CPU) |
-| License        | Apache 2.0                                   |
-
-The values in this table are reference-deployment values, not universal recommendations. Benchmark context, batch, micro-batch and threading on the target hardware before copying them to another host.
-
-## Performance (CPU-only, 64GB RAM)
-
-| Query type                          | Expected time |
-| ------------------------------------ | ------------- |
-| Simple question                      | 5-15 sec      |
-| SIEM query                           | 15-30 sec     |
-| SOAR / Sigma / Network               | 30-90 sec     |
-| Single screenshot analysis           | 30-90 sec     |
-| Multiple images + document together  | Several minutes — most of the time is spent in vision-encoder prompt processing, not answer generation. This is CPU-only cost, not a bug; a GPU would reduce this substantially. |
-| Policy document (ISO)                | 1-3 min       |
-| Risk analysis (ISO)                  | 1-2 min       |
-
-## Development roadmap
-
-The toolkit is deliberately being evolved in phases. Security hardening and operational reliability come before additional model complexity.
-
-See [docs/ROADMAP.md](docs/ROADMAP.md) for the full roadmap.
-
-The intended direction is:
-
-```
-Stable local toolkit
-    ↓
-Security hardening + reproducible deployment
-    ↓
-Gateway / middleware
-    ↓
-Structured output + validation
-    ↓
-Local knowledge / RAG
-    ↓
-Deterministic security tooling
-    ↓
-Model benchmarking + routing
-```
-
-## Known behavior
-
-- **The model can hallucinate on specific facts** — most notably CVE details (wrong vendor/product for a given CVE number). This is inherent to how language models work, not something a configuration change fixes. For anything requiring verified accuracy (CVE details, CVSS scores), treat the model as a starting point and confirm against an authoritative source (e.g. nvd.nist.gov).
-- **No knowledge of events after the model's training cutoff** — recent CVEs or advisories won't be known to the model, and it won't always say so explicitly.
-- **Vision processing is CPU-bound and slow relative to text** — expect multi-minute waits for multiple images combined with documents. See Performance table above.
-
-## Repository Contents
-
-```
-├── README.md                    # This document
-├── jeffrey-v1.0.html            # (root copy, also under frontend/)
-frontend/
-├── index.html                   # (server copy, kept for reference — not auto-deployed from here)
-├── jeffrey-v1.0.html            # HTML source
-├── xlsx.full.min.js             # SheetJS library (Apache 2.0)
-├── pdf.min.mjs                  # PDF.js 4.0.379 (Apache 2.0)
-├── pdf.worker.min.mjs           # PDF.js worker
-└── lolbas.json                  # LOLBAS project data snapshot (used by the Living Off The Land Naslag tab)
-docs/
-└── NASLAG.md                    # Background: architecture, file layout, terminology, model-update procedure
-archief/
-├── deploy-jeffrey-v1.0.sh       # Fresh-install deployment script
-└── upgrade-llamacpp.sh          # In-place llama.cpp recompilation for updates
-.gitignore                       # Excludes GGUF models, builds, credentials
-```
-
-Note: `pdf.min.mjs` and `pdf.worker.min.mjs` (PDF.js 4.0.379, ~1.4 MB combined) are included in `frontend/`. This is an older but confirmed-working build; a newer PDF.js release can be substituted if tested against the real browser environment first (headless Node.js testing proved unreliable for verifying newer builds due to missing browser-only APIs).
-
-Note: `lolbas.json` (~430 KB, 242 entries) is a snapshot of the [LOLBAS project](https://lolbas-project.github.io/) data, used entirely client-side by the Living Off The Land Naslag tab — no backend, no AI interpretation. It's a reference snapshot rather than a live feed; re-download periodically from the source above if you want the latest entries.
-
-## Disclaimers
-
-Jeffrey is a personal/test project. It is not an officially supported production service. Generated content (policies, risk analyses, advisory notes, detection rules) should always be reviewed before use. AI assistance is not a replacement for professional judgment.
-
-## License
-
-This toolkit is provided as-is for internal SOC/ISO use. The reference Qwen 3.6 model is licensed under Apache 2.0; always verify the license of any alternative model before deployment.
+The public repository is deployment-agnostic. It contains no organization-specific IP addresses, hostnames, credentials, session tokens, internal evidence bundles, or environment-specific network policy. Adapt the example paths, service users and firewall policy to your own managed environment.
