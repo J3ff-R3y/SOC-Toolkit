@@ -1,10 +1,10 @@
-# Jeffrey Toolkit v1.0
+# Jeffrey Toolkit
 
-**SOC & ISO Intelligence Suite** — AI-powered assistant for Security Operations Centers and Information Security Officers, running fully offline on-premise.
+**SOC & ISO Intelligence Suite** — self-hosted AI assistant for Security Operations Centers and Information Security Officers. The toolkit is designed to run locally/on-premise and can be deployed in air-gapped environments. The reference deployment in this repository currently uses llama.cpp + Qwen 3.6 35B-A3B, but the architecture is intentionally model-agnostic so other GGUF-compatible models and hardware profiles can be used.
 
 ## What is Jeffrey?
 
-Jeffrey is a self-hosted AI toolkit running on llama.cpp with Qwen 3.6 35B-A3B (Mixture-of-Experts + Vision). It provides SOC analysts with playbooks, detection rules, network/forensics tooling, a detection trigger tester, and a living-off-the-land binaries reference. It provides ISOs with policy generation, risk analysis, advisory notes, and compliance Q&A. All behind Apache Basic Auth in a single HTML interface.
+Jeffrey is a self-hosted AI toolkit running on llama.cpp with Qwen 3.6 35B-A3B (Mixture-of-Experts + Vision). It provides SOC analysts with playbooks, detection rules, network/forensics tooling, a detection trigger tester, and a living-off-the-land binaries reference. It provides ISOs with policy generation, risk analysis, advisory notes, and compliance Q&A. The reference deployment places Apache in front of the local model server, but the deployment architecture is intentionally configurable.
 
 ## Features
 
@@ -40,26 +40,52 @@ Jeffrey is a self-hosted AI toolkit running on llama.cpp with Qwen 3.6 35B-A3B (
 
 ## Architecture
 
+The basic deployment pattern is:
+
 ```
-Browser  →  Apache (:8080)  →  llama.cpp server (:8081)
-            Basic Auth          Qwen 3.6 35B-A3B MoE
-            Reverse Proxy       + Vision projector
-            SSE Streaming       CPU inference
+Client browser
+     │
+     ▼
+Web server / reverse proxy
+     │
+     ▼
+llama.cpp server (localhost recommended)
+     │
+     ▼
+GGUF model (+ optional vision projector)
 ```
+
+Apache + Basic Auth is the reference implementation. Other reverse proxies and authentication mechanisms can be substituted as long as the model server remains protected from direct client access.
+
+The client environment may have internet access; the model server does not need internet access for normal operation. Any update/download workflow is deployment-specific.
 
 ## Requirements
 
-| Component | Spec                              |
-| --------- | ---------------------------------- |
-| OS        | RHEL 10 (or compatible)           |
-| RAM       | 64 GB minimum                     |
-| Disk      | 100 GB on /data                   |
-| Network   | Offline (no internet required)    |
-| GPU       | Not required (CPU-only inference) |
+There is no single mandatory hardware profile. Choose a model and llama.cpp build that fit the target host.
+
+| Component | Reference deployment |
+| --------- | -------------------- |
+| OS        | RHEL 10 (or compatible) |
+| RAM       | 64 GB |
+| Disk      | 100 GB on /data |
+| Network   | Model server can be isolated/offline |
+| GPU       | Not required for the reference CPU-only setup |
+
+For other deployments, adjust model, context size, threading, quantization, vision support and storage to the available hardware.
 
 ## Quick Start
 
-### 1. Download (on a PC with internet)
+This repository contains the frontend, reference configuration and operational documentation. The files under `archief/` are historical/reference deployment scripts and should not be treated as universal production installers.
+
+Before deployment, review:
+
+- [docs/NASLAG.md](docs/NASLAG.md) — architecture and operations
+- [docs/SECURITY-HARDENING.md](docs/SECURITY-HARDENING.md) — generic hardening guidance
+- [docs/ROADMAP.md](docs/ROADMAP.md) — phased improvement roadmap
+- [config/jeffrey.env.example](config/jeffrey.env.example) — deployment variables
+- [config/systemd-hardening.example.conf](config/systemd-hardening.example.conf) — example systemd hardening
+
+### 1. Download model/runtime assets outside the target network
 
 | File                              | Source                                                                                | Size    |
 | ---------------------------------- | -------------------------------------------------------------------------------------- | ------- |
@@ -88,9 +114,9 @@ scp lolbas.json user@SERVER:/data/toolkit/
 sudo bash /data/toolkit/deploy-jeffrey-v1.0.sh
 ```
 
-The script handles everything: cleanup of old installations, compiling llama.cpp from source (CMake), model + vision projector setup, Apache reverse proxy with Basic Auth, SELinux, firewall, and systemd service creation.
+For a new deployment, use the documented configuration as the source of truth and adapt the installation steps to the target OS/network/security requirements. Do not assume the reference paths, ports, model or hardware are universal.
 
-> **Note:** this script (in `archief/`) was written for the original 16384-context, PDF-less setup. It still works for a fresh install, but after deploying, apply the current production settings manually: increase `--ctx-size` to 32768 and add `--batch-size 1024 --ubatch-size 2048` to the systemd override (see `docs/NASLAG.md`), and copy `pdf.min.mjs` / `pdf.worker.min.mjs` / `lolbas.json` from `frontend/` alongside the HTML for PDF support and the Living Off The Land Naslag tab (the script does not copy these).
+> **Reference note:** the script in `archief/` is retained for historical/reference purposes and predates several later changes. It still works for a fresh install, but after deploying, apply the current production settings manually: increase `--ctx-size` to 32768 and add `--batch-size 1024 --ubatch-size 2048` to the systemd override (see `docs/NASLAG.md`), and copy `pdf.min.mjs` / `pdf.worker.min.mjs` / `lolbas.json` from `frontend/` alongside the HTML for PDF support and the Living Off The Land Naslag tab (the script does not copy these).
 
 ## File Structure (after deployment)
 
@@ -137,7 +163,7 @@ sudo systemctl restart llama-server
 
 A reusable, tested update script lives in `/data/scripts/` on the server (configuration block at the top, run with `sudo bash update-model.sh`). See `docs/NASLAG.md` for background and the full procedure.
 
-## Current Model
+## Reference Model
 
 | Property       | Value                                        |
 | -------------- | --------------------------------------------- |
@@ -153,7 +179,7 @@ A reusable, tested update script lives in `/data/scripts/` on the server (config
 | Micro-batch    | 2048 (`--ubatch-size`, the flag that actually affects prompt-processing speed on CPU) |
 | License        | Apache 2.0                                   |
 
-Context window was doubled from the original 16384 after confirming (via community reports and this MoE architecture's low KV-cache growth) that the RAM cost of a larger context is minimal — a few hundred MB, not gigabytes.
+The values in this table are reference-deployment values, not universal recommendations. Benchmark context, batch, micro-batch and threading on the target hardware before copying them to another host.
 
 ## Performance (CPU-only, 64GB RAM)
 
@@ -166,6 +192,30 @@ Context window was doubled from the original 16384 after confirming (via communi
 | Multiple images + document together  | Several minutes — most of the time is spent in vision-encoder prompt processing, not answer generation. This is CPU-only cost, not a bug; a GPU would reduce this substantially. |
 | Policy document (ISO)                | 1-3 min       |
 | Risk analysis (ISO)                  | 1-2 min       |
+
+## Development roadmap
+
+The toolkit is deliberately being evolved in phases. Security hardening and operational reliability come before additional model complexity.
+
+See [docs/ROADMAP.md](docs/ROADMAP.md) for the full roadmap.
+
+The intended direction is:
+
+```
+Stable local toolkit
+    ↓
+Security hardening + reproducible deployment
+    ↓
+Gateway / middleware
+    ↓
+Structured output + validation
+    ↓
+Local knowledge / RAG
+    ↓
+Deterministic security tooling
+    ↓
+Model benchmarking + routing
+```
 
 ## Known behavior
 
@@ -203,4 +253,4 @@ Jeffrey is a personal/test project. It is not an officially supported production
 
 ## License
 
-This toolkit is provided as-is for internal SOC/ISO use. The Qwen 3.6 model is licensed under Apache 2.0.
+This toolkit is provided as-is for internal SOC/ISO use. The reference Qwen 3.6 model is licensed under Apache 2.0; always verify the license of any alternative model before deployment.
